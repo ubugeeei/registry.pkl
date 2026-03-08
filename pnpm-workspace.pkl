@@ -1,0 +1,8 @@
+packages {
+  "packages/*"
+  "crates/*"
+}
+
+output {
+  renderer = new YamlRenderer {}
+}

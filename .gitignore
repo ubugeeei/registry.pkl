@@ -1,0 +1,10 @@
+node_modules
+/dist
+/package.json
+/.oxfmtrc.json
+/.mise.toml
+/pnpm-workspace.yaml
+/pnpm-lock.yaml
+/packages/docs/package.json
+/packages/docs/docs/api
+!/packages/docs/content/targets/agents.md

@@ -1,0 +1,15 @@
+import "mise.pkl"
+import ".oxfmt.pkl" as oxfmtConfig
+import "package.pkl" as workspacePackage
+import "pnpm-workspace.pkl" as pnpmWorkspace
+import "packages/docs/package.pkl" as docsPackage
+
+output {
+  files {
+    ["package.json"] = workspacePackage.output
+    [".oxfmtrc.json"] = oxfmtConfig.output
+    ["pnpm-workspace.yaml"] = pnpmWorkspace.output
+    [".mise.toml"] = mise.output
+    ["packages/docs/package.json"] = docsPackage.output
+  }
+}

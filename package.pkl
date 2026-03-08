@@ -1,0 +1,19 @@
+name = "registry-pkl"
+private = true
+version = "0.1.0"
+packageManager = "pnpm@10.31.0"
+
+scripts {
+  gen = "pkl eval -m . root-files.pkl"
+  dev = "pnpm --filter @registry/docs dev"
+  build = "pnpm --filter @registry/docs build"
+  preview = "pnpm --filter @registry/docs preview"
+  fmt = "pnpm --filter @registry/docs fmt"
+  lint = "pnpm --filter @registry/docs lint"
+  check = "pnpm --filter @registry/docs check"
+  test = "pnpm --filter @registry/docs test"
+}
+
+output {
+  renderer = new JsonRenderer {}
+}
