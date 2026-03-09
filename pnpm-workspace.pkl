@@ -1,8 +1,6 @@
+amends "@compat.js/pnpm-workspace/PnpmWorkspace.pkl"
+
 packages {
   "packages/*"
   "crates/*"
-}
-
-output {
-  renderer = new YamlRenderer {}
 }

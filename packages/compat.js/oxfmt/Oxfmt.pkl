@@ -1,0 +1,36 @@
+/// A typed authoring surface for `.oxfmtrc.json`.
+module compat.js.oxfmt.Oxfmt
+
+import "@compat.core/Maps.pkl" as Maps
+
+`$schema`: String? = null
+semi: Boolean? = null
+singleQuote: Boolean? = null
+trailingComma: "all"|"es5"|"none"? = null
+lineWidth: Int? = null
+quoteProps: "asNeeded"|"consistent"|"preserve"? = null
+bracketSpacing: Boolean? = null
+arrowParens: "always"|"avoid"? = null
+endOfLine: "lf"|"crlf"|"auto"? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (semi != null) { ["semi"] = semi }
+      when (singleQuote != null) { ["singleQuote"] = singleQuote }
+      when (trailingComma != null) { ["trailingComma"] = trailingComma }
+      when (lineWidth != null) { ["lineWidth"] = lineWidth }
+      when (quoteProps != null) { ["quoteProps"] = quoteProps }
+      when (bracketSpacing != null) { ["bracketSpacing"] = bracketSpacing }
+      when (arrowParens != null) { ["arrowParens"] = arrowParens }
+      when (endOfLine != null) { ["endOfLine"] = endOfLine }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

@@ -1,35 +1,33 @@
+amends "@compat.js/package-json/PackageJson.pkl"
+
 name = "@registry/docs"
 private = true
 version = "0.1.0"
 type = "module"
 
 engines {
-  node = ">=24"
-  pnpm = ">=10"
+  ["node"] = ">=24"
+  ["pnpm"] = ">=10"
 }
 
 scripts {
-  dev = "vite"
-  build = "vite build"
-  preview = "vite preview"
-  fmt = "pnpm exec oxfmt --write vite.config.ts tsconfig.json"
-  lint = "pnpm exec oxlint --type-aware --type-check vite.config.ts"
-  check = "pnpm exec oxlint --type-aware --type-check vite.config.ts"
-  test = "pnpm exec vitest run"
+  ["dev"] = "vite"
+  ["build"] = "vite build"
+  ["preview"] = "vite preview"
+  ["fmt"] = "pnpm exec oxfmt --write vite.config.ts tsconfig.json"
+  ["lint"] = "pnpm exec oxlint --type-aware --type-check vite.config.ts"
+  ["check"] = "pnpm exec oxlint --type-aware --type-check vite.config.ts"
+  ["test"] = "pnpm exec vitest run"
 }
 
 devDependencies {
   ["@ox-content/napi"] = "^0.16.0"
   ["@ox-content/vite-plugin"] = "^0.16.0"
   ["@types/node"] = "^25.3.5"
-  oxfmt = "^0.36.0"
-  oxlint = "^1.51.0"
+  ["oxfmt"] = "^0.36.0"
+  ["oxlint"] = "^1.51.0"
   ["oxlint-tsgolint"] = "^0.16.0"
-  typescript = "^5.9.3"
-  vite = "^8.0.0-beta.16"
-  vitest = "^4.0.18"
-}
-
-output {
-  renderer = new JsonRenderer {}
+  ["typescript"] = "^5.9.3"
+  ["vite"] = "^8.0.0-beta.16"
+  ["vitest"] = "^4.0.18"
 }

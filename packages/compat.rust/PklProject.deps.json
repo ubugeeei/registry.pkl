@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "resolvedDependencies": {
+    "package://pkg.pkl-lang.org/pkl-pantry/pkl.toml@1": {
+      "type": "remote",
+      "uri": "projectpackage://pkg.pkl-lang.org/pkl-pantry/pkl.toml@1.0.2",
+      "checksums": {
+        "sha256": "45fea4cf14e7d776e131b338efe2a7016f86c87b0c0f532409f728033bd82f71"
+      }
+    },
+    "package://pkg.registry.pkl/compat.core@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.registry.pkl/compat.core@0.1.0",
+      "path": "../compat.core"
+    }
+  }
+}

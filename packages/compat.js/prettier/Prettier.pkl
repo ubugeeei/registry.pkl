@@ -1,0 +1,59 @@
+/// A typed authoring surface for `.prettierrc`.
+module compat.js.prettier.Prettier
+
+import "@compat.core/Maps.pkl" as Maps
+
+class Override {
+  files: String|Listing<String>
+  options: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+semi: Boolean? = null
+singleQuote: Boolean? = null
+trailingComma: "all"|"es5"|"none"? = null
+printWidth: Int? = null
+tabWidth: Int? = null
+useTabs: Boolean? = null
+bracketSpacing: Boolean? = null
+arrowParens: "always"|"avoid"? = null
+endOfLine: "lf"|"crlf"|"auto"? = null
+plugins: Listing<String> = new Listing {}
+overrides: Listing<Override> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (semi != null) { ["semi"] = semi }
+      when (singleQuote != null) { ["singleQuote"] = singleQuote }
+      when (trailingComma != null) { ["trailingComma"] = trailingComma }
+      when (printWidth != null) { ["printWidth"] = printWidth }
+      when (tabWidth != null) { ["tabWidth"] = tabWidth }
+      when (useTabs != null) { ["useTabs"] = useTabs }
+      when (bracketSpacing != null) { ["bracketSpacing"] = bracketSpacing }
+      when (arrowParens != null) { ["arrowParens"] = arrowParens }
+      when (endOfLine != null) { ["endOfLine"] = endOfLine }
+      when (!plugins.toList().isEmpty) { ["plugins"] = plugins.toList() }
+      when (!overrides.toList().isEmpty) {
+        ["overrides"] =
+          overrides.toList().map(
+            (value) ->
+              new Dynamic {
+                ["files"] =
+                  if (value.files is Listing) value.files.toList() else value.files
+                when (!value.options.toMap().isEmpty) {
+                  ["options"] = value.options.toMap()
+                }
+              }.toMap(),
+          )
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

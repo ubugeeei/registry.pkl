@@ -1,0 +1,6 @@
+/// Shared helpers and conventions for registry.pkl first-party packages.
+amends "../basePklProject.pkl"
+
+package {
+  version = "0.1.0"
+}

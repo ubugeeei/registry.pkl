@@ -1,0 +1,7 @@
+amends "@compat.editor/vscode/Extensions.pkl"
+
+recommendations {
+  "biomejs.biome"
+  "esbenp.prettier-vscode"
+  "vadimcn.vscode-lldb"
+}

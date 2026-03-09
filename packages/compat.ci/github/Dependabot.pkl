@@ -1,0 +1,2 @@
+/// A thin preset over the official Dependabot package.
+amends "@com.github.dependabot/v2/Dependabot.pkl"

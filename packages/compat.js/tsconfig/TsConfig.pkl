@@ -1,0 +1,198 @@
+/// A typed authoring surface for `tsconfig.json`.
+module compat.js.tsconfig.TsConfig
+
+import "@compat.core/Maps.pkl" as Maps
+
+class ProjectReference {
+  path: String
+  prepend: Boolean? = null
+}
+
+class CompilerOptions {
+  target: String? = null
+  `module`: String? = null
+  moduleResolution: String? = null
+  lib: Listing<String> = new Listing {}
+  jsx: String? = null
+  jsxImportSource: String? = null
+  allowJs: Boolean? = null
+  checkJs: Boolean? = null
+  declaration: Boolean? = null
+  declarationMap: Boolean? = null
+  emitDeclarationOnly: Boolean? = null
+  sourceMap: Boolean? = null
+  inlineSourceMap: Boolean? = null
+  outDir: String? = null
+  rootDir: String? = null
+  baseUrl: String? = null
+  paths: Mapping<String, Listing<String>> = new Mapping {}
+  types: Listing<String> = new Listing {}
+  typeRoots: Listing<String> = new Listing {}
+  resolveJsonModule: Boolean? = null
+  esModuleInterop: Boolean? = null
+  isolatedModules: Boolean? = null
+  moduleDetection: String? = null
+  noEmit: Boolean? = null
+  noUnusedLocals: Boolean? = null
+  noUnusedParameters: Boolean? = null
+  strict: Boolean? = null
+  skipLibCheck: Boolean? = null
+  verbatimModuleSyntax: Boolean? = null
+  allowSyntheticDefaultImports: Boolean? = null
+  forceConsistentCasingInFileNames: Boolean? = null
+  custom: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+`extends`: String|Listing<String>? = null
+compilerOptions: CompilerOptions = new {}
+references: Listing<ProjectReference> = new Listing {}
+files: Listing<String> = new Listing {}
+include: Listing<String> = new Listing {}
+exclude: Listing<String> = new Listing {}
+watchOptions: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden compilerOptionsValue =
+  Maps.withExtra(
+    new Dynamic {
+      when (compilerOptions.target != null) {
+        ["target"] = compilerOptions.target
+      }
+      when (compilerOptions.`module` != null) {
+        ["module"] = compilerOptions.`module`
+      }
+      when (compilerOptions.moduleResolution != null) {
+        ["moduleResolution"] = compilerOptions.moduleResolution
+      }
+      when (!compilerOptions.lib.toList().isEmpty) {
+        ["lib"] = compilerOptions.lib.toList()
+      }
+      when (compilerOptions.jsx != null) {
+        ["jsx"] = compilerOptions.jsx
+      }
+      when (compilerOptions.jsxImportSource != null) {
+        ["jsxImportSource"] = compilerOptions.jsxImportSource
+      }
+      when (compilerOptions.allowJs != null) {
+        ["allowJs"] = compilerOptions.allowJs
+      }
+      when (compilerOptions.checkJs != null) {
+        ["checkJs"] = compilerOptions.checkJs
+      }
+      when (compilerOptions.declaration != null) {
+        ["declaration"] = compilerOptions.declaration
+      }
+      when (compilerOptions.declarationMap != null) {
+        ["declarationMap"] = compilerOptions.declarationMap
+      }
+      when (compilerOptions.emitDeclarationOnly != null) {
+        ["emitDeclarationOnly"] = compilerOptions.emitDeclarationOnly
+      }
+      when (compilerOptions.sourceMap != null) {
+        ["sourceMap"] = compilerOptions.sourceMap
+      }
+      when (compilerOptions.inlineSourceMap != null) {
+        ["inlineSourceMap"] = compilerOptions.inlineSourceMap
+      }
+      when (compilerOptions.outDir != null) {
+        ["outDir"] = compilerOptions.outDir
+      }
+      when (compilerOptions.rootDir != null) {
+        ["rootDir"] = compilerOptions.rootDir
+      }
+      when (compilerOptions.baseUrl != null) {
+        ["baseUrl"] = compilerOptions.baseUrl
+      }
+      when (!compilerOptions.paths.toMap().isEmpty) {
+        ["paths"] =
+          compilerOptions.paths.toMap().mapValues((_, value) -> value.toList())
+      }
+      when (!compilerOptions.types.toList().isEmpty) {
+        ["types"] = compilerOptions.types.toList()
+      }
+      when (!compilerOptions.typeRoots.toList().isEmpty) {
+        ["typeRoots"] = compilerOptions.typeRoots.toList()
+      }
+      when (compilerOptions.resolveJsonModule != null) {
+        ["resolveJsonModule"] = compilerOptions.resolveJsonModule
+      }
+      when (compilerOptions.esModuleInterop != null) {
+        ["esModuleInterop"] = compilerOptions.esModuleInterop
+      }
+      when (compilerOptions.isolatedModules != null) {
+        ["isolatedModules"] = compilerOptions.isolatedModules
+      }
+      when (compilerOptions.moduleDetection != null) {
+        ["moduleDetection"] = compilerOptions.moduleDetection
+      }
+      when (compilerOptions.noEmit != null) {
+        ["noEmit"] = compilerOptions.noEmit
+      }
+      when (compilerOptions.noUnusedLocals != null) {
+        ["noUnusedLocals"] = compilerOptions.noUnusedLocals
+      }
+      when (compilerOptions.noUnusedParameters != null) {
+        ["noUnusedParameters"] = compilerOptions.noUnusedParameters
+      }
+      when (compilerOptions.strict != null) {
+        ["strict"] = compilerOptions.strict
+      }
+      when (compilerOptions.skipLibCheck != null) {
+        ["skipLibCheck"] = compilerOptions.skipLibCheck
+      }
+      when (compilerOptions.verbatimModuleSyntax != null) {
+        ["verbatimModuleSyntax"] = compilerOptions.verbatimModuleSyntax
+      }
+      when (compilerOptions.allowSyntheticDefaultImports != null) {
+        ["allowSyntheticDefaultImports"] =
+          compilerOptions.allowSyntheticDefaultImports
+      }
+      when (compilerOptions.forceConsistentCasingInFileNames != null) {
+        ["forceConsistentCasingInFileNames"] =
+          compilerOptions.forceConsistentCasingInFileNames
+      }
+    },
+    compilerOptions.custom,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (`$schema` != null) {
+        ["$schema"] = `$schema`
+      }
+      when (`extends` != null) {
+        ["extends"] =
+          if (`extends` is Listing) `extends`.toList() else `extends`
+      }
+      when (!compilerOptionsValue.isEmpty) {
+        ["compilerOptions"] = compilerOptionsValue
+      }
+      when (!references.toList().isEmpty) {
+        ["references"] =
+          references.toList().map(
+            (value) ->
+              value.toMap().filter((_, elem) -> elem != null),
+          )
+      }
+      when (!files.toList().isEmpty) {
+        ["files"] = files.toList()
+      }
+      when (!include.toList().isEmpty) {
+        ["include"] = include.toList()
+      }
+      when (!exclude.toList().isEmpty) {
+        ["exclude"] = exclude.toList()
+      }
+      when (!watchOptions.toMap().isEmpty) {
+        ["watchOptions"] = watchOptions.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

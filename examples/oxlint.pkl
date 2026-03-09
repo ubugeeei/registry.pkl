@@ -1,0 +1,16 @@
+amends "@compat.js/oxlint/Oxlint.pkl"
+
+plugins {
+  "import"
+  "unicorn"
+}
+
+ignorePatterns {
+  "dist/**"
+  "coverage/**"
+}
+
+rules {
+  ["unicorn/prefer-module"] = "error"
+  ["import/no-default-export"] = "warn"
+}

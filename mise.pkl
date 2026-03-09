@@ -1,83 +1,41 @@
-class Task {
-  description: String
-  run: String
-}
+amends "@compat.env/mise/Mise.pkl"
 
 tools {
-  node = "24"
-  pnpm = "10"
+  ["node"] = "24"
+  ["pnpm"] = "10"
 }
 
-dev = new Task {
-  description = "Start the documentation site"
-  run = "pnpm dev"
-}
-
-build = new Task {
-  description = "Build the documentation site"
-  run = "pnpm build"
-}
-
-fmt = new Task {
-  description = "Run formatting workflows"
-  run = "pnpm fmt"
-}
-
-lint = new Task {
-  description = "Run lint workflows"
-  run = "pnpm lint"
-}
-
-check = new Task {
-  description = "Run static checks"
-  run = "pnpm check"
-}
-
-test = new Task {
-  description = "Run tests"
-  run = "pnpm test"
-}
-
-gen = new Task {
-  description = "Compile Pkl manifests to ecosystem-native files"
-  run = "pkl eval -m . root-files.pkl"
-}
-
-// TODO: Replace this handwritten TOML template with an automated TOML emission
-// path that can be shared across mise, Cargo, clippy, rustfmt, and other
-// TOML-backed targets.
-output {
-  text = """
-[tools]
-node = "\(tools.node)"
-pnpm = "\(tools.pnpm)"
-
-[tasks.dev]
-description = "\(dev.description)"
-run = "\(dev.run)"
-
-[tasks.build]
-description = "\(build.description)"
-run = "\(build.run)"
-
-[tasks.fmt]
-description = "\(fmt.description)"
-run = "\(fmt.run)"
-
-[tasks.lint]
-description = "\(lint.description)"
-run = "\(lint.run)"
-
-[tasks.check]
-description = "\(check.description)"
-run = "\(check.run)"
-
-[tasks.test]
-description = "\(test.description)"
-run = "\(test.run)"
-
-[tasks.gen]
-description = "\(gen.description)"
-run = "\(gen.run)"
-"""
+tasks {
+  ["dev"] = new Task {
+    description = "Start the documentation site"
+    run = "pnpm dev"
+  }
+  ["build"] = new Task {
+    description = "Build the documentation site"
+    run = "pnpm build"
+  }
+  ["fmt"] = new Task {
+    description = "Run formatting workflows"
+    run = "pnpm fmt"
+  }
+  ["lint"] = new Task {
+    description = "Run lint workflows"
+    run = "pnpm lint"
+  }
+  ["check"] = new Task {
+    description = "Run static checks"
+    run = "pnpm check"
+  }
+  ["test"] = new Task {
+    description = "Run tests"
+    run = "pnpm test"
+  }
+  ["gen"] = new Task {
+    description = "Compile Pkl manifests to ecosystem-native files"
+    run = "pkl eval -m . root-files.pkl"
+  }
+  ["resolve"] = new Task {
+    description = "Resolve local and remote Pkl package dependencies"
+    run = "pkl project resolve . packages/compat.*"
+  }
 }

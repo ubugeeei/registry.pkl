@@ -1,0 +1,4 @@
+/// A thin preset over the official GitHub Actions workflow package.
+amends "@com.github.actions/Workflow.pkl"
+
+permissions = "read-all"

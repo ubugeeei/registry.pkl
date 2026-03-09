@@ -1,0 +1,11 @@
+amends "@compat.rust/clippy/Clippy.pkl"
+
+msrv = "1.85"
+allowDbgInTests = true
+cognitiveComplexityThreshold = 20
+tooManyArgumentsThreshold = 6
+docValidIdents {
+  "GitHub"
+  "TypeScript"
+  "JavaScript"
+}

@@ -1,0 +1,10 @@
+amends "pkl:Project"
+
+dependencies {
+  ["compat.core"] = import("./packages/compat.core/PklProject")
+  ["compat.js"] = import("./packages/compat.js/PklProject")
+  ["compat.env"] = import("./packages/compat.env/PklProject")
+  ["compat.rust"] = import("./packages/compat.rust/PklProject")
+  ["compat.editor"] = import("./packages/compat.editor/PklProject")
+  ["compat.ci"] = import("./packages/compat.ci/PklProject")
+}

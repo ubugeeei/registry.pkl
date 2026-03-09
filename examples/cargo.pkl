@@ -1,0 +1,33 @@
+amends "@compat.rust/cargo/Cargo.pkl"
+
+package {
+  name = "registry-pkl-cli"
+  version = "0.1.0"
+  edition = "2024"
+  description = "Registry tooling for Pkl config packages"
+  license = "Apache-2.0"
+  repository = "https://github.com/ubugeeei/registry.pkl"
+}
+
+dependencies {
+  ["anyhow"] = "1.0.97"
+  ["clap"] = new Dependency {
+    version = "4.5.32"
+    features {
+      "derive"
+    }
+  }
+  ["serde"] = new Dependency {
+    version = "1.0.219"
+    features {
+      "derive"
+    }
+  }
+}
+
+features {
+  ["default"] = new Listing {
+    "cli"
+  }
+  ["cli"] = new Listing {}
+}

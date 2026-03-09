@@ -1,0 +1,33 @@
+amends "@compat.ci/gitlab/GitLabCi.pkl"
+
+stages {
+  "verify"
+  "build"
+}
+
+variables {
+  ["NODE_ENV"] = "test"
+}
+
+jobs {
+  ["verify"] = new Job {
+    stage = "verify"
+    script = new Listing {
+      "pnpm install --frozen-lockfile"
+      "pnpm run check"
+      "pnpm run test"
+    }
+  }
+  ["build"] = new Job {
+    stage = "build"
+    needs {
+      "verify"
+    }
+    script = "pnpm run build"
+    artifacts = new Artifacts {
+      paths {
+        "dist/"
+      }
+    }
+  }
+}

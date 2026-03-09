@@ -1,0 +1,25 @@
+amends "@compat.editor/vscode/Settings.pkl"
+
+editor {
+  formatOnSave = true
+  defaultFormatter = "esbenp.prettier-vscode"
+  rulers {
+    100
+  }
+  codeActionsOnSave {
+    ["source.fixAll.biome"] = "explicit"
+  }
+}
+
+files {
+  insertFinalNewline = true
+  trimTrailingWhitespace = true
+  exclude {
+    ["dist"] = true
+  }
+}
+
+typescript {
+  tsdk = "node_modules/typescript/lib"
+  enablePromptUseWorkspaceTsdk = true
+}

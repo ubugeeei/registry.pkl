@@ -1,0 +1,119 @@
+/// A batteries-included GitHub Actions workflow for Node-based repositories.
+module compat.ci.github.NodeCiWorkflow
+
+import "@compat.core/Maps.pkl" as Maps
+
+name: String = "CI"
+branches: List<String> = List("main")
+nodeVersions: List<String> = List("24")
+packageManager: "npm"|"pnpm"|"yarn"|"bun" = "pnpm"
+install: String? = null
+check: String? = null
+lint: String? = null
+test: String? = null
+build: String? = null
+workingDirectory: String? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden installCommand =
+  install
+  ?? (
+    if (packageManager == "npm")
+      "npm ci"
+    else if (packageManager == "pnpm")
+      "pnpm install --frozen-lockfile"
+    else if (packageManager == "yarn")
+      "yarn install --immutable"
+    else
+      "bun install --frozen-lockfile"
+  )
+
+hidden steps =
+  new Listing {
+    new Dynamic {
+      ["uses"] = "actions/checkout@v6"
+    }.toMap()
+    new Dynamic {
+      ["uses"] = "actions/setup-node@v4"
+      ["with"] = new Dynamic {
+        ["node-version"] =
+          if (nodeVersions.length == 1) nodeVersions.first else "${{ matrix.node }}"
+        ["cache"] = packageManager
+      }.toMap()
+    }.toMap()
+    when (installCommand != null) {
+      new Dynamic {
+        ["run"] = installCommand
+        when (workingDirectory != null) {
+          ["working-directory"] = workingDirectory
+        }
+      }.toMap()
+    }
+    when (check != null) {
+      new Dynamic {
+        ["run"] = check
+        when (workingDirectory != null) {
+          ["working-directory"] = workingDirectory
+        }
+      }.toMap()
+    }
+    when (lint != null) {
+      new Dynamic {
+        ["run"] = lint
+        when (workingDirectory != null) {
+          ["working-directory"] = workingDirectory
+        }
+      }.toMap()
+    }
+    when (test != null) {
+      new Dynamic {
+        ["run"] = test
+        when (workingDirectory != null) {
+          ["working-directory"] = workingDirectory
+        }
+      }.toMap()
+    }
+    when (build != null) {
+      new Dynamic {
+        ["run"] = build
+        when (workingDirectory != null) {
+          ["working-directory"] = workingDirectory
+        }
+      }.toMap()
+    }
+  }.toList()
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = name
+      ["on"] = new Dynamic {
+        ["push"] = new Dynamic {
+        ["branches"] = branches
+      }.toMap()
+      ["pull_request"] = new Dynamic {
+          ["branches"] = branches
+      }.toMap()
+      }.toMap()
+      ["permissions"] = "read-all"
+      ["jobs"] = new Dynamic {
+        ["ci"] = new Dynamic {
+          ["runs-on"] = "ubuntu-latest"
+          when (nodeVersions.length > 1) {
+            ["strategy"] = new Dynamic {
+              ["matrix"] = new Dynamic {
+                ["node"] = nodeVersions
+              }.toMap()
+            }.toMap()
+          }
+          ["steps"] = steps
+        }.toMap()
+      }.toMap()
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

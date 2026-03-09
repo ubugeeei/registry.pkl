@@ -1,0 +1,130 @@
+/// A typed authoring surface for `.gitlab-ci.yml`.
+module compat.ci.gitlab.GitLabCi
+
+import "@compat.core/Maps.pkl" as Maps
+
+class Rule {
+  `if`: String? = null
+  changes: Listing<String> = new Listing {}
+  `when`: String? = null
+  allowFailure: Boolean? = null
+}
+
+class Cache {
+  key: String? = null
+  paths: Listing<String> = new Listing {}
+  policy: String? = null
+}
+
+class Artifacts {
+  paths: Listing<String> = new Listing {}
+  reports: Mapping<String, Any> = new Mapping {}
+  `when`: String? = null
+  expireIn: String? = null
+}
+
+class Job {
+  stage: String? = null
+  image: String? = null
+  script: String|Listing<String>
+  beforeScript: Listing<String> = new Listing {}
+  afterScript: Listing<String> = new Listing {}
+  needs: Listing<String> = new Listing {}
+  tags: Listing<String> = new Listing {}
+  services: Listing<String> = new Listing {}
+  variables: Mapping<String, Any> = new Mapping {}
+  rules: Listing<Rule> = new Listing {}
+  cache: Cache? = null
+  artifacts: Artifacts? = null
+  interruptible: Boolean? = null
+  retry: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+stages: Listing<String> = new Listing {}
+include: Listing<String> = new Listing {}
+variables: Mapping<String, Any> = new Mapping {}
+workflow: Mapping<String, Any> = new Mapping {}
+default: Mapping<String, Any> = new Mapping {}
+jobs: Mapping<String, Job> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderRule(value: Rule) =
+  new Dynamic {
+    when (value.`if` != null) { ["if"] = value.`if` }
+    when (!value.changes.toList().isEmpty) { ["changes"] = value.changes.toList() }
+    when (value.`when` != null) { ["when"] = value.`when` }
+    when (value.allowFailure != null) {
+      ["allow_failure"] = value.allowFailure
+    }
+  }.toMap()
+
+local function renderCache(value: Cache) =
+  new Dynamic {
+    when (value.key != null) { ["key"] = value.key }
+    when (!value.paths.toList().isEmpty) { ["paths"] = value.paths.toList() }
+    when (value.policy != null) { ["policy"] = value.policy }
+  }.toMap()
+
+local function renderArtifacts(value: Artifacts) =
+  new Dynamic {
+    when (!value.paths.toList().isEmpty) { ["paths"] = value.paths.toList() }
+    when (!value.reports.toMap().isEmpty) { ["reports"] = value.reports.toMap() }
+    when (value.`when` != null) { ["when"] = value.`when` }
+    when (value.expireIn != null) { ["expire_in"] = value.expireIn }
+  }.toMap()
+
+local function renderJob(value: Job) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.stage != null) { ["stage"] = value.stage }
+      when (value.image != null) { ["image"] = value.image }
+      ["script"] = if (value.script is Listing) value.script.toList() else value.script
+      when (!value.beforeScript.toList().isEmpty) {
+        ["before_script"] = value.beforeScript.toList()
+      }
+      when (!value.afterScript.toList().isEmpty) {
+        ["after_script"] = value.afterScript.toList()
+      }
+      when (!value.needs.toList().isEmpty) { ["needs"] = value.needs.toList() }
+      when (!value.tags.toList().isEmpty) { ["tags"] = value.tags.toList() }
+      when (!value.services.toList().isEmpty) {
+        ["services"] = value.services.toList()
+      }
+      when (!value.variables.toMap().isEmpty) {
+        ["variables"] = value.variables.toMap()
+      }
+      when (!value.rules.toList().isEmpty) {
+        ["rules"] = value.rules.toList().map((rule) -> renderRule(rule))
+      }
+      when (value.cache != null) { ["cache"] = renderCache(value.cache) }
+      when (value.artifacts != null) {
+        ["artifacts"] = renderArtifacts(value.artifacts)
+      }
+      when (value.interruptible != null) {
+        ["interruptible"] = value.interruptible
+      }
+      when (value.retry != null) { ["retry"] = value.retry }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (!stages.toList().isEmpty) { ["stages"] = stages.toList() }
+      when (!include.toList().isEmpty) { ["include"] = include.toList() }
+      when (!variables.toMap().isEmpty) { ["variables"] = variables.toMap() }
+      when (!workflow.toMap().isEmpty) { ["workflow"] = workflow.toMap() }
+      when (!default.toMap().isEmpty) { ["default"] = default.toMap() }
+      for (name, job in jobs) {
+        [name] = renderJob(job)
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

@@ -1,0 +1,113 @@
+/// A typed authoring surface for `deno.json`.
+module compat.env.deno.Deno
+
+import "@compat.core/Maps.pkl" as Maps
+
+class FmtOptions {
+  useTabs: Boolean? = null
+  lineWidth: Int? = null
+  indentWidth: Int? = null
+  singleQuote: Boolean? = null
+  proseWrap: "always"|"never"|"preserve"? = null
+  include: Listing<String> = new Listing {}
+  exclude: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class LintOptions {
+  include: Listing<String> = new Listing {}
+  exclude: Listing<String> = new Listing {}
+  rules: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class TestOptions {
+  include: Listing<String> = new Listing {}
+  exclude: Listing<String> = new Listing {}
+  shuffle: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+name: String? = null
+version: String? = null
+tasks: Mapping<String, String> = new Mapping {}
+imports: Mapping<String, String> = new Mapping {}
+scopes: Mapping<String, Mapping<String, String>> = new Mapping {}
+compilerOptions: Mapping<String, Any> = new Mapping {}
+fmt: FmtOptions = new {}
+lint: LintOptions = new {}
+test: TestOptions = new {}
+exclude: Listing<String> = new Listing {}
+unstable: Listing<String> = new Listing {}
+nodeModulesDir: Boolean|String? = null
+lock: Boolean|String? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderFmt(value: FmtOptions) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.useTabs != null) { ["useTabs"] = value.useTabs }
+      when (value.lineWidth != null) { ["lineWidth"] = value.lineWidth }
+      when (value.indentWidth != null) { ["indentWidth"] = value.indentWidth }
+      when (value.singleQuote != null) { ["singleQuote"] = value.singleQuote }
+      when (value.proseWrap != null) { ["proseWrap"] = value.proseWrap }
+      when (!value.include.toList().isEmpty) { ["include"] = value.include.toList() }
+      when (!value.exclude.toList().isEmpty) { ["exclude"] = value.exclude.toList() }
+    },
+    value.extra,
+  )
+
+local function renderLint(value: LintOptions) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.include.toList().isEmpty) { ["include"] = value.include.toList() }
+      when (!value.exclude.toList().isEmpty) { ["exclude"] = value.exclude.toList() }
+      when (!value.rules.toMap().isEmpty) { ["rules"] = value.rules.toMap() }
+    },
+    value.extra,
+  )
+
+local function renderTest(value: TestOptions) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.include.toList().isEmpty) { ["include"] = value.include.toList() }
+      when (!value.exclude.toList().isEmpty) { ["exclude"] = value.exclude.toList() }
+      when (value.shuffle != null) { ["shuffle"] = value.shuffle }
+    },
+    value.extra,
+  )
+
+hidden fmtValue = renderFmt(fmt)
+hidden lintValue = renderLint(lint)
+hidden testValue = renderTest(test)
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (name != null) { ["name"] = name }
+      when (version != null) { ["version"] = version }
+      when (!tasks.toMap().isEmpty) { ["tasks"] = tasks.toMap() }
+      when (!imports.toMap().isEmpty) { ["imports"] = imports.toMap() }
+      when (!scopes.toMap().isEmpty) {
+        ["scopes"] = scopes.toMap().mapValues((_, value) -> value.toMap())
+      }
+      when (!compilerOptions.toMap().isEmpty) {
+        ["compilerOptions"] = compilerOptions.toMap()
+      }
+      when (!fmtValue.isEmpty) { ["fmt"] = fmtValue }
+      when (!lintValue.isEmpty) { ["lint"] = lintValue }
+      when (!testValue.isEmpty) { ["test"] = testValue }
+      when (!exclude.toList().isEmpty) { ["exclude"] = exclude.toList() }
+      when (!unstable.toList().isEmpty) { ["unstable"] = unstable.toList() }
+      when (nodeModulesDir != null) { ["nodeModulesDir"] = nodeModulesDir }
+      when (lock != null) { ["lock"] = lock }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

@@ -1,0 +1,79 @@
+/// A typed authoring surface for `mise.toml`.
+module compat.env.mise.Mise
+
+import "@compat.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+typealias Scalar = String|Boolean|Int|Float
+
+class Task {
+  description: String? = null
+  run: (String|Listing<String>)? = null
+  depends: Listing<String> = new Listing {}
+  dir: String? = null
+  shell: String? = null
+  sources: Listing<String> = new Listing {}
+  env: Mapping<String, Scalar> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+tools: Mapping<String, String|Listing<String>> = new Mapping {}
+env: Mapping<String, Scalar> = new Mapping {}
+tasks: Mapping<String, Task> = new Mapping {}
+settings: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderTask(value: Task) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.description != null) {
+        ["description"] = value.description
+      }
+      when (value.run != null) {
+        ["run"] = if (value.run is Listing) value.run.toList() else value.run
+      }
+      when (!value.depends.toList().isEmpty) {
+        ["depends"] = value.depends.toList()
+      }
+      when (value.dir != null) {
+        ["dir"] = value.dir
+      }
+      when (value.shell != null) {
+        ["shell"] = value.shell
+      }
+      when (!value.sources.toList().isEmpty) {
+        ["sources"] = value.sources.toList()
+      }
+      when (!value.env.toMap().isEmpty) {
+        ["env"] = value.env.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (!tools.toMap().isEmpty) {
+        ["tools"] =
+          tools.toMap().mapValues(
+            (_, value) -> if (value is Listing) value.toList() else value,
+          )
+      }
+      when (!env.toMap().isEmpty) {
+        ["env"] = env.toMap()
+      }
+      when (!tasks.toMap().isEmpty) {
+        ["tasks"] = tasks.toMap().mapValues((_, value) -> renderTask(value))
+      }
+      when (!settings.toMap().isEmpty) {
+        ["settings"] = settings.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

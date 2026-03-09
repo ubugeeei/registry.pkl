@@ -1,0 +1,33 @@
+amends "@compat.js/biome/Biome.pkl"
+
+`$schema` = "https://biomejs.dev/schemas/latest/schema.json"
+
+formatter {
+  enabled = true
+  indentStyle = "space"
+  indentWidth = 2
+  lineWidth = 100
+}
+
+linter {
+  enabled = true
+  rules {
+    ["recommended"] = true
+    ["style"] = new Dynamic {
+      ["useImportType"] = "warn"
+    }
+  }
+}
+
+files {
+  includes {
+    "src/**/*.ts"
+    "tests/**/*.ts"
+  }
+}
+
+vcs {
+  enabled = true
+  clientKind = "git"
+  useIgnoreFile = true
+}

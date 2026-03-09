@@ -1,0 +1,12 @@
+amends "@compat.ci/github/NodeCiWorkflow.pkl"
+
+name = "Node CI"
+
+branches = List("main", "develop")
+
+nodeVersions = List("22", "24")
+
+check = "pnpm run check"
+lint = "pnpm run lint"
+test = "pnpm run test"
+build = "pnpm run build"
