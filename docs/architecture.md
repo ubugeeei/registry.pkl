@@ -8,7 +8,7 @@ This file remains as a short maintainer note.
 ## Current Direction
 
 - service name: `registry.pkl`
-- first-party package family: `compat.*`
+- first-party package family: `target.*`
 - registry model: GitHub Pull Request-based, not custom publish API
 - docs stack: `ox-content`
 - implementation language for programs: Rust

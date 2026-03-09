@@ -1,4 +1,4 @@
-amends "@compat.js/pnpm-workspace/PnpmWorkspace.pkl"
+amends "@target.js/pnpm-workspace/PnpmWorkspace.pkl"
 
 packages {
   "packages/*"

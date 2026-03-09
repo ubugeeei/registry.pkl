@@ -12,12 +12,12 @@ record.
 
 ```json
 {
-  "name": "compat.js",
+  "name": "target.js",
   "version": "0.1.0",
-  "packageUri": "package://pkg.registry.pkl/compat.js@0.1.0",
-  "metadataUrl": "https://pkg.registry.pkl/compat.js@0.1.0",
-  "packageZipUrl": "https://github.com/example/compat/releases/download/compat.js-v0.1.0/compat.js@0.1.0.zip",
-  "docsUrl": "https://docs.registry.pkl/compat.js/0.1.0/",
+  "packageUri": "package://pkg.registry.pkl/target.js@0.1.0",
+  "metadataUrl": "https://pkg.registry.pkl/target.js@0.1.0",
+  "packageZipUrl": "https://github.com/example/target/releases/download/target.js-v0.1.0/target.js@0.1.0.zip",
+  "docsUrl": "https://docs.registry.pkl/target.js/0.1.0/",
   "ecosystem": "javascript",
   "targets": [
     "package.json",
@@ -37,7 +37,7 @@ record.
     "ubugeeei"
   ],
   "source": {
-    "repo": "https://github.com/example/compat",
+    "repo": "https://github.com/example/target",
     "directory": "packages/js"
   }
 }

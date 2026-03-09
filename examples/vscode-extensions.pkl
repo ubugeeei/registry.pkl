@@ -1,4 +1,4 @@
-amends "@compat.editor/vscode/Extensions.pkl"
+amends "@target.editor/vscode/Extensions.pkl"
 
 recommendations {
   "biomejs.biome"

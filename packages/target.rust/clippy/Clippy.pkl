@@ -1,0 +1,62 @@
+/// A typed authoring surface for `clippy.toml`.
+module target.rust.clippy.Clippy
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+msrv: String? = null
+avoidBreakingExportedApi: Boolean? = null
+allowDbgInTests: Boolean? = null
+allowPrintInTests: Boolean? = null
+cognitiveComplexityThreshold: Int? = null
+tooManyArgumentsThreshold: Int? = null
+typeComplexityThreshold: Int? = null
+enumVariantNameThreshold: Int? = null
+singleCharLifetimeNamesThreshold: Int? = null
+docValidIdents: Listing<String> = new Listing {}
+disallowedNames: Listing<String> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (msrv != null) { ["msrv"] = msrv }
+      when (avoidBreakingExportedApi != null) {
+        ["avoid-breaking-exported-api"] = avoidBreakingExportedApi
+      }
+      when (allowDbgInTests != null) {
+        ["allow-dbg-in-tests"] = allowDbgInTests
+      }
+      when (allowPrintInTests != null) {
+        ["allow-print-in-tests"] = allowPrintInTests
+      }
+      when (cognitiveComplexityThreshold != null) {
+        ["cognitive-complexity-threshold"] = cognitiveComplexityThreshold
+      }
+      when (tooManyArgumentsThreshold != null) {
+        ["too-many-arguments-threshold"] = tooManyArgumentsThreshold
+      }
+      when (typeComplexityThreshold != null) {
+        ["type-complexity-threshold"] = typeComplexityThreshold
+      }
+      when (enumVariantNameThreshold != null) {
+        ["enum-variant-name-threshold"] = enumVariantNameThreshold
+      }
+      when (singleCharLifetimeNamesThreshold != null) {
+        ["single-char-lifetime-names-threshold"] =
+          singleCharLifetimeNamesThreshold
+      }
+      when (!docValidIdents.toList().isEmpty) {
+        ["doc-valid-idents"] = docValidIdents.toList()
+      }
+      when (!disallowedNames.toList().isEmpty) {
+        ["disallowed-names"] = disallowedNames.toList()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

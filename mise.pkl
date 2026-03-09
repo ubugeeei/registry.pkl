@@ -1,4 +1,4 @@
-amends "@compat.env/mise/Mise.pkl"
+amends "@target.env/mise/Mise.pkl"
 
 tools {
   ["node"] = "24"
@@ -36,6 +36,6 @@ tasks {
   }
   ["resolve"] = new Task {
     description = "Resolve local and remote Pkl package dependencies"
-    run = "pkl project resolve . packages/compat.*"
+    run = "pkl project resolve . packages/target.*"
   }
 }

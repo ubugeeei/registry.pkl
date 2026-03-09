@@ -1,4 +1,4 @@
-amends "@compat.ci/gitlab/GitLabCi.pkl"
+amends "@target.ci/gitlab/GitLabCi.pkl"
 
 stages {
   "verify"

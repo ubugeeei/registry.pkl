@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "resolvedDependencies": {
+    "package://pkg.registry.pkl/target.core@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.registry.pkl/target.core@0.1.0",
+      "path": "../target.core"
+    }
+  }
+}

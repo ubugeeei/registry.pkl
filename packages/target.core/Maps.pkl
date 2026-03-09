@@ -1,0 +1,8 @@
+/// Shared helpers for building renderable config objects.
+module target.core.Maps
+
+function toMap(value: Dynamic|Mapping|Map) =
+  if (value is Map) value else value.toMap()
+
+function withExtra(base: Dynamic|Mapping|Map, extra: Mapping<String, Any>) =
+  toMap(base) + extra.toMap()

@@ -1,11 +1,11 @@
 ---
 title: JavaScript and TypeScript
-description: The first package that should ship is compat.js.
+description: The first package that should ship is target.js.
 ---
 
 # JavaScript and TypeScript
 
-`compat.js` should be the flagship package.
+`target.js` should be the flagship package.
 
 ## Why This Package Goes First
 

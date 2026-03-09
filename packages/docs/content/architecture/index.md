@@ -11,7 +11,7 @@ The design is cleaner if you separate the ecosystem into two product layers.
 
 ### 1. Package layer
 
-This is the `compat.*` family.
+This is the `target.*` family.
 
 It provides typed Pkl modules that generate existing tool configs.
 
@@ -26,7 +26,7 @@ Requests.
 
 ```mermaid
 flowchart TD
-  A["compat.* package source"] --> B["package artifact + docs"]
+  A["target.* package source"] --> B["package artifact + docs"]
   B --> C["registry record PR"]
   C --> D["registry.pkl index repo"]
   D --> E["search index"]

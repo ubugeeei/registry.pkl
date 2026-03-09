@@ -1,0 +1,15 @@
+amends "@target.agent/claudeDesktop/Mcp.pkl"
+
+import "@target.agent/mcp/Core.pkl" as Mcp
+
+mcpServers {
+  ["filesystem"] =
+    new Mcp.StdioServer {
+      command = "npx"
+      args {
+        "-y"
+        "@modelcontextprotocol/server-filesystem"
+        "."
+      }
+    }
+}

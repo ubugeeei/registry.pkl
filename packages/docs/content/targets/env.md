@@ -1,11 +1,11 @@
 ---
 title: Environment and Runtime Tooling
-description: Why mise.toml and deno.json belong in compat.env.
+description: Why mise.toml and deno.json belong in target.env.
 ---
 
 # Environment and Runtime Tooling
 
-`compat.env` holds configuration that describes the development environment or
+`target.env` holds configuration that describes the development environment or
 runtime toolchain rather than the application package graph itself.
 
 ## First Targets

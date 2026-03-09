@@ -1,0 +1,26 @@
+/// A typed authoring surface for `.vscode/extensions.json`.
+module target.editor.vscode.Extensions
+
+import "@target.core/Maps.pkl" as Maps
+
+recommendations: Listing<String> = new Listing {}
+unwantedRecommendations: Listing<String> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (!recommendations.toList().isEmpty) {
+        ["recommendations"] = recommendations.toList()
+      }
+      when (!unwantedRecommendations.toList().isEmpty) {
+        ["unwantedRecommendations"] = unwantedRecommendations.toList()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

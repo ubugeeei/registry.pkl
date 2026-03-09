@@ -1,4 +1,4 @@
-amends "@compat.js/tsconfig/TsConfig.pkl"
+amends "@target.js/tsconfig/TsConfig.pkl"
 
 compilerOptions {
   target = "ES2022"

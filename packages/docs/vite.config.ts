@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { defineTheme, defaultTheme, oxContent } from "@ox-content/vite-plugin";
+import pkl from "@shikijs/langs/pkl";
 
 export default defineConfig({
   plugins: [
@@ -9,6 +10,7 @@ export default defineConfig({
       base: "/",
       highlight: true,
       highlightTheme: "github-dark",
+      highlightLangs: pkl,
       mermaid: true,
       toc: true,
       tocMaxDepth: 3,
@@ -50,16 +52,31 @@ export default defineConfig({
           },
           footer: {
             message: 'Built with <a href="https://github.com/ubugeeei/ox-content">ox-content</a>.',
-            copyright: `Design notes for registry.pkl and first-party compat.* packages.`,
+            copyright: `Design notes for registry.pkl and first-party target.* packages.`,
           },
           socialLinks: {
-            github: "https://github.com/ubugeeei/compat.pkl",
+            github: "https://github.com/ubugeeei/registry.pkl",
           },
           embed: {
             head: `
+              <link rel="icon" type="image/svg+xml" href="/registry-mark.svg">
               <link rel="preconnect" href="https://fonts.googleapis.com">
               <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
               <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+              <link rel="stylesheet" href="/registry-ui.css">
+              <script defer src="/registry-ui.js"></script>
+            `,
+            headerAfter: `
+              <div class="registry-tabs-shell">
+                <nav class="registry-tabs" aria-label="Primary">
+                  <a href="/index.html" data-registry-nav="/">Overview</a>
+                  <a href="/packages/index.html" data-registry-nav="/packages/">Packages</a>
+                  <a href="/targets/index.html" data-registry-nav="/targets/">Targets</a>
+                  <a href="/guide/package-ecosystem/index.html" data-registry-nav="/guide/">Guides</a>
+                  <a href="/architecture/index.html" data-registry-nav="/architecture/">Architecture</a>
+                  <a href="/reference/tool-matrix/index.html" data-registry-nav="/reference/">Reference</a>
+                </nav>
+              </div>
             `,
           },
           css: `

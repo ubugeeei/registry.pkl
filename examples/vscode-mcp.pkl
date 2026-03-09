@@ -1,0 +1,56 @@
+amends "@target.agent/vscode/Mcp.pkl"
+
+import "@target.agent/mcp/Core.pkl" as Mcp
+
+inputs {
+  new Mcp.Input {
+    id = "github-token"
+    description = "GitHub Personal Access Token"
+    password = true
+  }
+}
+
+servers {
+  ["github"] =
+    new Mcp.StdioServer {
+      command = "docker"
+      args {
+        "run"
+        "-i"
+        "--rm"
+        "-e"
+        "GITHUB_PERSONAL_ACCESS_TOKEN"
+        "ghcr.io/github/github-mcp-server"
+      }
+      env {
+        ["GITHUB_PERSONAL_ACCESS_TOKEN"] = "${input:github-token}"
+      }
+      sandboxEnabled = true
+      sandbox =
+        new Mcp.Sandbox {
+          filesystem =
+            new Mcp.SandboxFilesystem {
+              allowWrite {
+                "${workspaceFolder}"
+              }
+              denyRead {
+                "${userHome}/.ssh"
+              }
+            }
+          network =
+            new Mcp.SandboxNetwork {
+              allowedDomains {
+                "api.github.com"
+                "github.com"
+              }
+            }
+        }
+    }
+  ["context7"] =
+    new Mcp.RemoteServer {
+      url = "https://mcp.context7.com/mcp"
+      headers {
+        ["Authorization"] = "Bearer ${env:CONTEXT7_API_KEY}"
+      }
+    }
+}

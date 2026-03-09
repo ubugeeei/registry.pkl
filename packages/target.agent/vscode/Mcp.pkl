@@ -1,0 +1,40 @@
+/// A typed authoring surface for VS Code `.vscode/mcp.json`.
+module target.agent.vscode.Mcp
+
+import "@target.core/Maps.pkl" as Maps
+import "../mcp/Core.pkl" as Mcp
+
+servers: Mapping<String, Mcp.Server> = new Mapping {}
+inputs: Listing<Mcp.Input> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden renderOptions =
+  new Mcp.RenderOptions {
+    defaultStdioType = "stdio"
+    defaultRemoteType = "http"
+    includeDefaultStdioType = true
+    includeDefaultRemoteType = true
+    includeSandbox = true
+    includeDev = true
+  }
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (!servers.toMap().isEmpty) {
+        ["servers"] =
+          servers.toMap().mapValues(
+            (_, value) -> Mcp.renderServer(value, renderOptions),
+          )
+      }
+      when (!inputs.toList().isEmpty) {
+        ["inputs"] = inputs.toList().map((value) -> Mcp.renderInput(value))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

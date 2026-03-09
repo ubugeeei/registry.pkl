@@ -1,10 +1,11 @@
 amends "pkl:Project"
 
 dependencies {
-  ["compat.core"] = import("./packages/compat.core/PklProject")
-  ["compat.js"] = import("./packages/compat.js/PklProject")
-  ["compat.env"] = import("./packages/compat.env/PklProject")
-  ["compat.rust"] = import("./packages/compat.rust/PklProject")
-  ["compat.editor"] = import("./packages/compat.editor/PklProject")
-  ["compat.ci"] = import("./packages/compat.ci/PklProject")
+  ["target.core"] = import("./packages/target.core/PklProject")
+  ["target.js"] = import("./packages/target.js/PklProject")
+  ["target.env"] = import("./packages/target.env/PklProject")
+  ["target.rust"] = import("./packages/target.rust/PklProject")
+  ["target.editor"] = import("./packages/target.editor/PklProject")
+  ["target.agent"] = import("./packages/target.agent/PklProject")
+  ["target.ci"] = import("./packages/target.ci/PklProject")
 }

@@ -5,7 +5,7 @@ description: Editor config is high-leverage because teams repeat the same worksp
 
 # Editors
 
-`compat.editor` should hold shared editor and workspace conventions.
+`target.editor` should hold shared editor and workspace conventions.
 
 ## First Targets
 

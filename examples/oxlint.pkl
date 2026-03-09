@@ -1,4 +1,4 @@
-amends "@compat.js/oxlint/Oxlint.pkl"
+amends "@target.js/oxlint/Oxlint.pkl"
 
 plugins {
   "import"

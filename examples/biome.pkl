@@ -1,4 +1,4 @@
-amends "@compat.js/biome/Biome.pkl"
+amends "@target.js/biome/Biome.pkl"
 
 `$schema` = "https://biomejs.dev/schemas/latest/schema.json"
 

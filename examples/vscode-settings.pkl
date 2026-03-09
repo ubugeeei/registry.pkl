@@ -1,4 +1,4 @@
-amends "@compat.editor/vscode/Settings.pkl"
+amends "@target.editor/vscode/Settings.pkl"
 
 editor {
   formatOnSave = true

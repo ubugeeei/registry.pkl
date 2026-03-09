@@ -12,13 +12,13 @@ artifact.
 
 Each first-party package should have its own `PklProject` and version:
 
-- `compat.core`
-- `compat.js`
-- `compat.env`
-- `compat.rust`
-- `compat.editor`
-- `compat.ci`
-- `compat.agent`
+- `target.core`
+- `target.js`
+- `target.env`
+- `target.rust`
+- `target.editor`
+- `target.ci`
+- `target.agent`
 
 Build artifacts with `pkl project package`.
 
@@ -34,7 +34,7 @@ The clearest current candidates are:
 - `package://pkg.pkl-lang.org/pkl-pantry/com.github.actions@1.3.1`
 - `package://pkg.pkl-lang.org/pkl-pantry/com.github.dependabot@1.0.0`
 
-`compat.ci` should wrap those packages with repository presets and team-facing
+`target.ci` should wrap those packages with repository presets and team-facing
 entrypoints instead of cloning their full schema surface.
 
 ## Recommended Hosting Shape
@@ -82,7 +82,7 @@ The registry record should point at real package artifacts, docs, and checksums.
 
 ## Release Discipline
 
-Release each `compat.*` package independently.
+Release each `target.*` package independently.
 
 Rules:
 

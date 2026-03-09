@@ -7,30 +7,30 @@ description: Priority, package placement, and output format for each planned tar
 
 | Target | Package | Format | Priority |
 |------|---------|--------|----------|
-| `package.json` | `compat.js` | JSON | first |
-| `tsconfig.json` | `compat.js` | JSON | first |
-| `biome.json` | `compat.js` | JSON | first |
-| `.prettierrc` | `compat.js` | JSON | first |
-| `.oxlintrc.json` | `compat.js` | JSON | first |
-| `.oxfmtrc.json` | `compat.js` | JSON | first |
-| `pnpm-workspace.yaml` | `compat.js` | YAML | first |
-| `mise.toml` | `compat.env` | TOML | first |
-| `deno.json` | `compat.env` | JSON | first |
-| `Cargo.toml` | `compat.rust` | TOML | first |
-| `clippy.toml` | `compat.rust` | TOML | first |
-| `settings.json` | `compat.editor` | JSON | first |
-| `extensions.json` | `compat.editor` | JSON | second |
-| GitHub Actions | `compat.ci` | YAML | second |
-| GitLab CI | `compat.ci` | YAML | second |
-| `.github/dependabot.yml` | `compat.ci` | YAML | second |
-| agent MCP JSON | `compat.agent` | JSON | second |
-| `renovate.json` | `compat.js` | JSON | third |
-| `devcontainer.json` | `compat.editor` | JSON | third |
-| `rustfmt.toml` | `compat.rust` | TOML | third |
-| `turbo.json` | `compat.js` | JSON | third |
-| `wrangler.toml` | `compat.env` | TOML | third |
-| `docker-compose.yml` | `compat.env` | YAML | third |
-| `lefthook.yml` | `compat.env` | YAML | third |
+| `package.json` | `target.js` | JSON | first |
+| `tsconfig.json` | `target.js` | JSON | first |
+| `biome.json` | `target.js` | JSON | first |
+| `.prettierrc` | `target.js` | JSON | first |
+| `.oxlintrc.json` | `target.js` | JSON | first |
+| `.oxfmtrc.json` | `target.js` | JSON | first |
+| `pnpm-workspace.yaml` | `target.js` | YAML | first |
+| `mise.toml` | `target.env` | TOML | first |
+| `deno.json` | `target.env` | JSON | first |
+| `Cargo.toml` | `target.rust` | TOML | first |
+| `clippy.toml` | `target.rust` | TOML | first |
+| `settings.json` | `target.editor` | JSON | first |
+| `extensions.json` | `target.editor` | JSON | second |
+| GitHub Actions | `target.ci` | YAML | second |
+| GitLab CI | `target.ci` | YAML | second |
+| `.github/dependabot.yml` | `target.ci` | YAML | second |
+| agent MCP JSON | `target.agent` | JSON | second |
+| `renovate.json` | `target.js` | JSON | third |
+| `devcontainer.json` | `target.editor` | JSON | third |
+| `rustfmt.toml` | `target.rust` | TOML | third |
+| `turbo.json` | `target.js` | JSON | third |
+| `wrangler.toml` | `target.env` | TOML | third |
+| `docker-compose.yml` | `target.env` | YAML | third |
+| `lefthook.yml` | `target.env` | YAML | third |
 
 ## What This Table Optimizes For
 

@@ -1,0 +1,31 @@
+/// A typed authoring surface for `claude_desktop_config.json`.
+module target.agent.claudeDesktop.Mcp
+
+import "@target.core/Maps.pkl" as Maps
+import "../mcp/Core.pkl" as Mcp
+
+mcpServers: Mapping<String, Mcp.StdioServer> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden renderOptions =
+  new Mcp.RenderOptions {
+    includeEmptyEnv = true
+  }
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (!mcpServers.toMap().isEmpty) {
+        ["mcpServers"] =
+          mcpServers.toMap().mapValues(
+            (_, value) -> Mcp.renderServer(value, renderOptions),
+          )
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

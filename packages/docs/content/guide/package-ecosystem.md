@@ -7,17 +7,17 @@ description: The first-party package family and why each package boundary exists
 
 ## First-Party Packages
 
-The first-party package family is planned as `compat.*`.
+The first-party package family is planned as `target.*`.
 
 | Package | Purpose |
 |------|---------|
-| `compat.core` | shared primitives, emitters, enums, helpers |
-| `compat.js` | JS and TS toolchain config |
-| `compat.env` | runtime and toolchain environment config |
-| `compat.rust` | Rust package and lint config |
-| `compat.editor` | editor and workspace config |
-| `compat.ci` | CI systems and reusable workflow pieces |
-| `compat.agent` | AI agent and MCP-oriented config |
+| `target.core` | shared primitives, emitters, enums, helpers |
+| `target.js` | JS and TS toolchain config |
+| `target.env` | runtime and toolchain environment config |
+| `target.rust` | Rust package and lint config |
+| `target.editor` | editor and workspace config |
+| `target.ci` | CI systems and reusable workflow pieces |
+| `target.agent` | AI agent and MCP-oriented config |
 
 ## Why Split Instead of One Package
 
@@ -35,13 +35,13 @@ Independent packages make semver more honest.
 
 Recommended order:
 
-1. `compat.core`
-2. `compat.js`
-3. `compat.env`
-4. `compat.rust`
-5. `compat.editor`
-6. `compat.agent`
-7. `compat.ci`
+1. `target.core`
+2. `target.js`
+3. `target.env`
+4. `target.rust`
+5. `target.editor`
+6. `target.agent`
+7. `target.ci`
 
 That order maximizes real-world usefulness while delaying the messiest schemas.
 

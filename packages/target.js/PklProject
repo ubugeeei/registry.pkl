@@ -1,0 +1,10 @@
+/// Typed modules for JavaScript, TypeScript, and monorepo tooling.
+amends "../basePklProject.pkl"
+
+dependencies {
+  ["target.core"] = import("../target.core/PklProject")
+}
+
+package {
+  version = "0.1.0"
+}

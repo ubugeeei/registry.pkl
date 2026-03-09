@@ -1,4 +1,4 @@
-amends "@compat.js/prettier/Prettier.pkl"
+amends "@target.js/prettier/Prettier.pkl"
 
 semi = true
 singleQuote = false

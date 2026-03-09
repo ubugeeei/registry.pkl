@@ -1,4 +1,4 @@
-amends "@compat.js/package-json/PackageJson.pkl"
+amends "@target.js/package-json/PackageJson.pkl"
 
 name = "registry-pkl"
 private = true
@@ -14,5 +14,5 @@ scripts {
   ["lint"] = "pnpm --filter @registry/docs lint"
   ["check"] = "pnpm --filter @registry/docs check"
   ["test"] = "pnpm --filter @registry/docs test"
-  ["resolve"] = "pkl project resolve . packages/compat.*"
+  ["resolve"] = "pkl project resolve . packages/target.*"
 }

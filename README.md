@@ -3,16 +3,16 @@
 This repository contains the design and documentation for `registry.pkl`, a
 searchable, versioned, GitHub PR-based registry for Pkl config packages.
 
-The first-party package family is planned as `compat.*`.
+The first-party package family is planned as `target.*`.
 
 Examples:
 
-- `compat.js`
-- `compat.env`
-- `compat.rust`
-- `compat.editor`
-- `compat.agent`
-- `compat.ci`
+- `target.js`
+- `target.env`
+- `target.rust`
+- `target.editor`
+- `target.agent`
+- `target.ci`
 
 ## Core Idea
 

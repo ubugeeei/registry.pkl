@@ -1,4 +1,4 @@
-amends "@compat.js/oxfmt/Oxfmt.pkl"
+amends "@target.js/oxfmt/Oxfmt.pkl"
 
 `$schema` = "./node_modules/oxfmt/configuration_schema.json"
 semi = true

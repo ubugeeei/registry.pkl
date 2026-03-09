@@ -1,0 +1,10 @@
+/// Typed modules for editor and workspace configuration.
+amends "../basePklProject.pkl"
+
+dependencies {
+  ["target.core"] = import("../target.core/PklProject")
+}
+
+package {
+  version = "0.1.0"
+}

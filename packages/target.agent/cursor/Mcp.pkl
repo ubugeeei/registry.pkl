@@ -1,0 +1,32 @@
+/// A typed authoring surface for Cursor `.cursor/mcp.json`.
+module target.agent.cursor.Mcp
+
+import "@target.core/Maps.pkl" as Maps
+import "../mcp/Core.pkl" as Mcp
+
+mcpServers: Mapping<String, Mcp.Server> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden renderOptions =
+  new Mcp.RenderOptions {
+    defaultStdioType = "stdio"
+    includeDefaultStdioType = true
+  }
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (!mcpServers.toMap().isEmpty) {
+        ["mcpServers"] =
+          mcpServers.toMap().mapValues(
+            (_, value) -> Mcp.renderServer(value, renderOptions),
+          )
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

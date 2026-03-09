@@ -1,4 +1,4 @@
-amends "@compat.rust/clippy/Clippy.pkl"
+amends "@target.rust/clippy/Clippy.pkl"
 
 msrv = "1.85"
 allowDbgInTests = true

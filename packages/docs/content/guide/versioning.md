@@ -16,7 +16,7 @@ If contents change, publish a new version.
 
 Do not force a repo-wide version.
 
-`compat.js@0.4.0` and `compat.agent@0.1.0` should be able to evolve at different
+`target.js@0.4.0` and `target.agent@0.1.0` should be able to evolve at different
 speeds.
 
 ## latest Is A View, Not A Mutable Artifact

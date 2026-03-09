@@ -1,0 +1,23 @@
+amends "@target.agent/cursor/Mcp.pkl"
+
+import "@target.agent/mcp/Core.pkl" as Mcp
+
+mcpServers {
+  ["filesystem"] =
+    new Mcp.StdioServer {
+      command = "npx"
+      args {
+        "-y"
+        "@modelcontextprotocol/server-filesystem"
+        "${workspaceFolder}"
+      }
+    }
+  ["linear"] =
+    new Mcp.RemoteServer {
+      url = "https://mcp.linear.app/sse"
+      type = "sse"
+      headers {
+        ["Authorization"] = "Bearer ${env:LINEAR_API_TOKEN}"
+      }
+    }
+}

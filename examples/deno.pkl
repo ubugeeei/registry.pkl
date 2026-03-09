@@ -1,4 +1,4 @@
-amends "@compat.env/deno/Deno.pkl"
+amends "@target.env/deno/Deno.pkl"
 
 `$schema` = "https://deno.land/x/deno/cli/schemas/config-file.v1.json"
 

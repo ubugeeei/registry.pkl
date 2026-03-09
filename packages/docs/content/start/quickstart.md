@@ -15,7 +15,7 @@ published, but the generation model is real Pkl.
 Example shape for a future `tsconfig.json` package:
 
 ```pkl
-amends "package://pkg.registry.pkl/compat.js@0.1.0#/tsconfig/presets/library.pkl"
+amends "package://pkg.registry.pkl/target.js@0.1.0#/tsconfig/presets/library.pkl"
 
 compilerOptions {
   target = "ES2022"
@@ -50,7 +50,7 @@ Target shape:
 ```pkl
 import "package://pkg.pkl-lang.org/pkl-pantry/pkl.toml@1.0.2#/toml.pkl" as toml
 
-amends "package://pkg.registry.pkl/compat.rust@0.1.0#/cargo/package.pkl"
+amends "package://pkg.registry.pkl/target.rust@0.1.0#/cargo/package.pkl"
 
 package {
   name = "my-crate"

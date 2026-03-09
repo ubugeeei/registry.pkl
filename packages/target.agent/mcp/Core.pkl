@@ -1,0 +1,208 @@
+/// Shared MCP server types for AI agent clients.
+module target.agent.mcp.Core
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias Server = StdioServer|RemoteServer
+
+class SandboxFilesystem {
+  allowWrite: Listing<String> = new Listing {}
+  denyRead: Listing<String> = new Listing {}
+  denyWrite: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class SandboxNetwork {
+  allowedDomains: Listing<String> = new Listing {}
+  deniedDomains: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Sandbox {
+  filesystem: SandboxFilesystem? = null
+  network: SandboxNetwork? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Dev {
+  watch: String? = null
+  debug: Boolean|Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class StdioServer {
+  type: "stdio"? = null
+  command: String
+  args: Listing<String> = new Listing {}
+  env: Mapping<String, String> = new Mapping {}
+  envFile: String? = null
+  sandboxEnabled: Boolean? = null
+  sandbox: Sandbox? = null
+  dev: Dev? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class RemoteServer {
+  type: "http"|"sse"? = null
+  url: String
+  headers: Mapping<String, String> = new Mapping {}
+  oauth: OAuth? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class OAuth {
+  authServerMetadataUrl: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Input {
+  type: String = "promptString"
+  id: String
+  description: String
+  password: Boolean? = null
+  default: String? = null
+  options: Listing<String> = new Listing {}
+  command: String? = null
+  args: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class RenderOptions {
+  remoteUrlKey: "url"|"serverUrl" = "url"
+  defaultStdioType: "stdio"? = null
+  defaultRemoteType: "http"|"sse"? = null
+  includeDefaultStdioType: Boolean = false
+  includeDefaultRemoteType: Boolean = false
+  includeSandbox: Boolean = false
+  includeDev: Boolean = false
+  includeEmptyArgs: Boolean = false
+  includeEmptyEnv: Boolean = false
+}
+
+local function renderSandboxFilesystem(value: SandboxFilesystem) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.allowWrite.toList().isEmpty) {
+        ["allowWrite"] = value.allowWrite.toList()
+      }
+      when (!value.denyRead.toList().isEmpty) {
+        ["denyRead"] = value.denyRead.toList()
+      }
+      when (!value.denyWrite.toList().isEmpty) {
+        ["denyWrite"] = value.denyWrite.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSandboxNetwork(value: SandboxNetwork) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.allowedDomains.toList().isEmpty) {
+        ["allowedDomains"] = value.allowedDomains.toList()
+      }
+      when (!value.deniedDomains.toList().isEmpty) {
+        ["deniedDomains"] = value.deniedDomains.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSandbox(value: Sandbox) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.filesystem != null) {
+        ["filesystem"] = renderSandboxFilesystem(value.filesystem)
+      }
+      when (value.network != null) {
+        ["network"] = renderSandboxNetwork(value.network)
+      }
+    },
+    value.extra,
+  )
+
+local function renderDev(value: Dev) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.watch != null) { ["watch"] = value.watch }
+      when (value.debug != null) { ["debug"] = value.debug }
+    },
+    value.extra,
+  )
+
+local function renderOAuth(value: OAuth) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.authServerMetadataUrl != null) {
+        ["authServerMetadataUrl"] = value.authServerMetadataUrl
+      }
+    },
+    value.extra,
+  )
+
+function renderInput(value: Input) =
+  Maps.withExtra(
+    new Dynamic {
+      ["type"] = value.type
+      ["id"] = value.id
+      ["description"] = value.description
+      when (value.password != null) { ["password"] = value.password }
+      when (value.default != null) { ["default"] = value.default }
+      when (!value.options.toList().isEmpty) {
+        ["options"] = value.options.toList()
+      }
+      when (value.command != null) { ["command"] = value.command }
+      when (!value.args.toList().isEmpty) { ["args"] = value.args.toList() }
+    },
+    value.extra,
+  )
+
+function renderServer(value: Server, options: RenderOptions) =
+  if (value is StdioServer)
+    Maps.withExtra(
+      new Dynamic {
+        when (
+          value.type != null ||
+            (options.defaultStdioType != null && options.includeDefaultStdioType)
+        ) {
+          ["type"] = value.type ?? options.defaultStdioType
+        }
+        ["command"] = value.command
+        when (options.includeEmptyArgs || !value.args.toList().isEmpty) {
+          ["args"] = value.args.toList()
+        }
+        when (options.includeEmptyEnv || !value.env.toMap().isEmpty) {
+          ["env"] = value.env.toMap()
+        }
+        when (value.envFile != null) { ["envFile"] = value.envFile }
+        when (options.includeSandbox && value.sandboxEnabled != null) {
+          ["sandboxEnabled"] = value.sandboxEnabled
+        }
+        when (options.includeSandbox && value.sandbox != null) {
+          ["sandbox"] = renderSandbox(value.sandbox)
+        }
+        when (options.includeDev && value.dev != null) {
+          ["dev"] = renderDev(value.dev)
+        }
+      },
+      value.extra,
+    )
+  else
+    Maps.withExtra(
+      new Dynamic {
+        when (
+          value.type != null ||
+            (options.defaultRemoteType != null && options.includeDefaultRemoteType)
+        ) {
+          ["type"] = value.type ?? options.defaultRemoteType
+        }
+        [options.remoteUrlKey] = value.url
+        when (!value.headers.toMap().isEmpty) {
+          ["headers"] = value.headers.toMap()
+        }
+        when (value.oauth != null) {
+          ["oauth"] = renderOAuth(value.oauth)
+        }
+      },
+      value.extra,
+    )

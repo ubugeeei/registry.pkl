@@ -30,7 +30,7 @@ one renderer dependency across packages.
 The recommended order is:
 
 1. the official `pkl.toml` renderer package
-2. thin wrappers in `compat.core` for naming, converters, or house style
+2. thin wrappers in `target.core` for naming, converters, or house style
 3. custom emitters only when a target cannot be expressed with the shared
    renderer model
 

@@ -1,0 +1,27 @@
+amends "@target.agent/claudeCode/Mcp.pkl"
+
+import "@target.agent/mcp/Core.pkl" as Mcp
+
+mcpServers {
+  ["filesystem"] =
+    new Mcp.StdioServer {
+      command = "npx"
+      args {
+        "-y"
+        "@modelcontextprotocol/server-filesystem"
+        "."
+      }
+    }
+  ["sentry"] =
+    new Mcp.RemoteServer {
+      url = "https://mcp.sentry.dev/sse"
+      type = "sse"
+      headers {
+        ["Authorization"] = "Bearer ${env:SENTRY_AUTH_TOKEN}"
+      }
+      oauth =
+        new Mcp.OAuth {
+          authServerMetadataUrl = "https://mcp.sentry.dev/.well-known/oauth-authorization-server"
+        }
+    }
+}

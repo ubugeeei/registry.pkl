@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "resolvedDependencies": {
-    "package://pkg.registry.pkl/compat.ci@0": {
+    "package://pkg.registry.pkl/target.ci@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/compat.ci@0.1.0",
-      "path": "packages/compat.ci"
+      "uri": "projectpackage://pkg.registry.pkl/target.ci@0.1.0",
+      "path": "packages/target.ci"
     },
     "package://pkg.pkl-lang.org/pkl-pantry/com.github.actions@1": {
       "type": "remote",
@@ -20,15 +20,25 @@
         "sha256": "02ef6f25bfca5b1d095db73ea15de79d2d2c6832ebcab61e6aba90554382abcb"
       }
     },
-    "package://pkg.registry.pkl/compat.core@0": {
+    "package://pkg.registry.pkl/target.core@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/compat.core@0.1.0",
-      "path": "packages/compat.core"
+      "uri": "projectpackage://pkg.registry.pkl/target.core@0.1.0",
+      "path": "packages/target.core"
     },
-    "package://pkg.registry.pkl/compat.rust@0": {
+    "package://pkg.registry.pkl/target.js@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/compat.rust@0.1.0",
-      "path": "packages/compat.rust"
+      "uri": "projectpackage://pkg.registry.pkl/target.js@0.1.0",
+      "path": "packages/target.js"
+    },
+    "package://pkg.registry.pkl/target.agent@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.registry.pkl/target.agent@0.1.0",
+      "path": "packages/target.agent"
+    },
+    "package://pkg.registry.pkl/target.rust@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.registry.pkl/target.rust@0.1.0",
+      "path": "packages/target.rust"
     },
     "package://pkg.pkl-lang.org/pkl-pantry/pkl.toml@1": {
       "type": "remote",
@@ -37,20 +47,15 @@
         "sha256": "45fea4cf14e7d776e131b338efe2a7016f86c87b0c0f532409f728033bd82f71"
       }
     },
-    "package://pkg.registry.pkl/compat.env@0": {
+    "package://pkg.registry.pkl/target.env@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/compat.env@0.1.0",
-      "path": "packages/compat.env"
+      "uri": "projectpackage://pkg.registry.pkl/target.env@0.1.0",
+      "path": "packages/target.env"
     },
-    "package://pkg.registry.pkl/compat.editor@0": {
+    "package://pkg.registry.pkl/target.editor@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/compat.editor@0.1.0",
-      "path": "packages/compat.editor"
-    },
-    "package://pkg.registry.pkl/compat.js@0": {
-      "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/compat.js@0.1.0",
-      "path": "packages/compat.js"
+      "uri": "projectpackage://pkg.registry.pkl/target.editor@0.1.0",
+      "path": "packages/target.editor"
     }
   }
 }

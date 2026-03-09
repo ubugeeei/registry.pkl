@@ -1,4 +1,4 @@
-amends "@compat.ci/github/NodeCiWorkflow.pkl"
+amends "@target.ci/github/NodeCiWorkflow.pkl"
 
 name = "Node CI"
 

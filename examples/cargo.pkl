@@ -1,4 +1,4 @@
-amends "@compat.rust/cargo/Cargo.pkl"
+amends "@target.rust/cargo/Cargo.pkl"
 
 package {
   name = "registry-pkl-cli"

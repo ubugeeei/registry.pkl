@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: The shortest path to understanding registry.pkl and the compat.* package family.
+description: The shortest path to understanding registry.pkl and the target.* package family.
 ---
 
 # Getting Started
@@ -11,7 +11,7 @@ idea.
 You should leave this page understanding three things:
 
 1. `registry.pkl` is a registry and discovery service.
-2. `compat.*` is the planned first-party package family.
+2. `target.*` is the planned first-party package family.
 3. The output is still normal JSON, YAML, or TOML for existing tools.
 
 ## Mental Model
@@ -20,7 +20,7 @@ There are four layers.
 
 | Layer | Purpose | Example |
 |------|---------|---------|
-| Authoring | Write readable, typed Pkl modules | `compat.js.tsconfig` |
+| Authoring | Write readable, typed Pkl modules | `target.js.tsconfig` |
 | Generation | Render tool-native config files | `tsconfig.json`, `Cargo.toml` |
 | Artifacts | Host package metadata, zips, docs | GitHub Releases, static docs |
 | Discovery | Search, version history, review flow | `registry.pkl` |
@@ -44,14 +44,14 @@ them through a GitHub Pull Request.
 
 ## Initial First-Party Scope
 
-The first-party `compat.*` packages should focus on boring, high-value config:
+The first-party `target.*` packages should focus on boring, high-value config:
 
-- `compat.js`
-- `compat.env`
-- `compat.rust`
-- `compat.editor`
+- `target.js`
+- `target.env`
+- `target.rust`
+- `target.editor`
 
-`compat.ci` and `compat.agent` are important, but they should follow after the
+`target.ci` and `target.agent` are important, but they should follow after the
 basic package model is proven.
 
 ## Implementation Status
