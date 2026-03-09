@@ -8,44 +8,50 @@ hero:
   tagline: Start from package scope, not prose. Each entry tells you what a package owns, what modules it ships, and which install URI to open first.
   actions:
     - theme: brand
-      text: Quickstart
-      link: /start/quickstart/index.html
+      text: Start Here
+      link: ../start/index.html
     - theme: alt
-      text: Package Ecosystem
-      link: /guide/package-ecosystem/index.html
+      text: Guides
+      link: ../guide/index.html
     - theme: alt
-      text: Tool Matrix
-      link: /reference/tool-matrix/index.html
+      text: Reference
+      link: ../reference/index.html
 features:
   - icon: "mdi:layers-outline"
     title: target.core
     details: Shared helpers and renderer-facing utilities reused across every other first-party package.
-    link: /packages/target-core/index.html
+    link: ./target-core/index.html
   - icon: "mdi:language-javascript"
     title: target.js
     details: Package metadata, compiler config, formatter, lint, and pnpm workspace authoring for JavaScript and TypeScript projects.
-    link: /packages/target-js/index.html
+    link: ./target-js/index.html
   - icon: "mdi:tools"
     title: target.env
     details: Toolchain versions, workspace tasks, and runtime config that should not live inside application package metadata.
-    link: /packages/target-env/index.html
+    link: ./target-env/index.html
   - icon: "mdi:language-rust"
     title: target.rust
     details: Cargo and Clippy configuration with one shared TOML output strategy.
-    link: /packages/target-rust/index.html
+    link: ./target-rust/index.html
   - icon: "mdi:monitor-dashboard"
     title: target.editor
     details: Workspace editor settings and recommendations, starting with VS Code defaults that teams copy everywhere.
-    link: /packages/target-editor/index.html
+    link: ./target-editor/index.html
   - icon: "mdi:source-branch"
     title: target.ci
     details: Repository-level workflow wrappers and CI presets for GitHub Actions, GitLab CI, and dependency automation.
-    link: /packages/target-ci/index.html
+    link: ./target-ci/index.html
   - icon: "mdi:robot-outline"
     title: target.agent
     details: Shared MCP server types and thin wrappers for fast-moving agent clients such as VS Code, Cursor, Claude, and Windsurf.
-    link: /packages/target-agent/index.html
+    link: ./target-agent/index.html
 ---
+
+## How To Use This Section
+
+1. Open a package page first when the question is "what owns this config surface?"
+2. Use [Targets](../targets/index.html) when the question starts from a tool or file name.
+3. Use [Guides](../guide/index.html) when you need design rules, distribution, or registry behavior.
 
 ## Package Snapshot
 

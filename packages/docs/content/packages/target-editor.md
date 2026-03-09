@@ -9,13 +9,13 @@ hero:
   actions:
     - theme: brand
       text: Browse Packages
-      link: /packages/index.html
+      link: ../index.html
     - theme: alt
       text: Target Notes
-      link: /targets/editor/index.html
+      link: ../../targets/editor/index.html
     - theme: alt
       text: Quickstart
-      link: /start/quickstart/index.html
+      link: ../../start/quickstart/index.html
 features:
   - icon: "mdi:cog-outline"
     title: vscode/Settings.pkl
@@ -28,7 +28,7 @@ features:
 ## Install
 
 ```pkl
-amends "package://pkg.registry.pkl/target.editor@0.1.0#/vscode/Settings.pkl"
+amends "package://pkg.example.invalid/target.editor@0.1.0#/vscode/Settings.pkl"
 ```
 
 ## What This Package Emits
@@ -44,6 +44,6 @@ bundles at the repository level.
 
 ## Related Docs
 
-- [Package catalog](/packages/index.html)
-- [Editor target notes](../targets/editor.md)
-- [Quickstart](../start/quickstart.md)
+- [Package catalog](../index.html)
+- [Editor target notes](../../targets/editor/index.html)
+- [Quickstart](../../start/quickstart/index.html)

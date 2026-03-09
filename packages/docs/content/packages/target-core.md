@@ -9,13 +9,13 @@ hero:
   actions:
     - theme: brand
       text: Browse Packages
-      link: /packages/index.html
+      link: ../index.html
     - theme: alt
       text: Generating Files
-      link: /guide/generating-files/index.html
+      link: ../../guide/generating-files/index.html
     - theme: alt
       text: Package Ecosystem
-      link: /guide/package-ecosystem/index.html
+      link: ../../guide/package-ecosystem/index.html
 features:
   - icon: "mdi:function-variant"
     title: Maps.pkl
@@ -41,6 +41,6 @@ If a helper is not shared across multiple packages, keep it local.
 
 ## Related Docs
 
-- [Package catalog](/packages/index.html)
-- [Generating Files](../guide/generating-files.md)
-- [Package Ecosystem](../guide/package-ecosystem.md)
+- [Package catalog](../index.html)
+- [Generating Files](../../guide/generating-files/index.html)
+- [Package Ecosystem](../../guide/package-ecosystem/index.html)

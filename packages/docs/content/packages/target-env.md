@@ -9,13 +9,13 @@ hero:
   actions:
     - theme: brand
       text: Browse Packages
-      link: /packages/index.html
+      link: ../index.html
     - theme: alt
       text: Target Notes
-      link: /targets/env/index.html
+      link: ../../targets/env/index.html
     - theme: alt
       text: Package Ecosystem
-      link: /guide/package-ecosystem/index.html
+      link: ../../guide/package-ecosystem/index.html
 features:
   - icon: "mdi:wrench-cog-outline"
     title: mise/Mise.pkl
@@ -28,7 +28,7 @@ features:
 ## Install
 
 ```pkl
-amends "package://pkg.registry.pkl/target.env@0.1.0#/mise/Mise.pkl"
+amends "package://pkg.example.invalid/target.env@0.1.0#/mise/Mise.pkl"
 ```
 
 ## What This Package Emits
@@ -44,6 +44,6 @@ direction at once.
 
 ## Related Docs
 
-- [Package catalog](/packages/index.html)
-- [Environment target notes](../targets/env.md)
-- [Package Ecosystem](../guide/package-ecosystem.md)
+- [Package catalog](../index.html)
+- [Environment target notes](../../targets/env/index.html)
+- [Package Ecosystem](../../guide/package-ecosystem/index.html)

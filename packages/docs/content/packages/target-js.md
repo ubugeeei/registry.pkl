@@ -9,13 +9,13 @@ hero:
   actions:
     - theme: brand
       text: Browse Packages
-      link: /packages/index.html
+      link: ../index.html
     - theme: alt
       text: Target Notes
-      link: /targets/javascript/index.html
+      link: ../../targets/javascript/index.html
     - theme: alt
       text: Quickstart
-      link: /start/quickstart/index.html
+      link: ../../start/quickstart/index.html
 features:
   - icon: "mdi:package-variant-closed"
     title: package-json/PackageJson.pkl
@@ -43,7 +43,7 @@ features:
 ## Install
 
 ```pkl
-amends "package://pkg.registry.pkl/target.js@0.1.0#/tsconfig/TsConfig.pkl"
+amends "package://pkg.example.invalid/target.js@0.1.0#/tsconfig/TsConfig.pkl"
 ```
 
 ## What This Package Emits
@@ -63,7 +63,7 @@ YAML, and a good fit for presets plus typed escape hatches.
 
 ## Related Docs
 
-- [Package catalog](/packages/index.html)
-- [JavaScript target notes](../targets/javascript.md)
-- [Quickstart](../start/quickstart.md)
-- [Tool matrix](../reference/tool-matrix.md)
+- [Package catalog](../index.html)
+- [JavaScript target notes](../../targets/javascript/index.html)
+- [Quickstart](../../start/quickstart/index.html)
+- [Tool matrix](../../reference/tool-matrix/index.html)

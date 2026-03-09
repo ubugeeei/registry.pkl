@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    env:
+      DOCS_BASE: /registry.pkl/
+      DOCS_SITE_URL: https://ubugeeei.github.io/registry.pkl/
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.31.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Validate GitHub Pages-safe docs links
+        run: |
+          if rg -n 'link: /|\]\(/' packages/docs/content; then
+            echo "Root-absolute internal docs links break project GitHub Pages deployments."
+            exit 1
+          fi
+
+      - name: Run checks
+        run: pnpm check
+
+      - name: Build docs
+        run: pnpm build

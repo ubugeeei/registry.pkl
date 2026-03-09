@@ -37,15 +37,28 @@ The clearest current candidates are:
 `target.ci` should wrap those packages with repository presets and team-facing
 entrypoints instead of cloning their full schema surface.
 
+## Hosting Reality For This Repository
+
+This repository is a third-party design study.
+
+That means:
+
+- the docs site should publish to `https://ubugeeei.github.io/registry.pkl/`
+- the project should not pretend to own `pkg.pkl-lang.org`
+- `pkg.pkl-lang.org` references inside this repo are only official upstream pantry dependencies
+
 ## Recommended Hosting Shape
 
-Use a dedicated package origin for immutable artifacts.
+Use a package origin you actually control for immutable artifacts.
 
 Recommended split:
 
-- docs UI: `https://registry.pkl.dev/`
-- package host: `package://pkg.registry.pkl.dev/<package>@<version>`
+- docs UI: `https://ubugeeei.github.io/registry.pkl/`
+- package host: `package://<a-host-you-control>/<package>@<version>`
 - registry index repo: GitHub Pull Request-based metadata records
+
+If you do not control a package origin yet, start with GitHub Releases plus a
+static metadata host. Do not invent a fake `pkg.*` domain in public docs.
 
 The package host should serve both:
 

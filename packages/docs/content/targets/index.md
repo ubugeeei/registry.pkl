@@ -7,6 +7,13 @@ description: Supported and proposed configuration targets across ecosystems.
 
 This ecosystem is only useful if the target selection is opinionated.
 
+## How To Read This Section
+
+Use targets when the question starts from a downstream file or tool family.
+
+- Go to [Packages](../packages/index.html) if you want package ownership and entrypoints.
+- Go to [Reference](../reference/tool-matrix/index.html) if you want the compact package-to-file lookup table.
+
 ## Mandatory Targets
 
 - `package.json`: Package metadata, scripts, and dependency policy.

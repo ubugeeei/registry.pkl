@@ -9,13 +9,13 @@ hero:
   actions:
     - theme: brand
       text: Browse Packages
-      link: /packages/index.html
+      link: ../index.html
     - theme: alt
       text: Agent Notes
-      link: /targets/agents/index.html
+      link: ../../targets/agents/index.html
     - theme: alt
       text: Tool Matrix
-      link: /reference/tool-matrix/index.html
+      link: ../../reference/tool-matrix/index.html
 features:
   - icon: "mdi:graph-outline"
     title: mcp/Core.pkl
@@ -40,7 +40,7 @@ features:
 ## Install
 
 ```pkl
-amends "package://pkg.registry.pkl/target.agent@0.1.0#/vscode/Mcp.pkl"
+amends "package://pkg.example.invalid/target.agent@0.1.0#/vscode/Mcp.pkl"
 ```
 
 ## What This Package Emits
@@ -59,6 +59,6 @@ wrappers. That keeps fast-moving vendor drift local to each renderer.
 
 ## Related Docs
 
-- [Package catalog](/packages/index.html)
-- [AI agent target notes](../targets/agents.md)
-- [Tool matrix](../reference/tool-matrix.md)
+- [Package catalog](../index.html)
+- [AI agent target notes](../../targets/agents/index.html)
+- [Tool matrix](../../reference/tool-matrix/index.html)

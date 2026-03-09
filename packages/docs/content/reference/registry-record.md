@@ -14,10 +14,10 @@ record.
 {
   "name": "target.js",
   "version": "0.1.0",
-  "packageUri": "package://pkg.registry.pkl/target.js@0.1.0",
-  "metadataUrl": "https://pkg.registry.pkl/target.js@0.1.0",
+  "packageUri": "package://pkg.example.invalid/target.js@0.1.0",
+  "metadataUrl": "https://packages.example.invalid/target.js@0.1.0",
   "packageZipUrl": "https://github.com/example/target/releases/download/target.js-v0.1.0/target.js@0.1.0.zip",
-  "docsUrl": "https://docs.registry.pkl/target.js/0.1.0/",
+  "docsUrl": "https://example.github.io/target-js/0.1.0/",
   "ecosystem": "javascript",
   "targets": [
     "package.json",
@@ -42,6 +42,13 @@ record.
   }
 }
 ```
+
+## Hostname Rule
+
+Use a host you actually control in real records.
+
+For design docs and examples, prefer reserved placeholders such as
+`example.invalid` instead of implying ownership of a real package domain.
 
 ## Why Keep A Separate Record
 

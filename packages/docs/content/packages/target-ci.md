@@ -9,13 +9,13 @@ hero:
   actions:
     - theme: brand
       text: Browse Packages
-      link: /packages/index.html
+      link: ../index.html
     - theme: alt
       text: Target Notes
-      link: /targets/ci/index.html
+      link: ../../targets/ci/index.html
     - theme: alt
       text: Distribution
-      link: /guide/distribution/index.html
+      link: ../../guide/distribution/index.html
 features:
   - icon: "mdi:github"
     title: github/NodeCiWorkflow.pkl
@@ -34,7 +34,7 @@ features:
 ## Install
 
 ```pkl
-amends "package://pkg.registry.pkl/target.ci@0.1.0#/github/NodeCiWorkflow.pkl"
+amends "package://pkg.example.invalid/target.ci@0.1.0#/github/NodeCiWorkflow.pkl"
 ```
 
 ## What This Package Emits
@@ -51,6 +51,6 @@ vendor field at once.
 
 ## Related Docs
 
-- [Package catalog](/packages/index.html)
-- [CI target notes](../targets/ci.md)
-- [Distribution](../guide/distribution.md)
+- [Package catalog](../index.html)
+- [CI target notes](../../targets/ci/index.html)
+- [Distribution](../../guide/distribution/index.html)

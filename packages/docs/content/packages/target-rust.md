@@ -9,13 +9,13 @@ hero:
   actions:
     - theme: brand
       text: Browse Packages
-      link: /packages/index.html
+      link: ../index.html
     - theme: alt
       text: Target Notes
-      link: /targets/rust/index.html
+      link: ../../targets/rust/index.html
     - theme: alt
       text: Generating Files
-      link: /guide/generating-files/index.html
+      link: ../../guide/generating-files/index.html
 features:
   - icon: "mdi:package-variant"
     title: cargo/Cargo.pkl
@@ -28,7 +28,7 @@ features:
 ## Install
 
 ```pkl
-amends "package://pkg.registry.pkl/target.rust@0.1.0#/cargo/Cargo.pkl"
+amends "package://pkg.example.invalid/target.rust@0.1.0#/cargo/Cargo.pkl"
 ```
 
 ## What This Package Emits
@@ -44,6 +44,6 @@ centralized.
 
 ## Related Docs
 
-- [Package catalog](/packages/index.html)
-- [Rust target notes](../targets/rust.md)
-- [Generating Files](../guide/generating-files.md)
+- [Package catalog](../index.html)
+- [Rust target notes](../../targets/rust/index.html)
+- [Generating Files](../../guide/generating-files/index.html)
