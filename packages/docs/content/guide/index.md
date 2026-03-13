@@ -14,8 +14,8 @@ hero:
       text: Distribution
       link: ./distribution/index.html
     - theme: alt
-      text: Registry Flow
-      link: ./registry-flow/index.html
+      text: Release Playbook
+      link: ./release-playbook/index.html
 features:
   - icon: "mdi:layers-outline"
     title: Package Ecosystem
@@ -33,6 +33,10 @@ features:
     title: Distribution
     details: How third-party packages can publish immutable metadata and ZIPs without inventing a custom host up front.
     link: ./distribution/index.html
+  - icon: "mdi:rocket-launch-outline"
+    title: Release Playbook
+    details: The practical release steps, commands, and workflow needed to publish first-party packages from this repository.
+    link: ./release-playbook/index.html
   - icon: "mdi:source-pull"
     title: Registry Flow
     details: The Pull Request-based review and indexing model for registry entries.
@@ -51,5 +55,6 @@ features:
 | API and preset design rules | [Authoring Model](./authoring-model/index.html) |
 | renderer and output decisions | [Generating Files](./generating-files/index.html) |
 | hosting and release shape | [Distribution](./distribution/index.html) |
+| the concrete release steps for this repo | [Release Playbook](./release-playbook/index.html) |
 | how the registry itself should operate | [Registry Flow](./registry-flow/index.html) |
 | version semantics in the UI | [Versioning](./versioning/index.html) |

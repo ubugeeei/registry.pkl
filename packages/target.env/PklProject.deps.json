@@ -8,9 +8,9 @@
         "sha256": "45fea4cf14e7d776e131b338efe2a7016f86c87b0c0f532409f728033bd82f71"
       }
     },
-    "package://pkg.registry.pkl/target.core@0": {
+    "package://pkg.example.invalid/target.core@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/target.core@0.1.0",
+      "uri": "projectpackage://pkg.example.invalid/target.core@0.1.0",
       "path": "../target.core"
     }
   }

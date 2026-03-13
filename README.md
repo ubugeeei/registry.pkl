@@ -58,6 +58,7 @@ Useful entry points:
 - `packages/docs/content/index.md`
 - `packages/docs/content/start/getting-started.md`
 - `packages/docs/content/guide/distribution.md`
+- `packages/docs/content/guide/release-playbook.md`
 - `packages/docs/content/guide/registry-flow.md`
 - `packages/docs/content/targets/agents.md`
 - `packages/docs/content/architecture/index.md`
@@ -103,6 +104,23 @@ Build the docs site:
 ```bash
 mise run build
 ```
+
+Build first-party package artifacts:
+
+```bash
+./scripts/package-artifacts.sh
+./scripts/build-publish-layout.sh
+./scripts/sync-publish-layout.sh
+```
+
+For actual release hosting, set:
+
+- `PACKAGE_HOST`
+- `PACKAGE_BASE_URL`
+- `PACKAGE_BASE_PATH` when the host uses a path prefix
+- `PACKAGE_BUCKET`
+- `PACKAGE_S3_ENDPOINT`
+- `PACKAGE_AWS_REGION` when needed by the storage provider
 
 If you change `.oxfmt.pkl`, `package.pkl`, `pnpm-workspace.pkl`, `mise.pkl`, or
 `packages/docs/package.pkl`, re-run:

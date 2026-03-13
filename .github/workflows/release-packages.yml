@@ -1,0 +1,78 @@
+name: Release Packages
+
+on:
+  push:
+    tags:
+      - "target.*-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      PKL_VERSION: 0.31.0
+      PACKAGE_HOST: ${{ vars.PACKAGE_HOST }}
+      PACKAGE_BASE_PATH: ${{ vars.PACKAGE_BASE_PATH }}
+      PACKAGE_BASE_URL: ${{ vars.PACKAGE_BASE_URL }}
+      PACKAGE_BUCKET: ${{ vars.PACKAGE_BUCKET }}
+      PACKAGE_S3_ENDPOINT: ${{ vars.PACKAGE_S3_ENDPOINT }}
+      PACKAGE_AWS_REGION: ${{ vars.PACKAGE_AWS_REGION || 'auto' }}
+      PACKAGE_OUTPUT_DIR: dist/package-artifacts
+      PUBLISH_DIR: dist/publish
+      AWS_ACCESS_KEY_ID: ${{ secrets.PACKAGE_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.PACKAGE_AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate package host configuration
+        run: |
+          : "${PACKAGE_HOST:?Set repository variable PACKAGE_HOST}"
+          : "${PACKAGE_BASE_URL:?Set repository variable PACKAGE_BASE_URL}"
+          : "${PACKAGE_BUCKET:?Set repository variable PACKAGE_BUCKET}"
+          : "${PACKAGE_S3_ENDPOINT:?Set repository variable PACKAGE_S3_ENDPOINT}"
+          : "${AWS_ACCESS_KEY_ID:?Set repository secret PACKAGE_AWS_ACCESS_KEY_ID}"
+          : "${AWS_SECRET_ACCESS_KEY:?Set repository secret PACKAGE_AWS_SECRET_ACCESS_KEY}"
+
+      - name: Setup Pkl
+        run: |
+          curl -L -o pkl "https://github.com/apple/pkl/releases/download/${PKL_VERSION}/pkl-linux-amd64"
+          chmod +x pkl
+          sudo mv pkl /usr/local/bin/pkl
+          pkl --version
+
+      - name: Generate workspace manifests
+        run: pkl eval -m . root-files.pkl
+
+      - name: Build package artifacts
+        run: ./scripts/package-artifacts.sh
+
+      - name: Build publish layout
+        run: ./scripts/build-publish-layout.sh
+
+      - name: Install AWS CLI
+        run: python -m pip install --user awscli
+
+      - name: Publish package host
+        run: ./scripts/sync-publish-layout.sh
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-artifacts
+          path: dist/package-artifacts
+
+      - name: Upload publish layout
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-publish-layout
+          path: dist/publish
+
+      - name: Attach release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/package-artifacts/**/*

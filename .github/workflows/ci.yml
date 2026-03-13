@@ -28,6 +28,9 @@ jobs:
       - name: Generate workspace manifests
         run: pkl eval -m . root-files.pkl
 
+      - name: Build package artifacts
+        run: ./scripts/package-artifacts.sh
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:

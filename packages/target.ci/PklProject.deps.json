@@ -15,9 +15,9 @@
         "sha256": "02ef6f25bfca5b1d095db73ea15de79d2d2c6832ebcab61e6aba90554382abcb"
       }
     },
-    "package://pkg.registry.pkl/target.core@0": {
+    "package://pkg.example.invalid/target.core@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/target.core@0.1.0",
+      "uri": "projectpackage://pkg.example.invalid/target.core@0.1.0",
       "path": "../target.core"
     }
   }

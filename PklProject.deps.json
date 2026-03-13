@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "resolvedDependencies": {
-    "package://pkg.registry.pkl/target.ci@0": {
+    "package://pkg.example.invalid/target.ci@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/target.ci@0.1.0",
+      "uri": "projectpackage://pkg.example.invalid/target.ci@0.1.0",
       "path": "packages/target.ci"
     },
     "package://pkg.pkl-lang.org/pkl-pantry/com.github.actions@1": {
@@ -20,24 +20,24 @@
         "sha256": "02ef6f25bfca5b1d095db73ea15de79d2d2c6832ebcab61e6aba90554382abcb"
       }
     },
-    "package://pkg.registry.pkl/target.core@0": {
+    "package://pkg.example.invalid/target.core@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/target.core@0.1.0",
+      "uri": "projectpackage://pkg.example.invalid/target.core@0.1.0",
       "path": "packages/target.core"
     },
-    "package://pkg.registry.pkl/target.js@0": {
+    "package://pkg.example.invalid/target.js@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/target.js@0.1.0",
+      "uri": "projectpackage://pkg.example.invalid/target.js@0.1.0",
       "path": "packages/target.js"
     },
-    "package://pkg.registry.pkl/target.agent@0": {
+    "package://pkg.example.invalid/target.agent@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/target.agent@0.1.0",
+      "uri": "projectpackage://pkg.example.invalid/target.agent@0.1.0",
       "path": "packages/target.agent"
     },
-    "package://pkg.registry.pkl/target.rust@0": {
+    "package://pkg.example.invalid/target.rust@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/target.rust@0.1.0",
+      "uri": "projectpackage://pkg.example.invalid/target.rust@0.1.0",
       "path": "packages/target.rust"
     },
     "package://pkg.pkl-lang.org/pkl-pantry/pkl.toml@1": {
@@ -47,14 +47,14 @@
         "sha256": "45fea4cf14e7d776e131b338efe2a7016f86c87b0c0f532409f728033bd82f71"
       }
     },
-    "package://pkg.registry.pkl/target.env@0": {
+    "package://pkg.example.invalid/target.env@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/target.env@0.1.0",
+      "uri": "projectpackage://pkg.example.invalid/target.env@0.1.0",
       "path": "packages/target.env"
     },
-    "package://pkg.registry.pkl/target.editor@0": {
+    "package://pkg.example.invalid/target.editor@0": {
       "type": "local",
-      "uri": "projectpackage://pkg.registry.pkl/target.editor@0.1.0",
+      "uri": "projectpackage://pkg.example.invalid/target.editor@0.1.0",
       "path": "packages/target.editor"
     }
   }

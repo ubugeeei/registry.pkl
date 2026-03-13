@@ -5,6 +5,15 @@ amends "pkl:Project"
 import "pkl:reflect"
 
 local myModule = reflect.Module(module)
+local packageHost = read?("env:PACKAGE_HOST") ?? "pkg.example.invalid"
+local packageBasePathInput = read?("env:PACKAGE_BASE_PATH") ?? ""
+local packageBasePath =
+  if (packageBasePathInput == "") ""
+  else if (packageBasePathInput.startsWith("/")) packageBasePathInput
+  else "/\(packageBasePathInput)"
+local packageBaseUrl =
+  read?("env:PACKAGE_BASE_URL") ?? "https://\(packageHost)\(packageBasePath)"
+local releaseBaseUrl = "\(packageBaseUrl)/releases"
 
 local packageName: String =
   findRootModule(myModule)
@@ -22,9 +31,9 @@ const local allTests =
 package {
   name = packageName
   version = "0.1.0"
-  baseUri = "package://pkg.registry.pkl/\(name)"
+  baseUri = "package://\(packageHost)\(packageBasePath)/\(name)"
   packageZipUrl =
-    "https://registry.pkl.dev/releases/\(name)@\(version)/\(name)@\(version).zip"
+    "\(releaseBaseUrl)/\(name)@\(version)/\(name)@\(version).zip"
   license = "Apache-2.0"
   authors {
     "Ubugeeei <ubugeeei@gmail.com>"

@@ -107,3 +107,8 @@ Rules:
 
 This keeps semver honest and lets high-churn targets evolve without forcing a
 repo-wide version.
+
+## Operational Next Step
+
+Use [Release Playbook](../release-playbook/index.html) for the concrete
+repository workflow, commands, and release automation.
