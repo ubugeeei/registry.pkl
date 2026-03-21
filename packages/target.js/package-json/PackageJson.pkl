@@ -6,6 +6,11 @@ import "@target.core/Maps.pkl" as Maps
 typealias Personish = String|Person
 typealias Repositoryish = String|Repository
 typealias Bugsish = String|Bugs
+typealias FundingTarget = String|Funding
+typealias Fundingish = String|Funding|Listing<FundingTarget>
+typealias BrowserTarget = String|Boolean
+typealias Pathish = String|Listing<String>|Null
+typealias ExportTarget = String|Listing<String>|ConditionalTarget|Null
 
 class Person {
   name: String
@@ -24,6 +29,74 @@ class Bugs {
   email: String? = null
 }
 
+class Directories {
+  bin: String? = null
+  doc: String? = null
+  example: String? = null
+  lib: String? = null
+  man: String? = null
+  test: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Funding {
+  type: String? = null
+  url: String
+}
+
+class PeerDependencyMeta {
+  optional: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ConditionalTarget {
+  types: Pathish = null
+  `import`: Pathish = null
+  require: Pathish = null
+  `default`: Pathish = null
+  node: Pathish = null
+  browser: Pathish = null
+  development: Pathish = null
+  production: Pathish = null
+  worker: Pathish = null
+  deno: Pathish = null
+  bun: Pathish = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class PublishConfig {
+  access: "public"|"restricted"? = null
+  tag: String? = null
+  registry: String? = null
+  directory: String? = null
+  provenance: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class PeerDependencyRules {
+  allowAny: Listing<String> = new Listing {}
+  ignoreMissing: Listing<String> = new Listing {}
+  allowedVersions: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class PnpmUpdateConfig {
+  ignoreDependencies: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class PnpmConfig {
+  onlyBuiltDependencies: Listing<String> = new Listing {}
+  ignoredBuiltDependencies: Listing<String> = new Listing {}
+  neverBuiltDependencies: Listing<String> = new Listing {}
+  overrides: Mapping<String, String> = new Mapping {}
+  patchedDependencies: Mapping<String, String> = new Mapping {}
+  packageExtensions: Mapping<String, Any> = new Mapping {}
+  peerDependencyRules: PeerDependencyRules? = null
+  updateConfig: PnpmUpdateConfig? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
 `$schema`: String? = null
 name: String? = null
 version: String? = null
@@ -33,24 +106,38 @@ packageManager: String? = null
 type: "module"|"commonjs"? = null
 license: String? = null
 homepage: String? = null
+main: String? = null
+`module`: String? = null
+types: String? = null
+browser: String|Mapping<String, BrowserTarget>? = null
+bin: String|Mapping<String, String>? = null
+man: String|Listing<String>? = null
+sideEffects: Boolean|Listing<String>? = null
+os: Listing<String> = new Listing {}
+cpu: Listing<String> = new Listing {}
 repository: Repositoryish? = null
 bugs: Bugsish? = null
+directories: Directories? = null
+funding: Fundingish? = null
 author: Personish? = null
 contributors: Listing<Personish> = new Listing {}
 keywords: Listing<String> = new Listing {}
 files: Listing<String> = new Listing {}
+bundledDependencies: Listing<String> = new Listing {}
 workspaces: Listing<String> = new Listing {}
 engines: Mapping<String, String> = new Mapping {}
 scripts: Mapping<String, String> = new Mapping {}
 dependencies: Mapping<String, String> = new Mapping {}
 devDependencies: Mapping<String, String> = new Mapping {}
 peerDependencies: Mapping<String, String> = new Mapping {}
+peerDependenciesMeta: Mapping<String, PeerDependencyMeta> = new Mapping {}
 optionalDependencies: Mapping<String, String> = new Mapping {}
-imports: Mapping<String, Any> = new Mapping {}
+imports: Mapping<String, ExportTarget> = new Mapping {}
 config: Mapping<String, Any> = new Mapping {}
-pnpm: Mapping<String, Any> = new Mapping {}
-publishConfig: Mapping<String, Any> = new Mapping {}
-exports: Any? = null
+typesVersions: Mapping<String, Mapping<String, Listing<String>>> = new Mapping {}
+pnpm: PnpmConfig|Mapping<String, Any> = new PnpmConfig {}
+publishConfig: PublishConfig|Mapping<String, Any> = new PublishConfig {}
+exports: ExportTarget|Mapping<String, ExportTarget>? = null
 extra: Mapping<String, Any> = new Mapping {}
 
 local function renderPerson(value: Person) =
@@ -64,6 +151,157 @@ local function renderRepository(value: Repositoryish) =
 
 local function renderBugs(value: Bugsish) =
   if (value is String) value else value.toMap().filter((_, elem) -> elem != null)
+
+local function renderDirectories(value: Directories) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.bin != null) { ["bin"] = value.bin }
+      when (value.doc != null) { ["doc"] = value.doc }
+      when (value.example != null) { ["example"] = value.example }
+      when (value.lib != null) { ["lib"] = value.lib }
+      when (value.man != null) { ["man"] = value.man }
+      when (value.test != null) { ["test"] = value.test }
+    },
+    value.extra,
+  )
+
+local function renderFunding(value: Funding) =
+  new Dynamic {
+    when (value.type != null) { ["type"] = value.type }
+    ["url"] = value.url
+  }.toMap()
+
+local function renderFundingTarget(value: FundingTarget) =
+  if (value is String) value else renderFunding(value)
+
+local function renderFundingish(value: Fundingish) =
+  if (value is String)
+    value
+  else if (value is Listing)
+    value.toList().map((item) -> renderFundingTarget(item))
+  else
+    renderFunding(value)
+
+local function renderPeerDependencyMeta(value: PeerDependencyMeta) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.optional != null) { ["optional"] = value.optional }
+    },
+    value.extra,
+  )
+
+local function renderPathish(value: Pathish) =
+  if (value == null) null else if (value is Listing) value.toList() else value
+
+local function renderConditionalTarget(value: ConditionalTarget) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.types != null) { ["types"] = renderPathish(value.types) }
+      when (value.`import` != null) { ["import"] = renderPathish(value.`import`) }
+      when (value.require != null) { ["require"] = renderPathish(value.require) }
+      when (value.`default` != null) { ["default"] = renderPathish(value.`default`) }
+      when (value.node != null) { ["node"] = renderPathish(value.node) }
+      when (value.browser != null) { ["browser"] = renderPathish(value.browser) }
+      when (value.development != null) {
+        ["development"] = renderPathish(value.development)
+      }
+      when (value.production != null) {
+        ["production"] = renderPathish(value.production)
+      }
+      when (value.worker != null) { ["worker"] = renderPathish(value.worker) }
+      when (value.deno != null) { ["deno"] = renderPathish(value.deno) }
+      when (value.bun != null) { ["bun"] = renderPathish(value.bun) }
+    },
+    value.extra,
+  )
+
+local function renderExportTarget(value: ExportTarget) =
+  if (value == null)
+    null
+  else if (value is String)
+    value
+  else if (value is Listing)
+    value.toList()
+  else
+    renderConditionalTarget(value)
+
+local function renderPublishConfig(value: PublishConfig|Mapping<String, Any>) =
+  if (value is Mapping)
+    value.toMap()
+  else
+    Maps.withExtra(
+      new Dynamic {
+        when (value.access != null) { ["access"] = value.access }
+        when (value.tag != null) { ["tag"] = value.tag }
+        when (value.registry != null) { ["registry"] = value.registry }
+        when (value.directory != null) { ["directory"] = value.directory }
+        when (value.provenance != null) { ["provenance"] = value.provenance }
+      },
+      value.extra,
+    )
+
+local function renderPeerDependencyRules(value: PeerDependencyRules) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.allowAny.toList().isEmpty) {
+        ["allowAny"] = value.allowAny.toList()
+      }
+      when (!value.ignoreMissing.toList().isEmpty) {
+        ["ignoreMissing"] = value.ignoreMissing.toList()
+      }
+      when (!value.allowedVersions.toMap().isEmpty) {
+        ["allowedVersions"] = value.allowedVersions.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderPnpmUpdateConfig(value: PnpmUpdateConfig) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.ignoreDependencies.toList().isEmpty) {
+        ["ignoreDependencies"] = value.ignoreDependencies.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderPnpmConfig(value: PnpmConfig|Mapping<String, Any>) =
+  if (value is Mapping)
+    value.toMap()
+  else
+    Maps.withExtra(
+      new Dynamic {
+        when (!value.onlyBuiltDependencies.toList().isEmpty) {
+          ["onlyBuiltDependencies"] = value.onlyBuiltDependencies.toList()
+        }
+        when (!value.ignoredBuiltDependencies.toList().isEmpty) {
+          ["ignoredBuiltDependencies"] = value.ignoredBuiltDependencies.toList()
+        }
+        when (!value.neverBuiltDependencies.toList().isEmpty) {
+          ["neverBuiltDependencies"] = value.neverBuiltDependencies.toList()
+        }
+        when (!value.overrides.toMap().isEmpty) {
+          ["overrides"] = value.overrides.toMap()
+        }
+        when (!value.patchedDependencies.toMap().isEmpty) {
+          ["patchedDependencies"] = value.patchedDependencies.toMap()
+        }
+        when (!value.packageExtensions.toMap().isEmpty) {
+          ["packageExtensions"] = value.packageExtensions.toMap()
+        }
+        when (value.peerDependencyRules != null) {
+          ["peerDependencyRules"] = renderPeerDependencyRules(value.peerDependencyRules)
+        }
+        when (value.updateConfig != null) {
+          ["updateConfig"] = renderPnpmUpdateConfig(value.updateConfig)
+        }
+      },
+      value.extra,
+    )
+
+hidden pnpmValue = renderPnpmConfig(pnpm)
+hidden publishConfigValue = renderPublishConfig(publishConfig)
 
 hidden rendered =
   Maps.withExtra(
@@ -95,11 +333,46 @@ hidden rendered =
       when (homepage != null) {
         ["homepage"] = homepage
       }
+      when (main != null) {
+        ["main"] = main
+      }
+      when (`module` != null) {
+        ["module"] = `module`
+      }
+      when (types != null) {
+        ["types"] = types
+      }
+      when (browser != null) {
+        ["browser"] =
+          if (browser is String) browser else browser.toMap()
+      }
+      when (bin != null) {
+        ["bin"] = if (bin is String) bin else bin.toMap()
+      }
+      when (man != null) {
+        ["man"] = if (man is String) man else man.toList()
+      }
+      when (sideEffects != null) {
+        ["sideEffects"] =
+          if (sideEffects is Listing) sideEffects.toList() else sideEffects
+      }
+      when (!os.toList().isEmpty) {
+        ["os"] = os.toList()
+      }
+      when (!cpu.toList().isEmpty) {
+        ["cpu"] = cpu.toList()
+      }
       when (repository != null) {
         ["repository"] = renderRepository(repository)
       }
       when (bugs != null) {
         ["bugs"] = renderBugs(bugs)
+      }
+      when (directories != null) {
+        ["directories"] = renderDirectories(directories)
+      }
+      when (funding != null) {
+        ["funding"] = renderFundingish(funding)
       }
       when (author != null) {
         ["author"] = renderPersonish(author)
@@ -112,6 +385,9 @@ hidden rendered =
       }
       when (!files.toList().isEmpty) {
         ["files"] = files.toList()
+      }
+      when (!bundledDependencies.toList().isEmpty) {
+        ["bundleDependencies"] = bundledDependencies.toList()
       }
       when (!workspaces.toList().isEmpty) {
         ["workspaces"] = workspaces.toList()
@@ -131,23 +407,40 @@ hidden rendered =
       when (!peerDependencies.toMap().isEmpty) {
         ["peerDependencies"] = peerDependencies.toMap()
       }
+      when (!peerDependenciesMeta.toMap().isEmpty) {
+        ["peerDependenciesMeta"] =
+          peerDependenciesMeta.toMap().mapValues(
+            (_, value) -> renderPeerDependencyMeta(value),
+          )
+      }
       when (!optionalDependencies.toMap().isEmpty) {
         ["optionalDependencies"] = optionalDependencies.toMap()
       }
       when (!imports.toMap().isEmpty) {
-        ["imports"] = imports.toMap()
+        ["imports"] =
+          imports.toMap().mapValues((_, value) -> renderExportTarget(value))
       }
       when (!config.toMap().isEmpty) {
         ["config"] = config.toMap()
       }
-      when (!pnpm.toMap().isEmpty) {
-        ["pnpm"] = pnpm.toMap()
+      when (!typesVersions.toMap().isEmpty) {
+        ["typesVersions"] =
+          typesVersions.toMap().mapValues(
+            (_, value) -> value.toMap().mapValues((_, paths) -> paths.toList()),
+          )
       }
-      when (!publishConfig.toMap().isEmpty) {
-        ["publishConfig"] = publishConfig.toMap()
+      when (!pnpmValue.isEmpty) {
+        ["pnpm"] = pnpmValue
+      }
+      when (!publishConfigValue.isEmpty) {
+        ["publishConfig"] = publishConfigValue
       }
       when (exports != null) {
-        ["exports"] = exports
+        ["exports"] =
+          if (exports is Mapping)
+            exports.toMap().mapValues((_, value) -> renderExportTarget(value))
+          else
+            renderExportTarget(exports)
       }
     },
     extra,

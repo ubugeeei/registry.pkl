@@ -109,6 +109,8 @@ Build first-party package artifacts:
 
 ```bash
 ./scripts/package-artifacts.sh
+# or target a subset
+./scripts/package-artifacts.sh packages/target.js packages/target.rust
 ./scripts/build-publish-layout.sh
 ./scripts/sync-publish-layout.sh
 ```
@@ -121,6 +123,14 @@ For actual release hosting, set:
 - `PACKAGE_BUCKET`
 - `PACKAGE_S3_ENDPOINT`
 - `PACKAGE_AWS_REGION` when needed by the storage provider
+
+`./scripts/sync-publish-layout.sh` uploads only new objects, skips identical
+existing files, and refuses to overwrite different contents. If you use
+`PACKAGE_BASE_PATH`, the uploader publishes into that same object-key prefix.
+
+The `Release Packages` workflow can publish one package per tag using
+`target.js-v0.1.0`, and manual runs accept a `projects` input when you want to
+release a subset without tagging first.
 
 If you change `.oxfmt.pkl`, `package.pkl`, `pnpm-workspace.pkl`, `mise.pkl`, or
 `packages/docs/package.pkl`, re-run:

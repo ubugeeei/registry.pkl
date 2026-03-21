@@ -1,0 +1,184 @@
+amends "../../package-json/PackageJson.pkl"
+
+`$schema` = "https://json.schemastore.org/package.json"
+name = "@registry/example-cli"
+version = "0.2.0"
+description = "Example package.json surface for snapshot testing"
+private = false
+packageManager = "pnpm@10.31.0"
+type = "module"
+license = "Apache-2.0"
+homepage = "https://ubugeeei.dev/registry.pkl"
+main = "./dist/index.cjs"
+`module` = "./dist/index.js"
+types = "./dist/index.d.ts"
+browser =
+  new Mapping {
+    ["./dist/node.js"] = "./dist/browser.js"
+    ["fs"] = false
+  }
+bin =
+  new Mapping {
+    ["registry"] = "./bin/registry.js"
+  }
+man =
+  new Listing {
+    "man/registry.1"
+    "man/registry-config.1"
+  }
+sideEffects =
+  new Listing {
+    "./src/register-env.js"
+  }
+os {
+  "darwin"
+  "linux"
+}
+cpu {
+  "arm64"
+  "x64"
+}
+repository =
+  new Repository {
+    url = "https://github.com/ubugeeei/registry.pkl.git"
+    directory = "packages/example-cli"
+  }
+bugs =
+  new Bugs {
+    url = "https://github.com/ubugeeei/registry.pkl/issues"
+  }
+directories =
+  new Directories {
+    bin = "bin"
+    lib = "dist"
+    man = "man"
+  }
+funding =
+  new Listing {
+    "https://github.com/sponsors/ubugeeei"
+    new Funding {
+      type = "individual"
+      url = "https://ubugeeei.dev/sponsor"
+    }
+  }
+author =
+  new Person {
+    name = "Ubugeeei"
+    email = "ubugeeei@gmail.com"
+    url = "https://ubugeeei.dev"
+  }
+contributors {
+  new Person {
+    name = "Registry Bot"
+    email = "bot@example.com"
+  }
+}
+keywords {
+  "pkl"
+  "config"
+  "registry"
+}
+files {
+  "dist"
+  "bin"
+  "README.md"
+}
+bundledDependencies {
+  "esbuild"
+}
+workspaces {
+  "packages/*"
+}
+engines {
+  ["node"] = ">=20"
+  ["pnpm"] = ">=10"
+}
+scripts {
+  ["build"] = "tsup src/index.ts --format esm,cjs"
+  ["check"] = "tsc --noEmit"
+}
+dependencies {
+  ["kleur"] = "^4.1.5"
+}
+devDependencies {
+  ["tsup"] = "^8.0.0"
+  ["typescript"] = "^5.9.0"
+}
+peerDependencies {
+  ["react"] = "^19.0.0"
+}
+peerDependenciesMeta {
+  ["react"] =
+    new PeerDependencyMeta {
+      optional = true
+    }
+}
+optionalDependencies {
+  ["fsevents"] = "^2.3.3"
+}
+imports {
+  ["#internal/*"] =
+    new ConditionalTarget {
+      types = "./src/*.ts"
+      `default` = "./dist/*.js"
+    }
+}
+config {
+  ["registryBaseUrl"] = "https://pkg.ubugeeei.dev"
+}
+typesVersions {
+  ["*"] =
+    new Mapping {
+      ["cli"] =
+        new Listing {
+          "dist/cli.d.ts"
+        }
+      ["*"] =
+        new Listing {
+          "dist/index.d.ts"
+        }
+    }
+}
+pnpm =
+  new PnpmConfig {
+    onlyBuiltDependencies {
+      "esbuild"
+    }
+    overrides {
+      ["kleur"] = "^4.1.5"
+    }
+    peerDependencyRules =
+      new PeerDependencyRules {
+        ignoreMissing {
+          "typescript"
+        }
+        allowedVersions {
+          ["react"] = "^19.0.0"
+        }
+      }
+    updateConfig =
+      new PnpmUpdateConfig {
+        ignoreDependencies {
+          "@types/node"
+        }
+      }
+  }
+publishConfig =
+  new PublishConfig {
+    access = "public"
+    registry = "https://registry.npmjs.org/"
+    tag = "latest"
+    provenance = true
+  }
+exports =
+  new Mapping {
+    ["."] =
+      new ConditionalTarget {
+        types = "./dist/index.d.ts"
+        `import` = "./dist/index.js"
+        require = "./dist/index.cjs"
+        `default` = "./dist/index.js"
+      }
+    ["./cli"] = "./dist/cli.js"
+    ["./package.json"] = "./package.json"
+  }

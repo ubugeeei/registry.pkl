@@ -19,7 +19,7 @@ hero:
 features:
   - icon: "mdi:package-variant-closed"
     title: package-json/PackageJson.pkl
-    details: Package metadata, scripts, dependencies, exports, and publish config.
+    details: Package metadata, browser and bin entrypoints, exports and imports, pnpm policy, and publish config.
   - icon: "mdi:file-code-outline"
     title: tsconfig/TsConfig.pkl
     details: Compiler options, references, include and exclude sets, and watch options.
@@ -60,6 +60,11 @@ amends "package://pkg.example.invalid/target.js@0.1.0#/tsconfig/TsConfig.pkl"
 
 `target.js` should go first because the files are high-frequency, mostly JSON or
 YAML, and a good fit for presets plus typed escape hatches.
+
+The package surface now leans harder into publish-ready metadata:
+`exports`, `imports`, `typesVersions`, `publishConfig`, `pnpm`, browser maps,
+funding, and peer metadata are all modeled directly instead of falling back to
+raw `Any` immediately.
 
 ## Related Docs
 

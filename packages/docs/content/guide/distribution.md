@@ -66,7 +66,8 @@ The package host should serve both:
 - the ZIP file at `packageZipUrl`
 
 Keeping metadata and ZIP files on the same origin makes enterprise mirroring
-much simpler.
+much simpler. If the host needs a path prefix, publish artifacts into that same
+prefix instead of rewriting URLs by hand after packaging.
 
 ## Why Same-Origin Package Hosting Matters
 
@@ -104,6 +105,8 @@ Rules:
 - run snapshot tests before packaging
 - run package API tests through `pkl project package`
 - publish immutable metadata, ZIPs, and checksums
+- avoid delete-based bucket sync for package hosts; add new objects and refuse
+  conflicting rewrites
 
 This keeps semver honest and lets high-churn targets evolve without forcing a
 repo-wide version.

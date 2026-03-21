@@ -5,6 +5,11 @@ on:
     tags:
       - "target.*-v*"
   workflow_dispatch:
+    inputs:
+      projects:
+        description: "Optional package names or project paths to release (for example: target.js target.rust)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -44,11 +49,90 @@ jobs:
           sudo mv pkl /usr/local/bin/pkl
           pkl --version
 
+      - name: Resolve release projects
+        id: release-projects
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          release_input="${{ github.event.inputs.projects || '' }}"
+          ref_name="${GITHUB_REF_NAME:-}"
+          projects=()
+
+          if [ -n "${release_input}" ]; then
+            normalized_input="${release_input//,/ }"
+
+            for token in ${normalized_input}; do
+              if [[ "${token}" == packages/* ]]; then
+                project="${token%/}"
+              else
+                project="packages/${token%/}"
+              fi
+
+              if [ ! -d "${project}" ]; then
+                echo "unknown package project: ${project}" >&2
+                exit 1
+              fi
+
+              projects+=("${project}")
+            done
+          elif [[ "${ref_name}" == target.*-v* ]]; then
+            project="packages/${ref_name%%-v*}"
+
+            if [ ! -d "${project}" ]; then
+              echo "unknown tagged package project: ${project}" >&2
+              exit 1
+            fi
+
+            projects=("${project}")
+          else
+            projects=(packages/target.*)
+          fi
+
+          printf 'projects<<EOF\n' >> "${GITHUB_OUTPUT}"
+          printf '%s\n' "${projects[@]}" >> "${GITHUB_OUTPUT}"
+          printf 'EOF\n' >> "${GITHUB_OUTPUT}"
+
+      - name: Validate tagged package version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          release_projects='${{ steps.release-projects.outputs.projects }}'
+          mapfile -t projects < <(printf '%s\n' "${release_projects}")
+
+          if [ "${#projects[@]}" -ne 1 ]; then
+            echo "tag-triggered releases must resolve to exactly one project" >&2
+            exit 1
+          fi
+
+          project="${projects[0]}"
+          tag_version="${GITHUB_REF_NAME##*-v}"
+          project_version="$(
+            pkl eval \
+              --project-dir "${project}" \
+              "${project}/PklProject" \
+              -x package.version
+          )"
+
+          if [ "${project_version}" != "${tag_version}" ]; then
+            echo "tag version ${tag_version} does not match ${project} version ${project_version}" >&2
+            exit 1
+          fi
+
       - name: Generate workspace manifests
         run: pkl eval -m . root-files.pkl
 
       - name: Build package artifacts
-        run: ./scripts/package-artifacts.sh
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          release_projects='${{ steps.release-projects.outputs.projects }}'
+          mapfile -t projects < <(printf '%s\n' "${release_projects}")
+
+          ./scripts/package-artifacts.sh "${projects[@]}"
 
       - name: Build publish layout
         run: ./scripts/build-publish-layout.sh

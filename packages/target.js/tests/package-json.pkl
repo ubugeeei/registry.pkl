@@ -1,0 +1,9 @@
+amends "pkl:test"
+
+import "fixtures/package-json-rich.pkl" as rich
+
+examples {
+  ["package.json"] {
+    rich.output.text
+  }
+}

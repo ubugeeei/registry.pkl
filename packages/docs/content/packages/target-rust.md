@@ -19,7 +19,7 @@ hero:
 features:
   - icon: "mdi:package-variant"
     title: cargo/Cargo.pkl
-    details: Package metadata, workspace settings, dependencies, features, profiles, and lint tables.
+    details: Package metadata, workspace inheritance, target-specific dependencies, product tables, features, profiles, and lint tables.
   - icon: "mdi:shield-half-full"
     title: clippy/Clippy.pkl
     details: Thresholds and policy toggles for Clippy without dropping to raw TOML by default.
@@ -41,6 +41,11 @@ amends "package://pkg.example.invalid/target.rust@0.1.0#/cargo/Cargo.pkl"
 Rust projects already accept a lot of declarative configuration and benefit from
 stable TOML output. This package should only expand if the TOML story stays
 centralized.
+
+The current schema covers the publish-facing crate metadata more deeply than the
+initial draft, including authors, homepage and documentation links,
+`workspace.package`, target-specific dependency tables, `patch`, and `lib` /
+`bin` targets.
 
 ## Related Docs
 

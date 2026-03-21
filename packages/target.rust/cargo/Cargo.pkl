@@ -12,7 +12,39 @@ class PackageSection {
   edition: String? = null
   description: String? = null
   rustVersion: String? = null
+  authors: Listing<String> = new Listing {}
   license: String? = null
+  licenseFile: String? = null
+  homepage: String? = null
+  documentation: String? = null
+  repository: String? = null
+  readme: String? = null
+  build: String? = null
+  links: String? = null
+  defaultRun: String? = null
+  publish: Boolean|Listing<String>? = null
+  keywords: Listing<String> = new Listing {}
+  categories: Listing<String> = new Listing {}
+  include: Listing<String> = new Listing {}
+  exclude: Listing<String> = new Listing {}
+  autobins: Boolean? = null
+  autoexamples: Boolean? = null
+  autotests: Boolean? = null
+  autobenches: Boolean? = null
+  metadata: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class WorkspacePackageSection {
+  version: String? = null
+  edition: String? = null
+  description: String? = null
+  rustVersion: String? = null
+  authors: Listing<String> = new Listing {}
+  license: String? = null
+  licenseFile: String? = null
+  homepage: String? = null
+  documentation: String? = null
   repository: String? = null
   readme: String? = null
   publish: Boolean|Listing<String>? = null
@@ -27,6 +59,10 @@ class WorkspaceSection {
   members: Listing<String> = new Listing {}
   exclude: Listing<String> = new Listing {}
   resolver: String? = null
+  package: WorkspacePackageSection? = null
+  dependencies: Mapping<String, Dependencyish> = new Mapping {}
+  lints: Mapping<String, Mapping<String, Any>> = new Mapping {}
+  metadata: Mapping<String, Any> = new Mapping {}
   extra: Mapping<String, Any> = new Mapping {}
 }
 
@@ -49,11 +85,37 @@ class Dependency {
 class Profile {
   optLevel: Int|String? = null
   debug: Boolean|Int? = null
+  splitDebuginfo: String? = null
+  debugAssertions: Boolean? = null
+  overflowChecks: Boolean? = null
   lto: Boolean|String? = null
   codegenUnits: Int? = null
   panic: String? = null
   strip: Boolean|String? = null
   incremental: Boolean? = null
+  rpath: Boolean? = null
+  inherits: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ProductSection {
+  name: String? = null
+  path: String? = null
+  test: Boolean? = null
+  doctest: Boolean? = null
+  bench: Boolean? = null
+  doc: Boolean? = null
+  procMacro: Boolean? = null
+  harness: Boolean? = null
+  crateType: Listing<String> = new Listing {}
+  requiredFeatures: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class TargetSection {
+  dependencies: Mapping<String, Dependencyish> = new Mapping {}
+  devDependencies: Mapping<String, Dependencyish> = new Mapping {}
+  buildDependencies: Mapping<String, Dependencyish> = new Mapping {}
   extra: Mapping<String, Any> = new Mapping {}
 }
 
@@ -62,10 +124,20 @@ workspace: WorkspaceSection = new {}
 dependencies: Mapping<String, Dependencyish> = new Mapping {}
 devDependencies: Mapping<String, Dependencyish> = new Mapping {}
 buildDependencies: Mapping<String, Dependencyish> = new Mapping {}
+target: Mapping<String, TargetSection> = new Mapping {}
 features: Mapping<String, Listing<String>> = new Mapping {}
 profile: Mapping<String, Profile> = new Mapping {}
 lints: Mapping<String, Mapping<String, Any>> = new Mapping {}
+patch: Mapping<String, Mapping<String, Dependencyish>> = new Mapping {}
+lib: ProductSection? = null
+bin: Listing<ProductSection> = new Listing {}
+exampleTargets: Listing<ProductSection> = new Listing {}
+testTargets: Listing<ProductSection> = new Listing {}
+benchTargets: Listing<ProductSection> = new Listing {}
 extra: Mapping<String, Any> = new Mapping {}
+
+local function renderPublishValue(value: Boolean|Listing<String>) =
+  if (value is Listing) value.toList() else value
 
 local function renderPackage(value: PackageSection) =
   Maps.withExtra(
@@ -75,27 +147,49 @@ local function renderPackage(value: PackageSection) =
       when (value.edition != null) { ["edition"] = value.edition }
       when (value.description != null) { ["description"] = value.description }
       when (value.rustVersion != null) { ["rust-version"] = value.rustVersion }
+      when (!value.authors.toList().isEmpty) { ["authors"] = value.authors.toList() }
       when (value.license != null) { ["license"] = value.license }
+      when (value.licenseFile != null) { ["license-file"] = value.licenseFile }
+      when (value.homepage != null) { ["homepage"] = value.homepage }
+      when (value.documentation != null) { ["documentation"] = value.documentation }
       when (value.repository != null) { ["repository"] = value.repository }
       when (value.readme != null) { ["readme"] = value.readme }
-      when (value.publish != null) {
-        ["publish"] =
-          if (value.publish is Listing) value.publish.toList() else value.publish
-      }
+      when (value.build != null) { ["build"] = value.build }
+      when (value.links != null) { ["links"] = value.links }
+      when (value.defaultRun != null) { ["default-run"] = value.defaultRun }
+      when (value.publish != null) { ["publish"] = renderPublishValue(value.publish) }
       when (!value.keywords.toList().isEmpty) { ["keywords"] = value.keywords.toList() }
       when (!value.categories.toList().isEmpty) { ["categories"] = value.categories.toList() }
       when (!value.include.toList().isEmpty) { ["include"] = value.include.toList() }
       when (!value.exclude.toList().isEmpty) { ["exclude"] = value.exclude.toList() }
+      when (value.autobins != null) { ["autobins"] = value.autobins }
+      when (value.autoexamples != null) { ["autoexamples"] = value.autoexamples }
+      when (value.autotests != null) { ["autotests"] = value.autotests }
+      when (value.autobenches != null) { ["autobenches"] = value.autobenches }
+      when (!value.metadata.toMap().isEmpty) { ["metadata"] = value.metadata.toMap() }
     },
     value.extra,
   )
 
-local function renderWorkspace(value: WorkspaceSection) =
+local function renderWorkspacePackage(value: WorkspacePackageSection) =
   Maps.withExtra(
     new Dynamic {
-      when (!value.members.toList().isEmpty) { ["members"] = value.members.toList() }
+      when (value.version != null) { ["version"] = value.version }
+      when (value.edition != null) { ["edition"] = value.edition }
+      when (value.description != null) { ["description"] = value.description }
+      when (value.rustVersion != null) { ["rust-version"] = value.rustVersion }
+      when (!value.authors.toList().isEmpty) { ["authors"] = value.authors.toList() }
+      when (value.license != null) { ["license"] = value.license }
+      when (value.licenseFile != null) { ["license-file"] = value.licenseFile }
+      when (value.homepage != null) { ["homepage"] = value.homepage }
+      when (value.documentation != null) { ["documentation"] = value.documentation }
+      when (value.repository != null) { ["repository"] = value.repository }
+      when (value.readme != null) { ["readme"] = value.readme }
+      when (value.publish != null) { ["publish"] = renderPublishValue(value.publish) }
+      when (!value.keywords.toList().isEmpty) { ["keywords"] = value.keywords.toList() }
+      when (!value.categories.toList().isEmpty) { ["categories"] = value.categories.toList() }
+      when (!value.include.toList().isEmpty) { ["include"] = value.include.toList() }
       when (!value.exclude.toList().isEmpty) { ["exclude"] = value.exclude.toList() }
-      when (value.resolver != null) { ["resolver"] = value.resolver }
     },
     value.extra,
   )
@@ -124,16 +218,88 @@ local function renderDependency(value: Dependencyish) =
       value.extra,
     )
 
+local function renderDependencyTable(value: Mapping<String, Dependencyish>) =
+  value.toMap().mapValues((_, item) -> renderDependency(item))
+
+local function renderLintTable(value: Mapping<String, Mapping<String, Any>>) =
+  value.toMap().mapValues((_, item) -> item.toMap())
+
+local function renderWorkspace(value: WorkspaceSection) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.members.toList().isEmpty) { ["members"] = value.members.toList() }
+      when (!value.exclude.toList().isEmpty) { ["exclude"] = value.exclude.toList() }
+      when (value.resolver != null) { ["resolver"] = value.resolver }
+      when (value.package != null) { ["package"] = renderWorkspacePackage(value.package) }
+      when (!value.dependencies.toMap().isEmpty) {
+        ["dependencies"] = renderDependencyTable(value.dependencies)
+      }
+      when (!value.lints.toMap().isEmpty) {
+        ["lints"] = renderLintTable(value.lints)
+      }
+      when (!value.metadata.toMap().isEmpty) {
+        ["metadata"] = value.metadata.toMap()
+      }
+    },
+    value.extra,
+  )
+
 local function renderProfile(value: Profile) =
   Maps.withExtra(
     new Dynamic {
       when (value.optLevel != null) { ["opt-level"] = value.optLevel }
       when (value.debug != null) { ["debug"] = value.debug }
+      when (value.splitDebuginfo != null) { ["split-debuginfo"] = value.splitDebuginfo }
+      when (value.debugAssertions != null) {
+        ["debug-assertions"] = value.debugAssertions
+      }
+      when (value.overflowChecks != null) {
+        ["overflow-checks"] = value.overflowChecks
+      }
       when (value.lto != null) { ["lto"] = value.lto }
       when (value.codegenUnits != null) { ["codegen-units"] = value.codegenUnits }
       when (value.panic != null) { ["panic"] = value.panic }
       when (value.strip != null) { ["strip"] = value.strip }
       when (value.incremental != null) { ["incremental"] = value.incremental }
+      when (value.rpath != null) { ["rpath"] = value.rpath }
+      when (value.inherits != null) { ["inherits"] = value.inherits }
+    },
+    value.extra,
+  )
+
+local function renderProduct(value: ProductSection) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.path != null) { ["path"] = value.path }
+      when (value.test != null) { ["test"] = value.test }
+      when (value.doctest != null) { ["doctest"] = value.doctest }
+      when (value.bench != null) { ["bench"] = value.bench }
+      when (value.doc != null) { ["doc"] = value.doc }
+      when (value.procMacro != null) { ["proc-macro"] = value.procMacro }
+      when (value.harness != null) { ["harness"] = value.harness }
+      when (!value.crateType.toList().isEmpty) {
+        ["crate-type"] = value.crateType.toList()
+      }
+      when (!value.requiredFeatures.toList().isEmpty) {
+        ["required-features"] = value.requiredFeatures.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderTargetSection(value: TargetSection) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.dependencies.toMap().isEmpty) {
+        ["dependencies"] = renderDependencyTable(value.dependencies)
+      }
+      when (!value.devDependencies.toMap().isEmpty) {
+        ["dev-dependencies"] = renderDependencyTable(value.devDependencies)
+      }
+      when (!value.buildDependencies.toMap().isEmpty) {
+        ["build-dependencies"] = renderDependencyTable(value.buildDependencies)
+      }
     },
     value.extra,
   )
@@ -147,16 +313,17 @@ hidden rendered =
       when (!packageValue.isEmpty) { ["package"] = packageValue }
       when (!workspaceValue.isEmpty) { ["workspace"] = workspaceValue }
       when (!dependencies.toMap().isEmpty) {
-        ["dependencies"] =
-          dependencies.toMap().mapValues((_, value) -> renderDependency(value))
+        ["dependencies"] = renderDependencyTable(dependencies)
       }
       when (!devDependencies.toMap().isEmpty) {
-        ["dev-dependencies"] =
-          devDependencies.toMap().mapValues((_, value) -> renderDependency(value))
+        ["dev-dependencies"] = renderDependencyTable(devDependencies)
       }
       when (!buildDependencies.toMap().isEmpty) {
-        ["build-dependencies"] =
-          buildDependencies.toMap().mapValues((_, value) -> renderDependency(value))
+        ["build-dependencies"] = renderDependencyTable(buildDependencies)
+      }
+      when (!target.toMap().isEmpty) {
+        ["target"] =
+          target.toMap().mapValues((_, value) -> renderTargetSection(value))
       }
       when (!features.toMap().isEmpty) {
         ["features"] =
@@ -167,7 +334,24 @@ hidden rendered =
           profile.toMap().mapValues((_, value) -> renderProfile(value))
       }
       when (!lints.toMap().isEmpty) {
-        ["lints"] = lints.toMap().mapValues((_, value) -> value.toMap())
+        ["lints"] = renderLintTable(lints)
+      }
+      when (!patch.toMap().isEmpty) {
+        ["patch"] =
+          patch.toMap().mapValues((_, value) -> renderDependencyTable(value))
+      }
+      when (lib != null) { ["lib"] = renderProduct(lib) }
+      when (!bin.toList().isEmpty) {
+        ["bin"] = bin.toList().map((value) -> renderProduct(value))
+      }
+      when (!exampleTargets.toList().isEmpty) {
+        ["example"] = exampleTargets.toList().map((value) -> renderProduct(value))
+      }
+      when (!testTargets.toList().isEmpty) {
+        ["test"] = testTargets.toList().map((value) -> renderProduct(value))
+      }
+      when (!benchTargets.toList().isEmpty) {
+        ["bench"] = benchTargets.toList().map((value) -> renderProduct(value))
       }
     },
     extra,

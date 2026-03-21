@@ -1,0 +1,156 @@
+amends "../../cargo/Cargo.pkl"
+
+package {
+  name = "registry-pkl-cli"
+  version = "0.2.0"
+  edition = "2024"
+  description = "Registry tooling for Pkl config packages"
+  rustVersion = "1.86"
+  authors {
+    "Ubugeeei <ubugeeei@gmail.com>"
+  }
+  license = "Apache-2.0"
+  homepage = "https://ubugeeei.dev/registry.pkl"
+  documentation = "https://ubugeeei.github.io/registry.pkl/"
+  repository = "https://github.com/ubugeeei/registry.pkl"
+  readme = "README.md"
+  defaultRun = "registry-pkl"
+  keywords {
+    "pkl"
+    "config"
+  }
+  categories {
+    "command-line-utilities"
+  }
+  include {
+    "src/**"
+    "README.md"
+    "LICENSE"
+  }
+  metadata {
+    ["dist"] =
+      new Dynamic {
+        ["install"] = "cargo install registry-pkl-cli"
+      }
+  }
+}
+
+workspace {
+  members {
+    "crates/*"
+  }
+  resolver = "2"
+  package =
+    new WorkspacePackageSection {
+      edition = "2024"
+      license = "Apache-2.0"
+      repository = "https://github.com/ubugeeei/registry.pkl"
+    }
+  dependencies {
+    ["anyhow"] = "1.0.100"
+    ["serde"] =
+      new Dependency {
+        version = "1.0.228"
+        features {
+          "derive"
+        }
+      }
+  }
+  lints {
+    ["rust"] =
+      new Mapping {
+        ["unsafe_code"] = "forbid"
+      }
+  }
+}
+
+dependencies {
+  ["anyhow"] = "1.0.100"
+  ["clap"] =
+    new Dependency {
+      version = "4.5.32"
+      features {
+        "derive"
+        "env"
+      }
+    }
+}
+
+devDependencies {
+  ["insta"] = "1.43.1"
+}
+
+buildDependencies {
+  ["vergen"] =
+    new Dependency {
+      version = "9.0.5"
+      defaultFeatures = false
+      features {
+        "build"
+      }
+    }
+}
+
+target {
+  ["cfg(unix)"] =
+    new TargetSection {
+      dependencies {
+        ["tikv-jemallocator"] = "0.6.0"
+      }
+    }
+}
+
+features {
+  ["default"] =
+    new Listing {
+      "cli"
+    }
+  ["cli"] =
+    new Listing {
+      "dep:clap"
+    }
+}
+
+profile {
+  ["release"] =
+    new Profile {
+      lto = "thin"
+      strip = true
+      codegenUnits = 1
+      panic = "abort"
+    }
+}
+
+lints {
+  ["rust"] =
+    new Mapping {
+      ["unsafe_code"] = "forbid"
+    }
+}
+
+patch {
+  ["crates-io"] =
+    new Mapping {
+      ["serde"] =
+        new Dependency {
+          git = "https://github.com/serde-rs/serde"
+          rev = "v1.0.228"
+        }
+    }
+}
+
+lib =
+  new ProductSection {
+    path = "src/lib.rs"
+    doctest = true
+  }
+
+bin {
+  new ProductSection {
+    name = "registry-pkl"
+    path = "src/main.rs"
+    requiredFeatures {
+      "cli"
+    }
+  }
+}

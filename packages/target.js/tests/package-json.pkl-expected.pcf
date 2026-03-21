@@ -1,0 +1,172 @@
+examples {
+  ["package.json"] {
+    """
+    {
+      "$schema": "https://json.schemastore.org/package.json",
+      "name": "@registry/example-cli",
+      "version": "0.2.0",
+      "private": false,
+      "description": "Example package.json surface for snapshot testing",
+      "packageManager": "pnpm@10.31.0",
+      "type": "module",
+      "license": "Apache-2.0",
+      "homepage": "https://ubugeeei.dev/registry.pkl",
+      "main": "./dist/index.cjs",
+      "module": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "browser": {
+        "./dist/node.js": "./dist/browser.js",
+        "fs": false
+      },
+      "bin": {
+        "registry": "./bin/registry.js"
+      },
+      "man": [
+        "man/registry.1",
+        "man/registry-config.1"
+      ],
+      "sideEffects": [
+        "./src/register-env.js"
+      ],
+      "os": [
+        "darwin",
+        "linux"
+      ],
+      "cpu": [
+        "arm64",
+        "x64"
+      ],
+      "repository": {
+        "type": "git",
+        "url": "https://github.com/ubugeeei/registry.pkl.git",
+        "directory": "packages/example-cli"
+      },
+      "bugs": {
+        "url": "https://github.com/ubugeeei/registry.pkl/issues"
+      },
+      "directories": {
+        "bin": "bin",
+        "lib": "dist",
+        "man": "man"
+      },
+      "funding": [
+        "https://github.com/sponsors/ubugeeei",
+        {
+          "type": "individual",
+          "url": "https://ubugeeei.dev/sponsor"
+        }
+      ],
+      "author": {
+        "name": "Ubugeeei",
+        "email": "ubugeeei@gmail.com",
+        "url": "https://ubugeeei.dev"
+      },
+      "contributors": [
+        {
+          "name": "Registry Bot",
+          "email": "bot@example.com"
+        }
+      ],
+      "keywords": [
+        "pkl",
+        "config",
+        "registry"
+      ],
+      "files": [
+        "dist",
+        "bin",
+        "README.md"
+      ],
+      "bundleDependencies": [
+        "esbuild"
+      ],
+      "workspaces": [
+        "packages/*"
+      ],
+      "engines": {
+        "node": ">=20",
+        "pnpm": ">=10"
+      },
+      "scripts": {
+        "build": "tsup src/index.ts --format esm,cjs",
+        "check": "tsc --noEmit"
+      },
+      "dependencies": {
+        "kleur": "^4.1.5"
+      },
+      "devDependencies": {
+        "tsup": "^8.0.0",
+        "typescript": "^5.9.0"
+      },
+      "peerDependencies": {
+        "react": "^19.0.0"
+      },
+      "peerDependenciesMeta": {
+        "react": {
+          "optional": true
+        }
+      },
+      "optionalDependencies": {
+        "fsevents": "^2.3.3"
+      },
+      "imports": {
+        "#internal/*": {
+          "types": "./src/*.ts",
+          "default": "./dist/*.js"
+        }
+      },
+      "config": {
+        "registryBaseUrl": "https://pkg.ubugeeei.dev"
+      },
+      "typesVersions": {
+        "*": {
+          "cli": [
+            "dist/cli.d.ts"
+          ],
+          "*": [
+            "dist/index.d.ts"
+          ]
+        }
+      },
+      "pnpm": {
+        "onlyBuiltDependencies": [
+          "esbuild"
+        ],
+        "overrides": {
+          "kleur": "^4.1.5"
+        },
+        "peerDependencyRules": {
+          "ignoreMissing": [
+            "typescript"
+          ],
+          "allowedVersions": {
+            "react": "^19.0.0"
+          }
+        },
+        "updateConfig": {
+          "ignoreDependencies": [
+            "@types/node"
+          ]
+        }
+      },
+      "publishConfig": {
+        "access": "public",
+        "tag": "latest",
+        "registry": "https://registry.npmjs.org/",
+        "provenance": true
+      },
+      "exports": {
+        ".": {
+          "types": "./dist/index.d.ts",
+          "import": "./dist/index.js",
+          "require": "./dist/index.cjs",
+          "default": "./dist/index.js"
+        },
+        "./cli": "./dist/cli.js",
+        "./package.json": "./package.json"
+      }
+    }
+    
+    """
+  }
+}

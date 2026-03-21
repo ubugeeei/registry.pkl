@@ -60,6 +60,14 @@ Build every first-party package with placeholder host values:
 ./scripts/sync-publish-layout.sh
 ```
 
+Target a subset during local rehearsal:
+
+```bash
+./scripts/package-artifacts.sh packages/target.js
+./scripts/build-publish-layout.sh
+./scripts/sync-publish-layout.sh
+```
+
 Build artifacts for a real host:
 
 ```bash
@@ -77,17 +85,23 @@ PACKAGE_S3_ENDPOINT=https://<account>.r2.cloudflarestorage.com \
 ```
 
 If the host uses a path prefix, also set `PACKAGE_BASE_PATH`.
+The uploader uses that same prefix for object keys, so the stored files and the
+derived package URLs stay aligned.
 
 ## Release Workflow
 
 The repository includes a `Release Packages` GitHub Actions workflow.
 
-It does four things:
+It does a few things:
 
 - validates that the package host configuration exists
-- runs `pkl project package` for every first-party package
+- resolves the release set from a tag such as `target.js-v0.1.0` or a manual
+  `projects` input
+- validates that a tag-triggered release matches the version declared in that
+  package's `PklProject`
+- runs `pkl project package` for the selected first-party package set
 - prepares the static publish layout
-- syncs the publish layout to an S3-compatible package host
+- uploads only new publish-layout objects to an S3-compatible package host
 - uploads package ZIPs and metadata as workflow artifacts and GitHub Release assets
 
 The workflow expects these repository variables:
@@ -112,4 +126,6 @@ Docs are fine to rebuild on every push.
 Package versions are not.
 
 Separating those deployment paths keeps the release process honest and avoids a
-class of accidental republish mistakes.
+class of accidental republish mistakes. The uploader also refuses to overwrite
+an existing object with different bytes, which preserves package-host
+immutability on retries and partial releases.
