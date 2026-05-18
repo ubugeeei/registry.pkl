@@ -31,6 +31,7 @@ jobs:
       PACKAGE_AWS_REGION: ${{ vars.PACKAGE_AWS_REGION || 'auto' }}
       PACKAGE_OUTPUT_DIR: dist/package-artifacts
       PUBLISH_DIR: dist/publish
+      SKIP_PUBLISH_CHECK: "0"
       AWS_ACCESS_KEY_ID: ${{ secrets.PACKAGE_AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.PACKAGE_AWS_SECRET_ACCESS_KEY }}
     steps:
