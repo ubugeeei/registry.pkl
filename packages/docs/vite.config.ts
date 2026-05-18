@@ -2,10 +2,7 @@ import { defineConfig } from "vite";
 import { defineTheme, defaultTheme, oxContent } from "@ox-content/vite-plugin";
 import pkl from "@shikijs/langs/pkl";
 
-const normalizeBase = (value: string) => {
-  if (value === "/") return "/";
-  return `/${value.replace(/^\/+/, "").replace(/\/+$/, "")}/`;
-};
+import { normalizeBase } from "./src/base";
 
 const docsBase = normalizeBase(
   process.env.DOCS_BASE ?? (process.env.GITHUB_ACTIONS === "true" ? "/registry.pkl/" : "/"),
