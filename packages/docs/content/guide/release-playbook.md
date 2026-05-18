@@ -8,6 +8,11 @@ description: Practical release method and step-by-step flow for publishing first
 This page is the operational answer for actually distributing first-party
 packages from this repository.
 
+> Status: first-party package publication is not live until a real package host,
+> release variables, release secrets, and the `package-release` GitHub
+> environment are configured. Local commands that use `pkg.example.invalid` are
+> rehearsals only.
+
 ## Recommended Method
 
 Use a static HTTPS package host that you control, and keep the registry itself
@@ -41,6 +46,150 @@ For this repository, the most practical release shape is:
 - upload that layout to a dedicated package host
 - optionally mirror ZIPs on GitHub Releases for humans
 
+## Required GitHub Setup
+
+The `Release Packages` workflow publishes through the `package-release`
+environment. Create that environment before adding real publish credentials.
+
+Repository variables. If you deliberately scope variables to the
+`package-release` environment instead, define the same names there:
+
+| Name | Required | Used for |
+| --- | --- | --- |
+| `PACKAGE_HOST` | yes | Host portion of generated `package://` base URIs, without a scheme. |
+| `PACKAGE_BASE_URL` | yes | HTTPS origin that serves generated package metadata and release ZIPs. |
+| `PACKAGE_BASE_PATH` | no | Optional path prefix when the package host serves files below a subdirectory. |
+| `PACKAGE_BUCKET` | yes | S3-compatible bucket that receives the publish layout. |
+| `PACKAGE_S3_ENDPOINT` | yes | S3-compatible API endpoint used by `aws s3api` and `aws s3 cp`. |
+| `PACKAGE_AWS_REGION` | no | Storage provider region; the workflow defaults this to `auto`. |
+
+Environment secrets, preferred, or repository secrets if environment-scoped
+secrets are not available:
+
+| Name | Required | Used for |
+| --- | --- | --- |
+| `PACKAGE_AWS_ACCESS_KEY_ID` | yes | Access key for the package bucket or package bucket prefix. |
+| `PACKAGE_AWS_SECRET_ACCESS_KEY` | yes | Secret key for the package bucket or package bucket prefix. |
+
+The workflow also sets `PACKAGE_OUTPUT_DIR`, `PUBLISH_DIR`, and
+`SKIP_PUBLISH_CHECK` internally. Do not add repository variables for those unless
+the workflow is intentionally changed.
+
+These values must agree with each other:
+
+- `PACKAGE_HOST` and `PACKAGE_BASE_URL` should describe the same public package
+  origin.
+- If `PACKAGE_BASE_PATH` is set, it must be included in the public URL layout
+  and object-key prefix.
+- Bucket credentials should be limited to the package bucket or prefix and
+  should not grant delete permissions.
+- The package host must serve metadata and ZIP files immutably once published.
+
+## Environment Protection
+
+Recommended protection for the `package-release` environment:
+
+- require approval from at least one maintainer before deployment
+- prevent self-review if that option is available for the repository
+- restrict deployments to `main` and release tags matching `target.*-v*`
+- keep package publishing secrets on the environment instead of broad
+  repository secrets where practical
+- use storage credentials that can read existing objects, write new objects,
+  and refuse delete-based workflows
+
+The workflow validates tag shape and requires release tags to point at commits
+contained in `origin/main`. Environment protection is still important because a
+manual workflow dispatch becomes a real publish as soon as host variables and
+secrets exist.
+
+## Dry-Run Checklist
+
+Run this before enabling real package host sync:
+
+1. Confirm the checkout uses the canonical remote:
+
+   ```bash
+   git remote -v
+   ```
+
+   The remote should point at `ubugeeei/registry.pkl`, not
+   `ubugeeei/compat.pkl`.
+
+2. Regenerate workspace files and dependency metadata:
+
+   ```bash
+   pkl eval -m . root-files.pkl
+   pkl project resolve . packages/target.*
+   ```
+
+3. Build package artifacts with the neutral placeholder host:
+
+   ```bash
+   rm -rf dist/package-artifacts dist/publish
+   PACKAGE_HOST=pkg.example.invalid \
+   PACKAGE_BASE_URL=https://pkg.example.invalid \
+   ./scripts/package-artifacts.sh
+   ./scripts/build-publish-layout.sh
+   find dist/publish -type f | sort
+   ```
+
+4. Inspect `dist/publish/` and confirm the generated package metadata, ZIP
+   names, checksums, and paths match the intended release.
+
+5. If testing a real host before it is reachable, use
+   `ALLOW_SKIP_PUBLISH_CHECK=1 SKIP_PUBLISH_CHECK=1` only for that explicit dry
+   run. Do not use skipped publish checks for an actual release.
+
+6. Do not run `./scripts/sync-publish-layout.sh` against the production bucket
+   as a rehearsal. The uploader has no dry-run mode. If you must test uploader
+   behavior, use a disposable bucket or prefix and a throwaway package version.
+
+7. Add `package-release` environment protection and publish credentials only
+   after the local artifact layout is correct.
+
+## Local Commands
+
+Local rehearsal with placeholder host values:
+
+```bash
+./scripts/package-artifacts.sh
+./scripts/build-publish-layout.sh
+```
+
+Target a subset during local rehearsal:
+
+```bash
+./scripts/package-artifacts.sh packages/target.js
+./scripts/build-publish-layout.sh
+```
+
+Build artifacts for a real, already provisioned host:
+
+```bash
+PACKAGE_HOST=<your-package-host> \
+PACKAGE_BASE_URL=https://<your-package-host> \
+./scripts/package-artifacts.sh
+
+PACKAGE_HOST=<your-package-host> \
+PACKAGE_BASE_URL=https://<your-package-host> \
+./scripts/build-publish-layout.sh
+```
+
+Publish the prepared layout only after replacing every placeholder:
+
+```bash
+PACKAGE_BUCKET=<your-package-bucket> \
+PACKAGE_S3_ENDPOINT=https://<your-s3-endpoint> \
+PACKAGE_AWS_REGION=<your-region-or-auto> \
+AWS_ACCESS_KEY_ID=<your-access-key-id> \
+AWS_SECRET_ACCESS_KEY=<your-secret-access-key> \
+./scripts/sync-publish-layout.sh
+```
+
+If the host uses a path prefix, also set `PACKAGE_BASE_PATH`.
+The uploader uses that same prefix for object keys, so the stored files and the
+derived package URLs stay aligned.
+
 ## Release Steps
 
 1. Bump the version in the package `PklProject` you want to release.
@@ -49,49 +198,6 @@ For this repository, the most practical release shape is:
 4. Build the static publish layout into `dist/publish/`.
 5. Upload `dist/publish/` to the package host.
 6. Open or update the registry record PR that points at the published package.
-
-## Local Commands
-
-Build every first-party package with placeholder host values:
-
-```bash
-./scripts/package-artifacts.sh
-./scripts/build-publish-layout.sh
-./scripts/sync-publish-layout.sh
-```
-
-These commands clear the default `dist/package-artifacts/` and `dist/publish/`
-directories before rebuilding. For forensic inspection only, set
-`KEEP_PACKAGE_OUTPUT=1` or `KEEP_PUBLISH_DIR=1` to preserve the previous default
-output.
-
-Target a subset during local rehearsal:
-
-```bash
-./scripts/package-artifacts.sh packages/target.js
-./scripts/build-publish-layout.sh
-./scripts/sync-publish-layout.sh
-```
-
-Build artifacts for a real host:
-
-```bash
-PACKAGE_HOST=pkg.ubugeeei.dev \
-PACKAGE_BASE_URL=https://pkg.ubugeeei.dev \
-./scripts/package-artifacts.sh
-
-PACKAGE_HOST=pkg.ubugeeei.dev \
-PACKAGE_BASE_URL=https://pkg.ubugeeei.dev \
-./scripts/build-publish-layout.sh
-
-PACKAGE_BUCKET=registry-pkl-packages \
-PACKAGE_S3_ENDPOINT=https://<account>.r2.cloudflarestorage.com \
-./scripts/sync-publish-layout.sh
-```
-
-If the host uses a path prefix, also set `PACKAGE_BASE_PATH`.
-The uploader uses that same prefix for object keys, so the stored files and the
-derived package URLs stay aligned.
 
 ## Release Workflow
 
@@ -108,20 +214,6 @@ It does a few things:
 - prepares the static publish layout
 - uploads only new publish-layout objects to an S3-compatible package host
 - uploads package ZIPs and metadata as workflow artifacts and GitHub Release assets
-
-The workflow expects these repository variables:
-
-- `PACKAGE_HOST`
-- `PACKAGE_BASE_URL`
-- `PACKAGE_BASE_PATH` if needed
-- `PACKAGE_BUCKET`
-- `PACKAGE_S3_ENDPOINT`
-- `PACKAGE_AWS_REGION` when the provider needs a real region
-
-It also expects these repository secrets:
-
-- `PACKAGE_AWS_ACCESS_KEY_ID`
-- `PACKAGE_AWS_SECRET_ACCESS_KEY`
 
 ## Why This Is The Safer Default
 

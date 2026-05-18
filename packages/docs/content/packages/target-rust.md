@@ -25,7 +25,11 @@ features:
     details: Thresholds and policy toggles for Clippy without dropping to raw TOML by default.
 ---
 
-## Install
+> Status: planned first-wave package. The import below uses
+> `pkg.example.invalid`, a reserved placeholder, until a real first-party
+> package host exists.
+
+## Planned Import
 
 ```pkl
 amends "package://pkg.example.invalid/target.rust@0.1.0#/cargo/Cargo.pkl"

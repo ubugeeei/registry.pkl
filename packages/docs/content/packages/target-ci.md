@@ -31,7 +31,11 @@ features:
     details: Typed GitLab CI jobs, rules, cache, artifacts, defaults, and workflow config.
 ---
 
-## Install
+> Status: experimental second-wave package. The import below uses
+> `pkg.example.invalid`, a reserved placeholder, until a real first-party
+> package host exists.
+
+## Planned Import
 
 ```pkl
 amends "package://pkg.example.invalid/target.ci@0.1.0#/github/NodeCiWorkflow.pkl"

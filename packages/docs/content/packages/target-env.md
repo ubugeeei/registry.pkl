@@ -25,7 +25,11 @@ features:
     details: Tasks, imports, scopes, formatter and lint config, test options, and runtime flags.
 ---
 
-## Install
+> Status: planned first-wave package. The import below uses
+> `pkg.example.invalid`, a reserved placeholder, until a real first-party
+> package host exists.
+
+## Planned Import
 
 ```pkl
 amends "package://pkg.example.invalid/target.env@0.1.0#/mise/Mise.pkl"

@@ -58,6 +58,8 @@ basic package model is proven.
 
 This repo is pre-implementation. Treat code snippets in these docs as target API
 shape unless they are explicitly marked as current repository files.
+First-party `target.*` package imports are planned or experimental until hosted
+artifacts are live.
 
 ## Implementation Language
 

@@ -5,6 +5,10 @@ description: How first-party packages should be published without inventing a ne
 
 # Distribution
 
+> Status: this repository is still pre-implementation. First-party package
+> URIs and API examples are planned or experimental until hosted artifacts are
+> live.
+
 ## Publish Pkl Packages Directly
 
 The right distribution unit is a normal Pkl package, not a registry-specific
@@ -43,9 +47,13 @@ This repository is a third-party design study.
 
 That means:
 
+- the canonical repository is `https://github.com/ubugeeei/registry.pkl`
 - the docs site should publish to `https://ubugeeei.github.io/registry.pkl/`
+- older local remotes that still point at `ubugeeei/compat.pkl` should be
+  migrated to `ubugeeei/registry.pkl`
 - the project should not pretend to own `pkg.pkl-lang.org`
 - `pkg.pkl-lang.org` references inside this repo are only official upstream pantry dependencies
+- no first-party package host is provisioned until release setup is completed
 
 ## Recommended Hosting Shape
 
@@ -54,11 +62,13 @@ Use a package origin you actually control for immutable artifacts.
 Recommended split:
 
 - docs UI: `https://ubugeeei.github.io/registry.pkl/`
-- package host: `package://<a-host-you-control>/<package>@<version>`
+- package host: `package://<your-package-host>/<package>@<version>`
 - registry index repo: GitHub Pull Request-based metadata records
 
 If you do not control a package origin yet, start with GitHub Releases plus a
-static metadata host. Do not invent a fake `pkg.*` domain in public docs.
+static metadata host. Do not invent a fake `pkg.*` domain in public docs. Use
+reserved placeholders such as `pkg.example.invalid` until a host is actually
+provisioned.
 
 The package host should serve both:
 
@@ -114,4 +124,5 @@ repo-wide version.
 ## Operational Next Step
 
 Use [Release Playbook](../release-playbook/index.html) for the concrete
-repository workflow, commands, and release automation.
+repository workflow, commands, dry-run checklist, release variables, and release
+automation.

@@ -3,7 +3,9 @@
 This repository contains the design and documentation for `registry.pkl`, a
 searchable, versioned, GitHub PR-based registry for Pkl config packages.
 
-The first-party package family is planned as `target.*`.
+The first-party package family is planned as `target.*`. Package catalog pages
+and import examples are planned or experimental until hosted package artifacts
+are live.
 
 Examples:
 
@@ -13,6 +15,25 @@ Examples:
 - `target.editor`
 - `target.agent`
 - `target.ci`
+
+## Repository Identity
+
+The canonical GitHub repository is `ubugeeei/registry.pkl`:
+
+- SSH: `git@github.com:ubugeeei/registry.pkl.git`
+- HTTPS: `https://github.com/ubugeeei/registry.pkl.git`
+
+If an older checkout still points at `ubugeeei/compat.pkl`, update it once:
+
+```bash
+git remote -v
+git remote set-url origin git@github.com:ubugeeei/registry.pkl.git
+# or:
+git remote set-url origin https://github.com/ubugeeei/registry.pkl.git
+```
+
+Generated package metadata and public docs should use canonical
+`ubugeeei/registry.pkl` URLs instead of relying on repository rename redirects.
 
 ## Core Idea
 
@@ -106,7 +127,7 @@ Build the docs site:
 mise run build
 ```
 
-Build first-party package artifacts:
+Build first-party package artifacts for local rehearsal:
 
 ```bash
 mise install
@@ -114,7 +135,6 @@ mise install
 # or target a subset
 ./scripts/package-artifacts.sh packages/target.js packages/target.rust
 ./scripts/build-publish-layout.sh
-./scripts/sync-publish-layout.sh
 ```
 
 The artifact and publish-layout scripts clear their default output directories
@@ -122,14 +142,33 @@ before rebuilding, so local rehearsals cannot accidentally reuse stale package
 files. Set `KEEP_PACKAGE_OUTPUT=1` or `KEEP_PUBLISH_DIR=1` only when you are
 intentionally inspecting a previous default output directory.
 
-For actual release hosting, set:
+The default package host is `pkg.example.invalid`, which is a neutral placeholder
+for local package builds. Do not treat it as a live service.
 
-- `PACKAGE_HOST`
-- `PACKAGE_BASE_URL`
-- `PACKAGE_BASE_PATH` when the host uses a path prefix
-- `PACKAGE_BUCKET`
-- `PACKAGE_S3_ENDPOINT`
-- `PACKAGE_AWS_REGION` when needed by the storage provider
+For actual release hosting, configure the `package-release` GitHub environment
+before adding publish credentials. Recommended protection:
+
+- require maintainer review before deployment
+- prevent self-review where the repository plan supports it
+- restrict deployments to `main` and release tags matching `target.*-v*`
+- store publish credentials as environment secrets rather than broad repository
+  secrets when practical
+
+Required release variables:
+
+| Name | Required | Purpose |
+| --- | --- | --- |
+| `PACKAGE_HOST` | yes | Host portion used in `package://` package base URIs. |
+| `PACKAGE_BASE_URL` | yes | HTTPS origin that corresponds to the package host and optional path prefix. |
+| `PACKAGE_BASE_PATH` | no | Path prefix for hosts that publish below a subdirectory. |
+| `PACKAGE_BUCKET` | yes | S3-compatible bucket that stores immutable package metadata and ZIPs. |
+| `PACKAGE_S3_ENDPOINT` | yes | S3-compatible endpoint for the package bucket. |
+| `PACKAGE_AWS_REGION` | no | Region for the storage provider; defaults to `auto` in the workflow. |
+
+Required release secrets:
+
+- `PACKAGE_AWS_ACCESS_KEY_ID`
+- `PACKAGE_AWS_SECRET_ACCESS_KEY`
 
 `./scripts/sync-publish-layout.sh` uploads only new objects, skips identical
 existing files, and refuses to overwrite different contents. If you use
@@ -137,7 +176,12 @@ existing files, and refuses to overwrite different contents. If you use
 
 The `Release Packages` workflow can publish one package per tag using
 `target.js-v0.1.0`, and manual runs accept a `projects` input when you want to
-release a subset without tagging first.
+release a subset without tagging first. Manual workflow dispatch is a real
+publish once the package host variables and secrets exist.
+
+Use the dry-run checklist in
+`packages/docs/content/guide/release-playbook.md` before enabling real package
+host sync.
 
 If you change `.oxfmt.pkl`, `package.pkl`, `pnpm-workspace.pkl`, `mise.pkl`, or
 `packages/docs/package.pkl`, re-run:

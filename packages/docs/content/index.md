@@ -5,7 +5,7 @@ description: Third-party design notes for a searchable, versioned, GitHub PR-bas
 hero:
   name: registry.pkl
   text: Third-party design study for a Pkl package registry
-  tagline: "This site is the design and package catalog for registry.pkl. Start with the docs map below, then move into packages, targets, guides, or reference pages depending on the question you are trying to answer."
+  tagline: "This site is the design and planned package catalog for registry.pkl. Start with the docs map below, then move into packages, targets, guides, or reference pages depending on the question you are trying to answer."
   image:
     src: registry-mark.svg
     alt: registry.pkl mark
@@ -26,7 +26,7 @@ features:
     link: ./start/index.html
   - icon: "mdi:package-variant-closed"
     title: Packages
-    details: Browse the first-party target.* catalog from package boundaries instead of long prose pages.
+    details: Browse the planned first-party target.* catalog from package boundaries instead of long prose pages.
     link: ./packages/index.html
   - icon: "mdi:file-cog-outline"
     title: Targets
@@ -46,7 +46,7 @@ features:
     link: ./architecture/index.html
 ---
 
-> This is a third-party design study hosted on GitHub Pages. It is not an official `pkl-lang.org` property, and the `pkg.pkl-lang.org` imports in this repository are upstream pantry dependencies, not this project's own package host.
+> This is a third-party design study hosted on GitHub Pages. It is not an official `pkl-lang.org` property, and the `pkg.pkl-lang.org` imports in this repository are upstream pantry dependencies, not this project's own package host. First-party package APIs and host examples are planned or experimental until hosted artifacts are live.
 
 ## Read By Intent
 
@@ -58,9 +58,9 @@ features:
 | understand design decisions and release rules | [Guides](./guide/index.html) | This section covers authoring, distribution, registry flow, and versioning. |
 | look up current tables and schema shapes | [Reference](./reference/index.html) | This is the compact lookup layer. |
 
-## Featured Packages
+## Featured Planned Packages
 
-| Package | Focus | Start with | Emits |
+| Package | Focus | Planned entrypoint | Emits |
 | --- | --- | --- | --- |
 | [target.js](./packages/target-js/index.html) | JavaScript and TypeScript workspace config | `#/tsconfig/TsConfig.pkl` | JSON and YAML |
 | [target.rust](./packages/target-rust/index.html) | Cargo metadata and Clippy policy | `#/cargo/Cargo.pkl` | TOML |

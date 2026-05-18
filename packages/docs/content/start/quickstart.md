@@ -8,7 +8,8 @@ description: The intended workflow for writing config in Pkl and generating nati
 This is the target workflow for the project.
 
 The package imports below are aspirational until the first packages are
-published, but the generation model is real Pkl.
+published, but the generation model is real Pkl. `pkg.example.invalid` is a
+reserved placeholder, not a live package host.
 
 ## Step 1: Author a config module
 
