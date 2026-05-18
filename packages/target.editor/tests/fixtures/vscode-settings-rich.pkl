@@ -1,0 +1,61 @@
+amends "../../vscode/Settings.pkl"
+
+editor {
+  formatOnSave = true
+  defaultFormatter = "pkl-vscode.pkl"
+  tabSize = 2
+  insertSpaces = true
+  rulers {
+    100
+  }
+  codeActionsOnSave {
+    ["source.fixAll.biome"] = "explicit"
+    ["source.organizeImports"] = true
+  }
+}
+
+files {
+  insertFinalNewline = true
+  trimTrailingWhitespace = true
+  exclude {
+    ["dist"] = true
+    ["node_modules"] = true
+  }
+  watcherExclude {
+    ["dist/package-artifacts"] = true
+  }
+  associations {
+    ["*.pkl"] = "pkl"
+  }
+}
+
+search {
+  exclude {
+    ["pnpm-lock.yaml"] = true
+  }
+  useIgnoreFiles = true
+}
+
+typescript {
+  tsdk = "node_modules/typescript/lib"
+  enablePromptUseWorkspaceTsdk = true
+  preferGoToSourceDefinition = true
+}
+
+javascript {
+  suggestCompleteFunctionCalls = true
+  quoteStyle = "double"
+}
+
+git {
+  autofetch = true
+  enableSmartCommit = false
+}
+
+window {
+  zoomLevel = 0
+}
+
+extra {
+  ["pkl.cli.path"] = "pkl"
+}

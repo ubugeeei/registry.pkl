@@ -1,0 +1,58 @@
+examples {
+  [".gitlab-ci.yml"] {
+    """
+    stages:
+    - prepare
+    - test
+    - release
+    include:
+    - 'local: .gitlab/templates/base.yml'
+    variables:
+      PNPM_HOME: .pnpm
+      CI_NODE_TOTAL: 1
+    workflow:
+      name: registry-pkl
+    default:
+      image: node:24
+      interruptible: true
+    prepare:
+      stage: prepare
+      script: corepack enable
+      cache:
+        key: pnpm-${CI_COMMIT_REF_SLUG}
+        paths:
+        - .pnpm-store
+        policy: pull-push
+    package-api-tests:
+      stage: test
+      image: ghcr.io/apple/pkl:0.31.0
+      script:
+      - pkl project resolve . packages/target.*
+      - ./scripts/package-artifacts.sh
+      before_script:
+      - pkl --version
+      needs:
+      - prepare
+      tags:
+      - linux
+      variables:
+        PACKAGE_HOST: pkg.example.invalid
+      rules:
+      - if: $CI_COMMIT_BRANCH
+        changes:
+        - packages/**/*
+        - scripts/**/*
+      artifacts:
+        paths:
+        - dist/package-artifacts
+        reports:
+          junit: reports/package-api.xml
+        when: always
+        expire_in: 1 week
+      interruptible: true
+      retry: 1
+      coverage: /All files/
+
+    """
+  }
+}

@@ -1,0 +1,88 @@
+amends "../../gitlab/GitLabCi.pkl"
+
+stages {
+  "prepare"
+  "test"
+  "release"
+}
+
+include {
+  "local: .gitlab/templates/base.yml"
+}
+
+variables {
+  ["PNPM_HOME"] = ".pnpm"
+  ["CI_NODE_TOTAL"] = 1
+}
+
+workflow {
+  ["name"] = "registry-pkl"
+}
+
+default {
+  ["image"] = "node:24"
+  ["interruptible"] = true
+}
+
+jobs {
+  ["prepare"] =
+    new Job {
+      stage = "prepare"
+      script = "corepack enable"
+      cache =
+        new Cache {
+          key = "pnpm-${CI_COMMIT_REF_SLUG}"
+          paths {
+            ".pnpm-store"
+          }
+          policy = "pull-push"
+        }
+    }
+  ["package-api-tests"] =
+    new Job {
+      stage = "test"
+      image = "ghcr.io/apple/pkl:0.31.0"
+      beforeScript {
+        "pkl --version"
+      }
+      script =
+        new Listing {
+          "pkl project resolve . packages/target.*"
+          "./scripts/package-artifacts.sh"
+        }
+      needs {
+        "prepare"
+      }
+      tags {
+        "linux"
+      }
+      variables {
+        ["PACKAGE_HOST"] = "pkg.example.invalid"
+      }
+      rules {
+        new Rule {
+          `if` = "$CI_COMMIT_BRANCH"
+          changes {
+            "packages/**/*"
+            "scripts/**/*"
+          }
+        }
+      }
+      artifacts =
+        new Artifacts {
+          paths {
+            "dist/package-artifacts"
+          }
+          reports {
+            ["junit"] = "reports/package-api.xml"
+          }
+          `when` = "always"
+          expireIn = "1 week"
+        }
+      interruptible = true
+      retry = 1
+      extra {
+        ["coverage"] = "/All files/"
+      }
+    }
+}

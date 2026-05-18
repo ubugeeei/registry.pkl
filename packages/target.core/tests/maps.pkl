@@ -1,0 +1,15 @@
+amends "pkl:test"
+
+import "fixtures/maps-rich.pkl" as rich
+
+examples {
+  ["Maps.toMap"] {
+    rich.baseMap
+  }
+  ["Maps.withExtra"] {
+    rich.overridden
+  }
+  ["Maps.toMap accepts mappings"] {
+    rich.mappingRoundTrip
+  }
+}

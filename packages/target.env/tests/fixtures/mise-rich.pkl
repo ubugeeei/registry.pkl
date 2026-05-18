@@ -1,0 +1,62 @@
+amends "../../mise/Mise.pkl"
+
+tools {
+  ["node"] = "24"
+  ["pnpm"] = "10.31.0"
+  ["pkl"] = "0.31.0"
+  ["rust"] =
+    new Listing {
+      "1.86.0"
+      "stable"
+    }
+}
+
+env {
+  ["PKL_VERSION"] = "0.31.0"
+  ["CI"] = true
+  ["RETRY_COUNT"] = 2
+}
+
+tasks {
+  ["gen"] =
+    new Task {
+      description = "Generate workspace manifests"
+      run = "pkl eval -m . root-files.pkl"
+      sources {
+        "*.pkl"
+        "packages/**/*.pkl"
+      }
+    }
+  ["package-api-tests"] =
+    new Task {
+      description = "Build package artifacts and run API tests"
+      run =
+        new Listing {
+          "pkl project resolve . packages/target.*"
+          "./scripts/package-artifacts.sh"
+        }
+      depends {
+        "gen"
+      }
+      dir = "."
+      shell = "bash -euo pipefail"
+      env {
+        ["PACKAGE_HOST"] = "pkg.example.invalid"
+      }
+      extra {
+        ["hide"] = false
+      }
+    }
+}
+
+settings {
+  ["experimental"] = true
+  ["jobs"] = 4
+}
+
+extra {
+  ["plugins"] =
+    new Mapping {
+      ["node"] = "core"
+    }
+}

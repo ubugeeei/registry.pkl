@@ -1,0 +1,9 @@
+amends "pkl:test"
+
+import "fixtures/vscode-mcp-rich.pkl" as rich
+
+examples {
+  [".vscode/mcp.json"] {
+    rich.output.text
+  }
+}

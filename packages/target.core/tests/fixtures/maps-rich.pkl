@@ -1,0 +1,28 @@
+import "../../Maps.pkl" as Maps
+
+local base =
+  new Dynamic {
+    ["name"] = "registry"
+    ["features"] = List("packages", "tests")
+    ["metadata"] = Map("stable", true)
+  }
+
+baseMap = Maps.toMap(base)
+
+overridden =
+  Maps.withExtra(
+    base,
+    new Mapping {
+      ["name"] = "registry-pkl"
+      ["channel"] = "api-tests"
+      ["features"] = List("api-tests")
+    },
+  )
+
+mappingRoundTrip =
+  Maps.toMap(
+    new Mapping {
+      ["stable"] = true
+      ["count"] = 2
+    },
+  )

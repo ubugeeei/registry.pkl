@@ -1,0 +1,45 @@
+examples {
+  [".vscode/settings.json"] {
+    """
+    {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "pkl-vscode.pkl",
+      "editor.tabSize": 2,
+      "editor.insertSpaces": true,
+      "editor.rulers": [
+        100
+      ],
+      "editor.codeActionsOnSave": {
+        "source.fixAll.biome": "explicit",
+        "source.organizeImports": true
+      },
+      "files.insertFinalNewline": true,
+      "files.trimTrailingWhitespace": true,
+      "files.exclude": {
+        "dist": true,
+        "node_modules": true
+      },
+      "files.watcherExclude": {
+        "dist/package-artifacts": true
+      },
+      "files.associations": {
+        "*.pkl": "pkl"
+      },
+      "search.exclude": {
+        "pnpm-lock.yaml": true
+      },
+      "search.useIgnoreFiles": true,
+      "typescript.tsdk": "node_modules/typescript/lib",
+      "typescript.enablePromptUseWorkspaceTsdk": true,
+      "typescript.preferGoToSourceDefinition": true,
+      "javascript.suggest.completeFunctionCalls": true,
+      "javascript.preferences.quoteStyle": "double",
+      "git.autofetch": true,
+      "git.enableSmartCommit": false,
+      "window.zoomLevel": 0,
+      "pkl.cli.path": "pkl"
+    }
+
+    """
+  }
+}

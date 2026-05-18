@@ -1,0 +1,39 @@
+examples {
+  ["mise.toml"] {
+    """
+    [tools]
+    node = "24"
+    pnpm = "10.31.0"
+    pkl = "0.31.0"
+    rust = [ "1.86.0", "stable" ]
+
+    [env]
+    PKL_VERSION = "0.31.0"
+    CI = true
+    RETRY_COUNT = 2
+
+    [tasks.gen]
+    description = "Generate workspace manifests"
+    run = "pkl eval -m . root-files.pkl"
+    sources = [ "*.pkl", "packages/**/*.pkl" ]
+
+    [tasks.package-api-tests]
+    description = "Build package artifacts and run API tests"
+    run = [ "pkl project resolve . packages/target.*", "./scripts/package-artifacts.sh" ]
+    depends = [ "gen" ]
+    dir = "."
+    shell = "bash -euo pipefail"
+    hide = false
+
+    [tasks.package-api-tests.env]
+    PACKAGE_HOST = "pkg.example.invalid"
+
+    [settings]
+    experimental = true
+    jobs = 4
+
+    [plugins]
+    node = "core"
+    """
+  }
+}
