@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-package_output_dir="${PACKAGE_OUTPUT_DIR:-dist/package-artifacts}"
+default_package_output_dir="dist/package-artifacts"
+package_output_dir="${PACKAGE_OUTPUT_DIR:-${default_package_output_dir}}"
 package_host="${PACKAGE_HOST:-pkg.example.invalid}"
 package_base_path="${PACKAGE_BASE_PATH:-}"
 package_base_url="${PACKAGE_BASE_URL:-https://${package_host}${package_base_path}}"
@@ -27,6 +28,11 @@ fi
 projects=("$@")
 if [ "${#projects[@]}" -eq 0 ]; then
   projects=(packages/target.*)
+fi
+
+if [ "${package_output_dir}" = "${default_package_output_dir}" ] &&
+  [ "${KEEP_PACKAGE_OUTPUT:-0}" != "1" ]; then
+  rm -rf -- "${package_output_dir}"
 fi
 
 mkdir -p "${package_output_dir}"

@@ -60,6 +60,11 @@ Build every first-party package with placeholder host values:
 ./scripts/sync-publish-layout.sh
 ```
 
+These commands clear the default `dist/package-artifacts/` and `dist/publish/`
+directories before rebuilding. For forensic inspection only, set
+`KEEP_PACKAGE_OUTPUT=1` or `KEEP_PUBLISH_DIR=1` to preserve the previous default
+output.
+
 Target a subset during local rehearsal:
 
 ```bash
