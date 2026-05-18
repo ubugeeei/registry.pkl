@@ -35,6 +35,10 @@ body::after {
   display: none !important;
 }
 
+.mobile-footer-btn[data-mobile-menu] {
+  display: none !important;
+}
+
 .layout {
   display: block;
   padding-top: calc(var(--octc-header-height) + 3.25rem) !important;
