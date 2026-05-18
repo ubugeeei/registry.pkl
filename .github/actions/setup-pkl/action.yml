@@ -1,0 +1,34 @@
+name: Setup Pkl
+description: Install a pinned Pkl binary and verify its checksum.
+
+inputs:
+  version:
+    description: Pkl version to install.
+    required: true
+  linux-amd64-sha256:
+    description: Expected SHA-256 for the pkl-linux-amd64 release asset.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Download and verify Pkl
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        pkl_path="${RUNNER_TEMP}/pkl-linux-amd64"
+        pkl_url="https://github.com/apple/pkl/releases/download/${{ inputs.version }}/pkl-linux-amd64"
+
+        curl \
+          --fail \
+          --show-error \
+          --location \
+          --retry 3 \
+          --retry-delay 2 \
+          --output "${pkl_path}" \
+          "${pkl_url}"
+
+        echo "${{ inputs.linux-amd64-sha256 }}  ${pkl_path}" | sha256sum --check -
+        sudo install -m 0755 "${pkl_path}" /usr/local/bin/pkl
+        pkl --version
