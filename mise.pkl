@@ -3,6 +3,7 @@ amends "@target.env/mise/Mise.pkl"
 tools {
   ["node"] = "24"
   ["pnpm"] = "10"
+  ["pkl"] = "0.31.0"
 }
 
 tasks {

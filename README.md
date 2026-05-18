@@ -84,6 +84,7 @@ source of truth.
 Bootstrap generated files:
 
 ```bash
+mise install
 pkl eval -m . root-files.pkl
 ```
 
@@ -108,6 +109,7 @@ mise run build
 Build first-party package artifacts:
 
 ```bash
+mise install
 ./scripts/package-artifacts.sh
 # or target a subset
 ./scripts/package-artifacts.sh packages/target.js packages/target.rust
