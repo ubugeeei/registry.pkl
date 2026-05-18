@@ -46,7 +46,7 @@ features:
     details: Turborepo `turbo.json` pipeline definitions, remote cache wiring, and env mode.
   - icon: "mdi:autorenew"
     title: renovate/Renovate.pkl
-    details: Renovate bot policy: extends, schedule, package rules, and vulnerability alerts.
+    details: "Renovate bot policy — extends, schedule, package rules, and vulnerability alerts."
 ---
 
 ## Install
