@@ -1,0 +1,9 @@
+amends "pkl:test"
+
+import "fixtures/gitlab-ci-rich.pkl" as rich
+
+examples {
+  [".gitlab-ci.yml"] {
+    rich.output.text
+  }
+}

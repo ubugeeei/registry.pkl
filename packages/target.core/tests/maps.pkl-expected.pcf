@@ -1,0 +1,11 @@
+examples {
+  ["Maps.toMap"] {
+    Map("name", "registry", "features", List("packages", "tests"), "metadata", Map("stable", true))
+  }
+  ["Maps.withExtra"] {
+    Map("name", "registry-pkl", "features", List("api-tests"), "metadata", Map("stable", true), "channel", "api-tests")
+  }
+  ["Maps.toMap accepts mappings"] {
+    Map("stable", true, "count", 2)
+  }
+}

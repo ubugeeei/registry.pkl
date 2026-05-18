@@ -1,0 +1,9 @@
+amends "pkl:test"
+
+import "fixtures/mise-rich.pkl" as rich
+
+examples {
+  ["mise.toml"] {
+    rich.output.text
+  }
+}

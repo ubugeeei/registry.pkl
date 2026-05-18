@@ -1,0 +1,75 @@
+amends "../../vscode/Mcp.pkl"
+
+import "../../mcp/Core.pkl" as Mcp
+
+servers {
+  ["registry-files"] =
+    new Mcp.StdioServer {
+      command = "npx"
+      args {
+        "-y"
+        "@registry/mcp-files"
+      }
+      env {
+        ["REGISTRY_ROOT"] = "${workspaceFolder}"
+      }
+      sandboxEnabled = true
+      sandbox =
+        new Mcp.Sandbox {
+          filesystem =
+            new Mcp.SandboxFilesystem {
+              allowWrite {
+                "generated/**"
+                ".registry/**"
+              }
+              denyRead {
+                ".env"
+              }
+            }
+          network =
+            new Mcp.SandboxNetwork {
+              allowedDomains {
+                "pkg.example.invalid"
+              }
+            }
+        }
+      dev =
+        new Mcp.Dev {
+          watch = "packages/**"
+          debug = true
+          extra {
+            ["reload"] = "onSave"
+          }
+        }
+      extra {
+        ["timeout"] = 120
+      }
+    }
+  ["registry-search"] =
+    new Mcp.RemoteServer {
+      url = "https://mcp.example.invalid/registry"
+      headers {
+        ["X-Registry-Client"] = "vscode"
+      }
+      oauth =
+        new Mcp.OAuth {
+          authServerMetadataUrl =
+            "https://auth.example.invalid/.well-known/oauth-authorization-server"
+        }
+    }
+}
+
+inputs {
+  new Mcp.Input {
+    id = "registryToken"
+    description = "Registry API token"
+    password = true
+    extra {
+      ["scope"] = "packages:read"
+    }
+  }
+}
+
+extra {
+  ["version"] = 1
+}

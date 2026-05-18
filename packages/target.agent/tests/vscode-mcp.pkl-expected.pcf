@@ -1,0 +1,65 @@
+examples {
+  [".vscode/mcp.json"] {
+    """
+    {
+      "servers": {
+        "registry-files": {
+          "type": "stdio",
+          "command": "npx",
+          "args": [
+            "-y",
+            "@registry/mcp-files"
+          ],
+          "env": {
+            "REGISTRY_ROOT": "${workspaceFolder}"
+          },
+          "sandboxEnabled": true,
+          "sandbox": {
+            "filesystem": {
+              "allowWrite": [
+                "generated/**",
+                ".registry/**"
+              ],
+              "denyRead": [
+                ".env"
+              ]
+            },
+            "network": {
+              "allowedDomains": [
+                "pkg.example.invalid"
+              ]
+            }
+          },
+          "dev": {
+            "watch": "packages/**",
+            "debug": true,
+            "reload": "onSave"
+          },
+          "timeout": 120
+        },
+        "registry-search": {
+          "type": "http",
+          "url": "https://mcp.example.invalid/registry",
+          "headers": {
+            "X-Registry-Client": "vscode"
+          },
+          "oauth": {
+            "authServerMetadataUrl": "https://auth.example.invalid/.well-known/oauth-authorization-server"
+          }
+        }
+      },
+      "inputs": [
+        {
+          "type": "promptString",
+          "id": "registryToken",
+          "description": "Registry API token",
+          "password": true,
+          "scope": "packages:read"
+        }
+      ],
+      "version": 1
+    }
+
+    """
+  }
+}

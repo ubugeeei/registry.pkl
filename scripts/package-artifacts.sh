@@ -7,7 +7,29 @@ package_output_dir="${PACKAGE_OUTPUT_DIR:-${default_package_output_dir}}"
 package_host="${PACKAGE_HOST:-pkg.example.invalid}"
 package_base_path="${PACKAGE_BASE_PATH:-}"
 package_base_url="${PACKAGE_BASE_URL:-https://${package_host}${package_base_path}}"
+required_pkl_version="${PKL_VERSION:-0.31.0}"
 skip_publish_check="${SKIP_PUBLISH_CHECK:-}"
+pkl_bin="${PKL_BIN:-}"
+
+if [ -z "${pkl_bin}" ]; then
+  if command -v mise >/dev/null 2>&1; then
+    if mise_pkl_dir="$(mise where "pkl@${required_pkl_version}" 2>/dev/null)" &&
+      [ -x "${mise_pkl_dir}/pkl" ]; then
+      pkl_bin="${mise_pkl_dir}/pkl"
+    fi
+  fi
+fi
+
+if [ -z "${pkl_bin}" ]; then
+  pkl_bin="pkl"
+fi
+
+actual_pkl_version="$("${pkl_bin}" --version | awk '{print $2}')"
+if [ "${actual_pkl_version}" != "${required_pkl_version}" ]; then
+  echo "expected Pkl ${required_pkl_version}, found ${actual_pkl_version} at ${pkl_bin}" >&2
+  echo "set PKL_BIN to a Pkl ${required_pkl_version} executable or update PKL_VERSION intentionally" >&2
+  exit 1
+fi
 
 if [ -z "${skip_publish_check}" ]; then
   if [ "${package_host}" = "pkg.example.invalid" ]; then
@@ -38,7 +60,7 @@ fi
 mkdir -p "${package_output_dir}"
 
 cmd=(
-  pkl
+  "${pkl_bin}"
   project
   package
   --output-path
