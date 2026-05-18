@@ -1,0 +1,79 @@
+name: Add a typed Pkl schema for a tool
+description: Track adding a new typed Pkl module under one of the existing target.* families.
+title: "feat(<family>): add typed Pkl module for <tool>"
+labels:
+  - schema-add
+body:
+  - type: dropdown
+    id: family
+    attributes:
+      label: Family
+      description: Which `target.*` family will own this module?
+      options:
+        - target.js
+        - target.env
+        - target.rust
+        - target.editor
+        - target.agent
+        - target.ci
+        - target.core
+    validations:
+      required: true
+  - type: input
+    id: tool
+    attributes:
+      label: Tool name
+      description: The downstream tool whose config this module emits (e.g. `eslint`, `rustfmt`, `zed`).
+      placeholder: eslint
+    validations:
+      required: true
+  - type: input
+    id: output_file
+    attributes:
+      label: Output file
+      description: The concrete file this module produces.
+      placeholder: .eslintrc.json
+    validations:
+      required: true
+  - type: dropdown
+    id: format
+    attributes:
+      label: Output format
+      options:
+        - json
+        - yaml
+        - toml
+        - ini
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: surface
+    attributes:
+      label: Public surface
+      description: What top-level Pkl classes / fields should the module expose?
+      placeholder: |
+        - extends: Listing<String>
+        - rules: Mapping<String, Any>
+        - parserOptions: ParserOptions
+        - overrides: Listing<Override>
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Upstream references
+      description: Links to the official tool config docs, JSON schema, or comparable typed wrappers.
+      placeholder: |
+        - https://eslint.org/docs/latest/use/configure/configuration-files
+        - https://json.schemastore.org/eslintrc.json
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Acceptance checklist
+      options:
+        - label: Module file at `packages/<family>/<tool>/<Tool>.pkl`
+        - label: Example at `examples/<tool>.pkl`
+        - label: API test at `packages/<family>/tests/<Tool>Test.pkl`
+        - label: Tool matrix row added at `packages/docs/content/reference/tool-matrix.md`
+        - label: Family docs feature card updated at `packages/docs/content/packages/<family>.md`

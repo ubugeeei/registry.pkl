@@ -1,0 +1,48 @@
+name: Add a new target.* family
+description: Track adding an entirely new first-party family (e.g. target.python, target.deploy).
+title: "feat(<family>): bootstrap target.<family>"
+labels:
+  - family-add
+body:
+  - type: input
+    id: family
+    attributes:
+      label: Family name
+      description: New family identifier (kebab-case-free, dot-separated).
+      placeholder: target.python
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Which downstream tools fall under this family? Why is a new family justified instead of folding the modules into an existing one?
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Expected dependencies
+      description: List the pantry packages or other target.* families this family will depend on.
+      placeholder: |
+        - target.core
+        - pkl.toml
+  - type: textarea
+    id: initial_modules
+    attributes:
+      label: Initial modules
+      description: Which 1-3 modules should land first to prove the family?
+      placeholder: |
+        - pyproject/PyProject.pkl
+        - ruff/Ruff.pkl
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Acceptance checklist
+      options:
+        - label: New `packages/target.<name>/PklProject` amends `../basePklProject.pkl`
+        - label: First module(s) ship with example, tests, and tool-matrix rows
+        - label: Family page added at `packages/docs/content/packages/target-<name>.md`
+        - label: Family added to release-package.yml input regex
