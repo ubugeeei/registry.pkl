@@ -1,0 +1,35 @@
+amends "@target.editor/devcontainer/DevContainer.pkl"
+
+name = "registry.pkl Dev"
+image = "mcr.microsoft.com/devcontainers/typescript-node:24"
+
+features {
+  ["ghcr.io/devcontainers/features/git:1"] = new Dynamic {}
+  ["ghcr.io/devcontainers/features/github-cli:1"] = new Dynamic {}
+}
+
+forwardPorts {
+  4173
+}
+
+portsAttributes {
+  ["4173"] = new PortAttribute {
+    label = "docs preview"
+    onAutoForward = "openPreview"
+  }
+}
+
+remoteEnv {
+  ["DOCS_BASE"] = "/"
+}
+
+postCreateCommand = "pnpm install"
+
+customizations {
+  ["vscode"] = new Dynamic {
+    ["extensions"] = new Listing {
+      "biomejs.biome"
+      "apple.pkl"
+    }
+  }
+}

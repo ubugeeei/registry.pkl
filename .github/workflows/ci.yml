@@ -28,6 +28,12 @@ jobs:
       - name: Generate workspace manifests
         run: pkl eval -m . root-files.pkl
 
+      - name: Resolve package dependencies
+        run: pkl project resolve . packages/target.*
+
+      - name: Run Pkl API tests
+        run: bash scripts/test.sh
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:

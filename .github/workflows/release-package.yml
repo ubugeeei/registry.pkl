@@ -1,0 +1,210 @@
+name: Release Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Family name (e.g. target.js, target.rust)
+        required: true
+        type: string
+      version:
+        description: SemVer version to release (e.g. 0.2.0)
+        required: true
+        type: string
+      dry_run:
+        description: Build artifacts and validate, but do not push the tag or release
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.package }}-${{ inputs.version }}
+  cancel-in-progress: false
+
+env:
+  PKL_VERSION: 0.31.0
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.compute.outputs.tag }}
+      package: ${{ steps.compute.outputs.package }}
+      version: ${{ steps.compute.outputs.version }}
+    steps:
+      - name: Validate inputs
+        id: compute
+        env:
+          INPUT_PACKAGE: ${{ inputs.package }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$INPUT_PACKAGE" =~ ^target\.(core|js|env|rust|editor|agent|ci)$ ]]; then
+            echo "::error::package must be one of the known target.* families, got: $INPUT_PACKAGE"
+            exit 1
+          fi
+          if [[ ! "$INPUT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?(\+[A-Za-z0-9.-]+)?$ ]]; then
+            echo "::error::version must be SemVer, got: $INPUT_VERSION"
+            exit 1
+          fi
+          echo "package=$INPUT_PACKAGE" >> "$GITHUB_OUTPUT"
+          echo "version=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$INPUT_PACKAGE@$INPUT_VERSION" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pkl
+        run: |
+          set -euo pipefail
+          curl -sSL -o pkl "https://github.com/apple/pkl/releases/download/${PKL_VERSION}/pkl-linux-amd64"
+          curl -sSL -o pkl.sha256 "https://github.com/apple/pkl/releases/download/${PKL_VERSION}/pkl-linux-amd64.sha256"
+          echo "$(cat pkl.sha256)  pkl" | sha256sum -c -
+          chmod +x pkl
+          sudo mv pkl /usr/local/bin/pkl
+          pkl --version
+
+      - name: Verify package version matches input
+        env:
+          PACKAGE: ${{ needs.validate.outputs.package }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          set -euo pipefail
+          declared=$(pkl eval "packages/${PACKAGE}/PklProject" -x "package.version")
+          if [[ "$declared" != "$VERSION" ]]; then
+            echo "::error::packages/${PACKAGE}/PklProject declares version=$declared but workflow input is $VERSION"
+            exit 1
+          fi
+
+      - name: Refuse to overwrite an existing tag
+        env:
+          TAG: ${{ needs.validate.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG$"; then
+            echo "::error::tag $TAG already exists. Releases are immutable; bump the version."
+            exit 1
+          fi
+
+      - name: Resolve project dependencies
+        env:
+          PACKAGE: ${{ needs.validate.outputs.package }}
+        run: pkl project resolve "packages/${PACKAGE}"
+
+      - name: Package
+        env:
+          PACKAGE: ${{ needs.validate.outputs.package }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p ".out"
+          # --skip-publish-check is required because the placeholder baseUri
+          # host (pkg.registry.invalid) is intentionally unresolvable. The
+          # tag-existence check above already guarantees release immutability.
+          # The output-path placeholder expands to .out/<name>@<version>/.
+          pkl project package "packages/${PACKAGE}" \
+            --skip-publish-check \
+            --output-path '.out/%{name}@%{version}'
+          ls -la ".out/${PACKAGE}@${VERSION}"
+
+      - name: Verify checksum files match artifacts
+        env:
+          PACKAGE: ${{ needs.validate.outputs.package }}
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: |
+          set -euo pipefail
+          cd ".out/${PACKAGE}@${VERSION}"
+          # Pkl writes checksum files as a single raw hex digest, so the
+          # standard `sha256sum -c` format does not apply. Compare manually.
+          verify_digest() {
+            local subject="$1"
+            local expected actual
+            expected=$(tr -d '[:space:]' < "${subject}.sha256")
+            actual=$(sha256sum "${subject}" | awk '{print $1}')
+            if [[ "${expected}" != "${actual}" ]]; then
+              echo "::error::checksum mismatch for ${subject} (expected ${expected}, got ${actual})"
+              exit 1
+            fi
+          }
+          verify_digest "${PACKAGE}@${VERSION}.zip"
+          verify_digest "${PACKAGE}@${VERSION}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.validate.outputs.tag }}
+          path: .out/${{ needs.validate.outputs.tag }}/
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    if: ${{ !inputs.dry_run }}
+    needs:
+      - validate
+      - build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.validate.outputs.tag }}
+          path: .out/${{ needs.validate.outputs.tag }}
+
+      - name: Create tag
+        env:
+          TAG: ${{ needs.validate.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "registry-pkl-bot"
+          git config user.email "ubugeeei@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
+
+      - name: Create release
+        env:
+          TAG: ${{ needs.validate.outputs.tag }}
+          PACKAGE: ${{ needs.validate.outputs.package }}
+          VERSION: ${{ needs.validate.outputs.version }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cd ".out/${TAG}"
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "Automated release of \`${PACKAGE}\` version \`${VERSION}\`.
+
+Install:
+
+\`\`\`pkl
+amends \"package://pkg.registry.invalid/${PACKAGE}@${VERSION}#/<module>.pkl\"
+\`\`\`
+
+Artifacts:
+
+- \`${PACKAGE}@${VERSION}.zip\`
+- \`${PACKAGE}@${VERSION}.zip.sha256\`
+- \`${PACKAGE}@${VERSION}\` (metadata)
+- \`${PACKAGE}@${VERSION}.sha256\` (metadata sha256)
+" \
+            "${PACKAGE}@${VERSION}.zip" \
+            "${PACKAGE}@${VERSION}.zip.sha256" \
+            "${PACKAGE}@${VERSION}" \
+            "${PACKAGE}@${VERSION}.sha256"

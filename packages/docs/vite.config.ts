@@ -31,39 +31,39 @@ export default defineConfig({
         theme: defineTheme({
           extends: defaultTheme,
           colors: {
-            primary: "#8a6e45",
-            primaryHover: "#6f5837",
-            background: "#faf7f0",
-            backgroundAlt: "#f2ece1",
-            text: "#171411",
-            textMuted: "#6d655d",
-            border: "#d8d0c4",
-            codeBackground: "#10151c",
-            codeText: "#f6f1e8",
+            primary: "#0e8a78",
+            primaryHover: "#0b6f60",
+            background: "#f5f7f6",
+            backgroundAlt: "#eceeed",
+            text: "#0a1014",
+            textMuted: "#566069",
+            border: "#d4dbd8",
+            codeBackground: "#04070a",
+            codeText: "#e8eef0",
           },
           darkColors: {
-            primary: "#d8bb8c",
-            primaryHover: "#ead2ae",
-            background: "#0b1016",
-            backgroundAlt: "#10161f",
-            text: "#f5efe6",
-            textMuted: "#b1a697",
-            border: "#27313f",
-            codeBackground: "#070b11",
-            codeText: "#f5efe6",
+            primary: "#7dd3c0",
+            primaryHover: "#9fe0d2",
+            background: "#070a0c",
+            backgroundAlt: "#0c1216",
+            text: "#e8eef0",
+            textMuted: "#94a0a8",
+            border: "#202931",
+            codeBackground: "#04070a",
+            codeText: "#e8eef0",
           },
           fonts: {
-            sans: '"IBM Plex Sans JP", sans-serif',
-            mono: '"IBM Plex Mono", monospace',
+            sans: '"IBM Plex Sans JP", "IBM Plex Sans", system-ui, -apple-system, sans-serif',
+            mono: '"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
           },
           header: {
-            logo: `${docsBase}registry-mark.svg`,
+            logo: `${docsBase}registry-signet.svg`,
             logoWidth: 28,
             logoHeight: 28,
           },
           footer: {
             message: 'Built with <a href="https://github.com/ubugeeei/ox-content">ox-content</a>.',
-            copyright: "Third-party design notes for registry.pkl and first-party target.* packages.",
+            copyright: "registry.pkl — typed configuration distribution for the entire toolchain.",
           },
           socialLinks: {
             github: "https://github.com/ubugeeei/registry.pkl",
@@ -81,7 +81,7 @@ export default defineConfig({
                   document.documentElement.setAttribute("data-theme", "dark");
                 }
               </script>
-              <link rel="icon" type="image/svg+xml" href="${docsBase}registry-mark.svg">
+              <link rel="icon" type="image/svg+xml" href="${docsBase}registry-signet.svg">
               <link rel="preconnect" href="https://fonts.googleapis.com">
               <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
               <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">

@@ -4,3 +4,6 @@ amends "../basePklProject.pkl"
 package {
   version = "0.1.0"
 }
+
+// target.core is depended on by every other family. A breaking change here
+// must bump the minor of every downstream `target.*` package.

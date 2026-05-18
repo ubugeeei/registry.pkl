@@ -1,0 +1,53 @@
+/// Tests for `target.editor.editorconfig.EditorConfig` rendering.
+amends "pkl:test"
+
+import "../editorconfig/EditorConfig.pkl"
+
+local config = (EditorConfig) {
+  sections {
+    ["*"] = new EditorConfig.Section {
+      indentStyle = "space"
+      indentSize = 2
+      endOfLine = "lf"
+      trimTrailingWhitespace = true
+      insertFinalNewline = true
+    }
+    ["*.md"] = new EditorConfig.Section {
+      trimTrailingWhitespace = false
+      maxLineLength = "off"
+    }
+  }
+}
+
+facts {
+  ["starts with root = true"] {
+    config.rendered.startsWith("root = true\n")
+  }
+  ["renders [*] section header"] {
+    config.rendered.contains("[*]\n")
+  }
+  ["renders [*.md] section header"] {
+    config.rendered.contains("[*.md]\n")
+  }
+  ["renders indent_style and indent_size for *"] {
+    config.rendered.contains("indent_style = space")
+    config.rendered.contains("indent_size = 2")
+  }
+  ["boolean values lowercased true/false"] {
+    config.rendered.contains("trim_trailing_whitespace = true")
+    config.rendered.contains("trim_trailing_whitespace = false")
+  }
+  ["off keyword passes through verbatim"] {
+    config.rendered.contains("max_line_length = off")
+  }
+  ["root=false omits the root line"] {
+    local noRoot = (EditorConfig) {
+      root = false
+      sections {
+        ["*"] = new EditorConfig.Section { indentStyle = "tab" }
+      }
+    }
+    !noRoot.rendered.startsWith("root = ")
+    noRoot.rendered.startsWith("[*]")
+  }
+}

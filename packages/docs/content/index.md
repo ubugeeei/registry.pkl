@@ -1,11 +1,11 @@
 ---
 layout: entry
 title: registry.pkl
-description: Third-party design notes for a searchable, versioned, GitHub PR-based registry for Pkl config packages.
+description: Typed configuration distribution for the entire toolchain — package.json, Cargo.toml, MCP servers, CI workflows, editor settings.
 hero:
   name: registry.pkl
-  text: Third-party design study for a Pkl package registry
-  tagline: "This site is the design and package catalog for registry.pkl. Start with the docs map below, then move into packages, targets, guides, or reference pages depending on the question you are trying to answer."
+  text: Typed configuration registry
+  tagline: "Author every tool's config in Pkl, render JSON / YAML / TOML / INI, version each package on its own SemVer cadence, and ship through GitHub Releases. One catalog for the toolchain."
   image:
     src: registry-mark.svg
     alt: registry.pkl mark

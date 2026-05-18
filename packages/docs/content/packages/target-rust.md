@@ -23,6 +23,9 @@ features:
   - icon: "mdi:shield-half-full"
     title: clippy/Clippy.pkl
     details: Thresholds and policy toggles for Clippy without dropping to raw TOML by default.
+  - icon: "mdi:format-align-left"
+    title: rustfmt/Rustfmt.pkl
+    details: Stable rustfmt options with camelCase-to-snake_case rendering and an imports layout class.
 ---
 
 ## Install
@@ -35,6 +38,7 @@ amends "package://pkg.example.invalid/target.rust@0.1.0#/cargo/Cargo.pkl"
 
 - `Cargo.toml`
 - `clippy.toml`
+- `rustfmt.toml`
 
 ## Why This Package Exists
 

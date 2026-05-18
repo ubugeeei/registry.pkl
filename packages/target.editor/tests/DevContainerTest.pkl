@@ -1,0 +1,61 @@
+/// Tests for `target.editor.devcontainer.DevContainer` rendering.
+amends "pkl:test"
+
+import "../devcontainer/DevContainer.pkl"
+
+local config = (DevContainer) {
+  name = "Test"
+  image = "alpine:3.20"
+  forwardPorts {
+    3000
+    "host:5432"
+  }
+  portsAttributes {
+    ["3000"] = new DevContainer.PortAttribute {
+      label = "web"
+      onAutoForward = "openPreview"
+    }
+  }
+  postCreateCommand = "pnpm install"
+  remoteEnv {
+    ["FOO"] = "bar"
+  }
+}
+
+local withCommandMap = (DevContainer) {
+  name = "Map command"
+  image = "alpine:3.20"
+  postCreateCommand = new Mapping<String, String|Listing<String>> {
+    ["server"] = "pnpm dev"
+    ["scripts"] = new Listing<String> {
+      "pnpm install"
+      "pnpm build"
+    }
+  }
+}
+
+facts {
+  ["renders top-level identity fields"] {
+    config.rendered["name"] == "Test"
+    config.rendered["image"] == "alpine:3.20"
+  }
+  ["forwardPorts keeps mixed int and string entries"] {
+    config.rendered["forwardPorts"] == List(3000, "host:5432")
+  }
+  ["portsAttributes are keyed by string"] {
+    local attr = config.rendered["portsAttributes"]["3000"]
+    attr["label"] == "web"
+    attr["onAutoForward"] == "openPreview"
+  }
+  ["scalar postCreateCommand stays a string"] {
+    config.rendered["postCreateCommand"] == "pnpm install"
+  }
+  ["map postCreateCommand renders mixed scalar and list values"] {
+    local cmd = withCommandMap.rendered["postCreateCommand"]
+    cmd["server"] == "pnpm dev"
+    cmd["scripts"] == List("pnpm install", "pnpm build")
+  }
+  ["remoteEnv keeps strings"] {
+    config.rendered["remoteEnv"]["FOO"] == "bar"
+  }
+}

@@ -1,0 +1,142 @@
+/// A typed authoring surface for `rustfmt.toml`.
+///
+/// Covers the stable rustfmt options documented at
+/// https://rust-lang.github.io/rustfmt/. Nightly-only options stay reachable
+/// through `extra`.
+module target.rust.rustfmt.Rustfmt
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+typealias Edition = "2015"|"2018"|"2021"|"2024"
+
+edition: Edition? = null
+maxWidth: Int? = null
+hardTabs: Boolean? = null
+tabSpaces: Int? = null
+newlineStyle: "Auto"|"Windows"|"Unix"|"Native"? = null
+useSmallHeuristics: "Default"|"Off"|"Max"? = null
+matchBlockTrailingComma: Boolean? = null
+mergeDerives: Boolean? = null
+forceExplicitAbi: Boolean? = null
+emptyItemSingleLine: Boolean? = null
+structLitSingleLine: Boolean? = null
+fnSingleLine: Boolean? = null
+whereSingleLine: Boolean? = null
+imports: ImportsLayout? = null
+reorderImports: Boolean? = null
+reorderModules: Boolean? = null
+removeNestedParens: Boolean? = null
+useFieldInitShorthand: Boolean? = null
+useTryShorthand: Boolean? = null
+formatStrings: Boolean? = null
+formatMacroMatchers: Boolean? = null
+formatMacroBodies: Boolean? = null
+hexLiteralCase: "Preserve"|"Upper"|"Lower"? = null
+disableAllFormatting: Boolean? = null
+skipChildren: Boolean? = null
+verbose: "Quiet"|"Normal"|"Verbose"? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+class ImportsLayout {
+  granularity: "Preserve"|"Crate"|"Module"|"Item"|"One"? = null
+  groupImportsBy: "Preserve"|"StdExternalCrate"? = null
+  imports_indent: "Visual"|"Block"? = null
+  imports_layout: "Vertical"|"Mixed"|"HorizontalVertical"? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+local function renderImports(value: ImportsLayout) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.granularity != null) {
+        ["granularity"] = value.granularity
+      }
+      when (value.groupImportsBy != null) {
+        ["group_imports"] = value.groupImportsBy
+      }
+      when (value.imports_indent != null) {
+        ["imports_indent"] = value.imports_indent
+      }
+      when (value.imports_layout != null) {
+        ["imports_layout"] = value.imports_layout
+      }
+    },
+    value.extra,
+  )
+
+hidden importsFields: Map<String, Any> =
+  if (imports == null)
+    Map()
+  else
+    renderImports(imports)
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (edition != null) { ["edition"] = edition }
+      when (maxWidth != null) { ["max_width"] = maxWidth }
+      when (hardTabs != null) { ["hard_tabs"] = hardTabs }
+      when (tabSpaces != null) { ["tab_spaces"] = tabSpaces }
+      when (newlineStyle != null) { ["newline_style"] = newlineStyle }
+      when (useSmallHeuristics != null) {
+        ["use_small_heuristics"] = useSmallHeuristics
+      }
+      when (matchBlockTrailingComma != null) {
+        ["match_block_trailing_comma"] = matchBlockTrailingComma
+      }
+      when (mergeDerives != null) { ["merge_derives"] = mergeDerives }
+      when (forceExplicitAbi != null) {
+        ["force_explicit_abi"] = forceExplicitAbi
+      }
+      when (emptyItemSingleLine != null) {
+        ["empty_item_single_line"] = emptyItemSingleLine
+      }
+      when (structLitSingleLine != null) {
+        ["struct_lit_single_line"] = structLitSingleLine
+      }
+      when (fnSingleLine != null) { ["fn_single_line"] = fnSingleLine }
+      when (whereSingleLine != null) {
+        ["where_single_line"] = whereSingleLine
+      }
+      for (key, value in importsFields) {
+        [key] = value
+      }
+      when (reorderImports != null) {
+        ["reorder_imports"] = reorderImports
+      }
+      when (reorderModules != null) {
+        ["reorder_modules"] = reorderModules
+      }
+      when (removeNestedParens != null) {
+        ["remove_nested_parens"] = removeNestedParens
+      }
+      when (useFieldInitShorthand != null) {
+        ["use_field_init_shorthand"] = useFieldInitShorthand
+      }
+      when (useTryShorthand != null) {
+        ["use_try_shorthand"] = useTryShorthand
+      }
+      when (formatStrings != null) { ["format_strings"] = formatStrings }
+      when (formatMacroMatchers != null) {
+        ["format_macro_matchers"] = formatMacroMatchers
+      }
+      when (formatMacroBodies != null) {
+        ["format_macro_bodies"] = formatMacroBodies
+      }
+      when (hexLiteralCase != null) {
+        ["hex_literal_case"] = hexLiteralCase
+      }
+      when (disableAllFormatting != null) {
+        ["disable_all_formatting"] = disableAllFormatting
+      }
+      when (skipChildren != null) { ["skip_children"] = skipChildren }
+      when (verbose != null) { ["verbose"] = verbose }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

@@ -23,6 +23,12 @@ features:
   - icon: "mdi:puzzle-outline"
     title: vscode/Extensions.pkl
     details: Recommended and unwanted workspace extension lists for VS Code teams.
+  - icon: "mdi:format-text"
+    title: editorconfig/EditorConfig.pkl
+    details: "`.editorconfig` authoring with one section per glob, root toggle, and direct text rendering."
+  - icon: "mdi:docker"
+    title: devcontainer/DevContainer.pkl
+    details: Dev Containers spec with build, features, ports, mounts, customizations, and command lifecycle.
 ---
 
 ## Install
@@ -35,6 +41,8 @@ amends "package://pkg.example.invalid/target.editor@0.1.0#/vscode/Settings.pkl"
 
 - `.vscode/settings.json`
 - `.vscode/extensions.json`
+- `.editorconfig`
+- `.devcontainer/devcontainer.json`
 
 ## Why This Package Exists
 

@@ -1,0 +1,126 @@
+/// A typed authoring surface for `turbo.json`.
+///
+/// Models the Turborepo configuration schema documented at
+/// https://turborepo.com/docs/reference/configuration.
+module target.js.turbo.Turbo
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias OutputLogs = "full"|"hash-only"|"new-only"|"errors-only"|"none"
+
+class TaskDefinition {
+  dependsOn: Listing<String> = new Listing {}
+  inputs: Listing<String> = new Listing {}
+  outputs: Listing<String> = new Listing {}
+  cache: Boolean? = null
+  persistent: Boolean? = null
+  interactive: Boolean? = null
+  env: Listing<String> = new Listing {}
+  passThroughEnv: Listing<String> = new Listing {}
+  outputLogs: OutputLogs? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class RemoteCache {
+  enabled: Boolean? = null
+  apiUrl: String? = null
+  loginUrl: String? = null
+  preflight: Boolean? = null
+  signature: Boolean? = null
+  teamId: String? = null
+  teamSlug: String? = null
+  timeout: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+`extends`: Listing<String> = new Listing {}
+tasks: Mapping<String, TaskDefinition> = new Mapping {}
+globalDependencies: Listing<String> = new Listing {}
+globalEnv: Listing<String> = new Listing {}
+globalPassThroughEnv: Listing<String> = new Listing {}
+remoteCache: RemoteCache? = null
+ui: "tui"|"stream"? = null
+daemon: Boolean? = null
+envMode: "loose"|"strict"? = null
+dangerouslyDisablePackageManagerCheck: Boolean? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderTask(value: TaskDefinition) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.dependsOn.toList().isEmpty) {
+        ["dependsOn"] = value.dependsOn.toList()
+      }
+      when (!value.inputs.toList().isEmpty) {
+        ["inputs"] = value.inputs.toList()
+      }
+      when (!value.outputs.toList().isEmpty) {
+        ["outputs"] = value.outputs.toList()
+      }
+      when (value.cache != null) { ["cache"] = value.cache }
+      when (value.persistent != null) { ["persistent"] = value.persistent }
+      when (value.interactive != null) { ["interactive"] = value.interactive }
+      when (!value.env.toList().isEmpty) {
+        ["env"] = value.env.toList()
+      }
+      when (!value.passThroughEnv.toList().isEmpty) {
+        ["passThroughEnv"] = value.passThroughEnv.toList()
+      }
+      when (value.outputLogs != null) {
+        ["outputLogs"] = value.outputLogs
+      }
+    },
+    value.extra,
+  )
+
+local function renderRemoteCache(value: RemoteCache) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (value.apiUrl != null) { ["apiUrl"] = value.apiUrl }
+      when (value.loginUrl != null) { ["loginUrl"] = value.loginUrl }
+      when (value.preflight != null) { ["preflight"] = value.preflight }
+      when (value.signature != null) { ["signature"] = value.signature }
+      when (value.teamId != null) { ["teamId"] = value.teamId }
+      when (value.teamSlug != null) { ["teamSlug"] = value.teamSlug }
+      when (value.timeout != null) { ["timeout"] = value.timeout }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (!`extends`.toList().isEmpty) { ["extends"] = `extends`.toList() }
+      when (!globalDependencies.toList().isEmpty) {
+        ["globalDependencies"] = globalDependencies.toList()
+      }
+      when (!globalEnv.toList().isEmpty) {
+        ["globalEnv"] = globalEnv.toList()
+      }
+      when (!globalPassThroughEnv.toList().isEmpty) {
+        ["globalPassThroughEnv"] = globalPassThroughEnv.toList()
+      }
+      when (!tasks.toMap().isEmpty) {
+        ["tasks"] = tasks.toMap().mapValues((_, value) -> renderTask(value))
+      }
+      when (remoteCache != null) {
+        ["remoteCache"] = renderRemoteCache(remoteCache)
+      }
+      when (ui != null) { ["ui"] = ui }
+      when (daemon != null) { ["daemon"] = daemon }
+      when (envMode != null) { ["envMode"] = envMode }
+      when (dangerouslyDisablePackageManagerCheck != null) {
+        ["dangerouslyDisablePackageManagerCheck"] =
+          dangerouslyDisablePackageManagerCheck
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

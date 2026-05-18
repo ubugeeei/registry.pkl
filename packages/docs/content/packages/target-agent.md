@@ -35,6 +35,9 @@ features:
   - icon: "mdi:windsock"
     title: windsurf/McpConfig.pkl
     details: Windsurf wrapper that maps remote servers to `serverUrl`.
+  - icon: "mdi:terminal"
+    title: codex/Settings.pkl
+    details: OpenAI Codex CLI config covering approval policy, sandbox tuning, profiles, and MCP server registration.
 ---
 
 ## Install
@@ -50,6 +53,7 @@ amends "package://pkg.example.invalid/target.agent@0.1.0#/vscode/Mcp.pkl"
 - `.mcp.json` for Claude Code or project-level MCP config
 - Claude Desktop MCP server JSON
 - Windsurf MCP config JSON
+- `~/.codex/config.toml`-shape JSON for the OpenAI Codex CLI
 
 ## Why This Package Exists
 

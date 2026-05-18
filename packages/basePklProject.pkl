@@ -1,3 +1,8 @@
+/// Common project defaults shared by every first-party `target.*` package.
+///
+/// Each `packages/target.<name>/PklProject` amends this module and overrides
+/// `package.version` with its own SemVer. The base does not enforce a single
+/// repo-wide version — see `docs/content/guide/versioning.md`.
 module basePklProject
 
 amends "pkl:Project"
@@ -22,9 +27,9 @@ const local allTests =
 package {
   name = packageName
   version = "0.1.0"
-  baseUri = "package://pkg.registry.pkl/\(name)"
+  baseUri = "package://pkg.registry.invalid/\(name)"
   packageZipUrl =
-    "https://registry.pkl.dev/releases/\(name)@\(version)/\(name)@\(version).zip"
+    "https://github.com/ubugeeei/registry.pkl/releases/download/\(name)@\(version)/\(name)@\(version).zip"
   license = "Apache-2.0"
   authors {
     "Ubugeeei <ubugeeei@gmail.com>"

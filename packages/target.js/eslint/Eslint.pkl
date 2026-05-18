@@ -1,0 +1,166 @@
+/// A typed authoring surface for `.eslintrc.json` (legacy config).
+///
+/// Targets the JSON config schema documented at
+/// https://eslint.org/docs/latest/use/configure/configuration-files-deprecated.
+/// The newer flat-config (`eslint.config.js`) is intentionally not modeled
+/// here because its surface is a JavaScript module, not a JSON document.
+module target.js.eslint.Eslint
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias Globals = Mapping<String, "readonly"|"writable"|"off"|Boolean>
+typealias RuleConfig = String|Int|Listing<Any>
+
+class ParserOptions {
+  ecmaVersion: Int|"latest"? = null
+  sourceType: "script"|"module"|"commonjs"? = null
+  ecmaFeatures: Mapping<String, Boolean> = new Mapping {}
+  project: (String|Listing<String>)? = null
+  tsconfigRootDir: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Override {
+  files: String|Listing<String>
+  excludedFiles: (String|Listing<String>)? = null
+  `extends`: Listing<String> = new Listing {}
+  rules: Mapping<String, RuleConfig> = new Mapping {}
+  env: Mapping<String, Boolean> = new Mapping {}
+  parser: String? = null
+  parserOptions: ParserOptions? = null
+  plugins: Listing<String> = new Listing {}
+  settings: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Settings {
+  react: Mapping<String, Any>? = null
+  importResolver: Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+root: Boolean? = null
+`extends`: Listing<String> = new Listing {}
+parser: String? = null
+parserOptions: ParserOptions? = null
+env: Mapping<String, Boolean> = new Mapping {}
+globals: Globals = new Mapping {}
+plugins: Listing<String> = new Listing {}
+rules: Mapping<String, RuleConfig> = new Mapping {}
+overrides: Listing<Override> = new Listing {}
+ignorePatterns: Listing<String> = new Listing {}
+noInlineConfig: Boolean? = null
+reportUnusedDisableDirectives: Boolean? = null
+settings: Settings? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderParserOptions(value: ParserOptions) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.ecmaVersion != null) {
+        ["ecmaVersion"] = value.ecmaVersion
+      }
+      when (value.sourceType != null) {
+        ["sourceType"] = value.sourceType
+      }
+      when (!value.ecmaFeatures.toMap().isEmpty) {
+        ["ecmaFeatures"] = value.ecmaFeatures.toMap()
+      }
+      when (value.project != null) {
+        ["project"] =
+          if (value.project is Listing) value.project.toList() else value.project
+      }
+      when (value.tsconfigRootDir != null) {
+        ["tsconfigRootDir"] = value.tsconfigRootDir
+      }
+    },
+    value.extra,
+  )
+
+local function renderRules(rules: Mapping<String, RuleConfig>) =
+  rules.toMap().mapValues(
+    (_, value) -> if (value is Listing) value.toList() else value,
+  )
+
+local function renderOverride(value: Override) =
+  Maps.withExtra(
+    new Dynamic {
+      ["files"] =
+        if (value.files is Listing) value.files.toList() else value.files
+      when (value.excludedFiles != null) {
+        ["excludedFiles"] =
+          if (value.excludedFiles is Listing)
+            value.excludedFiles.toList()
+          else
+            value.excludedFiles
+      }
+      when (!value.`extends`.toList().isEmpty) {
+        ["extends"] = value.`extends`.toList()
+      }
+      when (value.parser != null) { ["parser"] = value.parser }
+      when (value.parserOptions != null) {
+        ["parserOptions"] = renderParserOptions(value.parserOptions)
+      }
+      when (!value.plugins.toList().isEmpty) {
+        ["plugins"] = value.plugins.toList()
+      }
+      when (!value.env.toMap().isEmpty) {
+        ["env"] = value.env.toMap()
+      }
+      when (!value.rules.toMap().isEmpty) {
+        ["rules"] = renderRules(value.rules)
+      }
+      when (!value.settings.toMap().isEmpty) {
+        ["settings"] = value.settings.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSettings(value: Settings) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.react != null) { ["react"] = value.react.toMap() }
+      when (value.importResolver != null) {
+        ["import/resolver"] = value.importResolver.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (root != null) { ["root"] = root }
+      when (!`extends`.toList().isEmpty) { ["extends"] = `extends`.toList() }
+      when (parser != null) { ["parser"] = parser }
+      when (parserOptions != null) {
+        ["parserOptions"] = renderParserOptions(parserOptions)
+      }
+      when (!env.toMap().isEmpty) { ["env"] = env.toMap() }
+      when (!globals.toMap().isEmpty) { ["globals"] = globals.toMap() }
+      when (!plugins.toList().isEmpty) { ["plugins"] = plugins.toList() }
+      when (!rules.toMap().isEmpty) { ["rules"] = renderRules(rules) }
+      when (!overrides.toList().isEmpty) {
+        ["overrides"] = overrides.toList().map((value) -> renderOverride(value))
+      }
+      when (!ignorePatterns.toList().isEmpty) {
+        ["ignorePatterns"] = ignorePatterns.toList()
+      }
+      when (noInlineConfig != null) {
+        ["noInlineConfig"] = noInlineConfig
+      }
+      when (reportUnusedDisableDirectives != null) {
+        ["reportUnusedDisableDirectives"] = reportUnusedDisableDirectives
+      }
+      when (settings != null) { ["settings"] = renderSettings(settings) }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

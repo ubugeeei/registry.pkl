@@ -1,16 +1,19 @@
 ---
 title: Distribution
-description: How first-party packages should be published without inventing a new package host.
+description: How first-party packages get from a Pkl module on disk to an installable, immutable artifact.
 ---
 
 # Distribution
 
-## Publish Pkl Packages Directly
+`registry.pkl` does not invent a new package host. It distributes normal
+Pkl packages built with `pkl project package`, served from GitHub Releases
+on the project's own repository, and indexed through a searchable docs
+site.
 
-The right distribution unit is a normal Pkl package, not a registry-specific
-artifact.
+## Publish Pkl Packages, Not Registry-Specific Artifacts
 
-Each first-party package should have its own `PklProject` and version:
+The distribution unit is a normal Pkl package. Each first-party family in
+`packages/target.*` has its own `PklProject` and its own SemVer:
 
 - `target.core`
 - `target.js`
@@ -20,90 +23,88 @@ Each first-party package should have its own `PklProject` and version:
 - `target.ci`
 - `target.agent`
 
-Build artifacts with `pkl project package`.
-
-That keeps the project aligned with the package model Pkl already understands.
+`pkl project package packages/target.<name>` produces a `.zip` plus a
+`.sha256` next to it. Those two files are the entire artifact surface — no
+registry-specific format on top.
 
 ## Reuse Pantry Packages Where It Helps
 
-Do not rebuild upstream packages that already exist and are maintained well.
-
-The clearest current candidates are:
+Do not rebuild upstream packages that already exist and are maintained
+well. The current dependencies on the official pantry are:
 
 - `package://pkg.pkl-lang.org/pkl-pantry/pkl.toml@1.0.2`
 - `package://pkg.pkl-lang.org/pkl-pantry/com.github.actions@1.3.1`
 - `package://pkg.pkl-lang.org/pkl-pantry/com.github.dependabot@1.0.0`
 
-`target.ci` should wrap those packages with repository presets and team-facing
-entrypoints instead of cloning their full schema surface.
+`target.ci` wraps those packages with repository presets and team-facing
+entry points instead of cloning their full schema surface. `target.rust`
+and `target.env` reuse `pkl.toml` for TOML rendering instead of writing
+ad-hoc emitters.
 
-## Hosting Reality For This Repository
+## Hosting Reality
 
-This repository is a third-party design study.
+`registry.pkl` is a third-party design study maintained by `@ubugeeei`. It
+does not own `pkg.pkl-lang.org`. References to that origin in this repo
+only point at official upstream pantry dependencies.
 
-That means:
+For the artifacts produced by this repo:
 
-- the docs site should publish to `https://ubugeeei.github.io/registry.pkl/`
-- the project should not pretend to own `pkg.pkl-lang.org`
-- `pkg.pkl-lang.org` references inside this repo are only official upstream pantry dependencies
+- docs site: `https://ubugeeei.github.io/registry.pkl/`
+- package zips: GitHub Releases on `github.com/ubugeeei/registry.pkl`
+- registry records: `packages/docs/content/registry/<name>/<version>.json`,
+  committed alongside the docs build so search and version history work
+  from the same static origin
+- `packageUri` host: `pkg.registry.invalid` as a placeholder until a real
+  package origin domain is provisioned
 
-## Recommended Hosting Shape
+The `packageZipUrl` resolves directly to the GitHub Releases download URL,
+which is what `pkl project resolve` actually fetches. The placeholder
+`packageUri` host therefore does not block consumers — they pin to the
+ZIP, not the URI host.
 
-Use a package origin you actually control for immutable artifacts.
+## Release Flow
 
-Recommended split:
+The release workflow lives at
+[`.github/workflows/release-package.yml`](https://github.com/ubugeeei/registry.pkl/blob/main/.github/workflows/release-package.yml)
+and runs on `workflow_dispatch`:
 
-- docs UI: `https://ubugeeei.github.io/registry.pkl/`
-- package host: `package://<a-host-you-control>/<package>@<version>`
-- registry index repo: GitHub Pull Request-based metadata records
+1. Validate inputs (`package` matches `target.<family>`, `version` matches
+   SemVer regex). Pkl resolves the project to verify dependency graphs are
+   consistent.
+2. Run `pkl project package packages/<package>`. Emit the zip and SHA-256
+   checksum into `.out/<package>@<version>/`.
+3. Refuse to continue if the corresponding `<package>@<version>` tag
+   already exists — releases are immutable.
+4. Push the new tag and create a GitHub Release. Upload both files as
+   release assets.
+5. Append a registry record under
+   `packages/docs/content/registry/<package>/<version>.json`. Open a PR
+   so the addition is auditable.
 
-If you do not control a package origin yet, start with GitHub Releases plus a
-static metadata host. Do not invent a fake `pkg.*` domain in public docs.
-
-The package host should serve both:
-
-- the metadata file at the package URI's derived HTTPS URL
-- the ZIP file at `packageZipUrl`
-
-Keeping metadata and ZIP files on the same origin makes enterprise mirroring
-much simpler.
-
-## Why Same-Origin Package Hosting Matters
-
-Pkl package mirrors work by rewriting HTTP origins.
-
-If metadata lives on one host and ZIP files live on another, users need to
-mirror both origins. That is workable, but it is unnecessary friction for the
-exact audience that wants centrally managed configuration.
-
-For first-party packages, keep artifacts byte-for-byte immutable and serve them
-from one host.
-
-## What The Registry Should Add
-
-`registry.pkl` should not replace package distribution.
-
-It should add:
-
-- searchable package pages
-- reviewed first-party and community records
-- target and ecosystem facets
-- changelog and compatibility visibility
-- copy-pasteable pinned import URIs
-
-The registry record should point at real package artifacts, docs, and checksums.
+Local rehearsals use `scripts/release.sh` with `--dry-run` to run steps 1
+and 2 without touching the remote.
 
 ## Release Discipline
 
-Release each `target.*` package independently.
+Per-package SemVer is only honest if these rules hold:
 
-Rules:
+- Pin imports to exact SemVer in production. `latest` is a registry UI
+  convenience, never an import target.
+- Run `pkl test packages/target.*` before packaging. CI does this on every
+  PR, and the release workflow does it again before publishing.
+- Once a `<name>@<version>` tag exists, its zip and SHA-256 are immutable.
+  Bad releases get yanked through a deprecation flag in the registry
+  record, not by force-pushing assets.
 
-- pin imports to exact semver
-- treat `latest` as a registry UI convenience, not an import target
-- run snapshot tests before packaging
-- run package API tests through `pkl project package`
-- publish immutable metadata, ZIPs, and checksums
+## What The Registry Adds On Top
 
-This keeps semver honest and lets high-churn targets evolve without forcing a
-repo-wide version.
+`registry.pkl` does not replace package distribution. It adds:
+
+- searchable package pages
+- reviewed first-party and community records
+- target tool and ecosystem facets
+- changelog and compatibility visibility
+- copy-pasteable pinned import URIs
+
+The registry record points at real package artifacts, docs, and checksums.
+Pkl's own resolution machinery handles the rest.
