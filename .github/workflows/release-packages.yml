@@ -160,6 +160,9 @@ jobs:
       - name: Generate workspace manifests
         run: pkl eval -m . root-files.pkl
 
+      - name: Resolve package dependencies for release host
+        run: pkl project resolve . packages/target.*
+
       - name: Build package artifacts
         shell: bash
         run: |
