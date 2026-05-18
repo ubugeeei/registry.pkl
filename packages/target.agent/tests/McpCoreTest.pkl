@@ -1,0 +1,71 @@
+/// Tests for `target.agent.mcp.Core` server renderers.
+amends "pkl:test"
+
+import "../mcp/Core.pkl"
+
+local options = new Core.RenderOptions {}
+
+local stdio = new Core.StdioServer {
+  command = "node"
+  args {
+    "server.js"
+  }
+  env {
+    ["DEBUG"] = "1"
+  }
+}
+
+local http = new Core.RemoteServer {
+  type = "http"
+  url = "https://mcp.example.invalid/api"
+  headers {
+    ["X-Token"] = "secret"
+  }
+}
+
+local input = new Core.Input {
+  id = "token"
+  description = "API token"
+  password = true
+  default = ""
+}
+
+facts {
+  ["stdio server keeps command and args"] {
+    local rendered = Core.renderServer(stdio, options)
+    rendered["command"] == "node"
+    rendered["args"] == List("server.js")
+  }
+  ["stdio server keeps env when non-empty"] {
+    local rendered = Core.renderServer(stdio, options)
+    rendered["env"]["DEBUG"] == "1"
+  }
+  ["stdio server omits sandbox by default"] {
+    local rendered = Core.renderServer(stdio, options)
+    !rendered.containsKey("sandbox")
+    !rendered.containsKey("sandboxEnabled")
+  }
+  ["remote http server renders url under default key"] {
+    local rendered = Core.renderServer(http, options)
+    rendered["url"] == "https://mcp.example.invalid/api"
+    rendered["type"] == "http"
+  }
+  ["remote http server can use serverUrl key"] {
+    local serverUrlOptions = new Core.RenderOptions {
+      remoteUrlKey = "serverUrl"
+    }
+    local rendered = Core.renderServer(http, serverUrlOptions)
+    rendered["serverUrl"] == "https://mcp.example.invalid/api"
+    !rendered.containsKey("url")
+  }
+  ["remote http server renders headers map"] {
+    local rendered = Core.renderServer(http, options)
+    rendered["headers"]["X-Token"] == "secret"
+  }
+  ["promptString input keeps id, description, and password"] {
+    local rendered = Core.renderInput(input)
+    rendered["type"] == "promptString"
+    rendered["id"] == "token"
+    rendered["password"] == true
+  }
+}

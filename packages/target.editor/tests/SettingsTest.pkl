@@ -1,0 +1,60 @@
+/// Tests for `target.editor.vscode.Settings` rendering.
+amends "pkl:test"
+
+import "../vscode/Settings.pkl"
+
+local config = (Settings) {
+  editor {
+    formatOnSave = true
+    defaultFormatter = "biomejs.biome"
+    tabSize = 2
+    insertSpaces = true
+    rulers {
+      80
+      100
+    }
+    codeActionsOnSave {
+      ["quickfix.biome"] = "explicit"
+      ["source.organizeImports.biome"] = "explicit"
+    }
+  }
+  files {
+    insertFinalNewline = true
+    trimTrailingWhitespace = true
+    exclude {
+      ["**/node_modules"] = true
+    }
+  }
+  typescript {
+    tsdk = "node_modules/typescript/lib"
+    preferGoToSourceDefinition = true
+  }
+}
+
+facts {
+  ["renders flat editor.* keys"] {
+    config.rendered["editor.formatOnSave"] == true
+    config.rendered["editor.defaultFormatter"] == "biomejs.biome"
+    config.rendered["editor.tabSize"] == 2
+    config.rendered["editor.insertSpaces"] == true
+  }
+  ["renders rulers as a list"] {
+    config.rendered["editor.rulers"] == List(80, 100)
+  }
+  ["renders codeActionsOnSave as a map"] {
+    config.rendered["editor.codeActionsOnSave"]["quickfix.biome"] == "explicit"
+  }
+  ["renders files.* keys"] {
+    config.rendered["files.insertFinalNewline"] == true
+    config.rendered["files.exclude"]["**/node_modules"] == true
+  }
+  ["renders typescript.* keys"] {
+    config.rendered["typescript.tsdk"] == "node_modules/typescript/lib"
+    config.rendered["typescript.preferGoToSourceDefinition"] == true
+  }
+  ["omits sections with no fields set"] {
+    !config.rendered.containsKey("javascript.suggest.completeFunctionCalls")
+    !config.rendered.containsKey("git.autofetch")
+    !config.rendered.containsKey("window.zoomLevel")
+  }
+}

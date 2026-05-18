@@ -1,0 +1,52 @@
+/// Tests for `target.ci.github.NodeCiWorkflow` rendering.
+amends "pkl:test"
+
+import "../github/NodeCiWorkflow.pkl"
+
+local single = (NodeCiWorkflow) {
+  packageManager = "pnpm"
+  nodeVersions = List("24")
+  check = "pnpm check"
+  build = "pnpm build"
+}
+
+local matrix = (NodeCiWorkflow) {
+  packageManager = "npm"
+  nodeVersions = List("20", "22", "24")
+  test = "npm test"
+}
+
+facts {
+  ["single version omits strategy.matrix"] {
+    !single.rendered["jobs"]["ci"].containsKey("strategy")
+  }
+  ["single version uses literal node-version"] {
+    local setupStep = single.rendered["jobs"]["ci"]["steps"][1]
+    setupStep["with"]["node-version"] == "24"
+    setupStep["with"]["cache"] == "pnpm"
+  }
+  ["pnpm default install command"] {
+    local installStep = single.rendered["jobs"]["ci"]["steps"][2]
+    installStep["run"] == "pnpm install --frozen-lockfile"
+  }
+  ["check and build steps are emitted in order"] {
+    local steps = single.rendered["jobs"]["ci"]["steps"]
+    steps[3]["run"] == "pnpm check"
+    steps[4]["run"] == "pnpm build"
+  }
+  ["multi-version uses matrix and matrix.node placeholder"] {
+    local ci = matrix.rendered["jobs"]["ci"]
+    ci["strategy"]["matrix"]["node"] == List("20", "22", "24")
+    ci["steps"][1]["with"]["node-version"] == "${{ matrix.node }}"
+  }
+  ["npm uses npm ci as install command"] {
+    matrix.rendered["jobs"]["ci"]["steps"][2]["run"] == "npm ci"
+  }
+  ["permissions defaults to read-all"] {
+    single.rendered["permissions"] == "read-all"
+  }
+  ["push and pull_request triggers share branches"] {
+    single.rendered["on"]["push"]["branches"] == List("main")
+    single.rendered["on"]["pull_request"]["branches"] == List("main")
+  }
+}

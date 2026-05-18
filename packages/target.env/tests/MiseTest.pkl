@@ -1,0 +1,52 @@
+/// Tests for `target.env.mise.Mise` rendering.
+amends "pkl:test"
+
+import "../mise/Mise.pkl"
+
+local config = (Mise) {
+  tools {
+    ["node"] = "24"
+    ["pnpm"] = "10"
+  }
+  env {
+    ["DOCS_BASE"] = "/"
+  }
+  tasks {
+    ["build"] = new Mise.Task {
+      description = "Build docs"
+      run = "pnpm build"
+    }
+    ["pipeline"] = new Mise.Task {
+      run = new Listing {
+        "pnpm install"
+        "pnpm build"
+      }
+      depends {
+        "build"
+      }
+    }
+  }
+}
+
+facts {
+  ["renders tools map"] {
+    config.rendered["tools"]["node"] == "24"
+    config.rendered["tools"]["pnpm"] == "10"
+  }
+  ["renders env values"] {
+    config.rendered["env"]["DOCS_BASE"] == "/"
+  }
+  ["renders task with scalar run"] {
+    local task = config.rendered["tasks"]["build"]
+    task["description"] == "Build docs"
+    task["run"] == "pnpm build"
+  }
+  ["renders task with listing run as list and keeps depends"] {
+    local task = config.rendered["tasks"]["pipeline"]
+    task["run"] == List("pnpm install", "pnpm build")
+    task["depends"] == List("build")
+  }
+  ["omits empty settings"] {
+    !config.rendered.containsKey("settings")
+  }
+}

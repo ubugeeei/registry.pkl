@@ -1,0 +1,59 @@
+/// Tests for `target.js.biome.Biome` rendering.
+amends "pkl:test"
+
+import "../biome/Biome.pkl"
+
+local minimal = (Biome) {
+  formatter {
+    enabled = true
+    indentStyle = "space"
+    indentWidth = 2
+  }
+}
+
+local fullySpec = (Biome) {
+  `$schema` = "https://biomejs.dev/schemas/latest/schema.json"
+  `extends` { "//base.json" }
+  formatter {
+    enabled = true
+    indentStyle = "tab"
+    indentWidth = 4
+    lineWidth = 100
+  }
+  linter {
+    enabled = true
+    rules {
+      ["recommended"] = true
+    }
+  }
+  vcs {
+    enabled = true
+    clientKind = "git"
+    useIgnoreFile = true
+  }
+}
+
+facts {
+  ["omits null formatter fields"] {
+    !minimal.rendered.containsKey("linter")
+    !minimal.rendered.containsKey("vcs")
+  }
+  ["keeps the $schema string when set"] {
+    fullySpec.rendered["$schema"] == "https://biomejs.dev/schemas/latest/schema.json"
+  }
+  ["renders extends as a list"] {
+    fullySpec.rendered["extends"] == List("//base.json")
+  }
+  ["renders nested formatter values"] {
+    fullySpec.rendered["formatter"]["indentStyle"] == "tab"
+    fullySpec.rendered["formatter"]["lineWidth"] == 100
+  }
+  ["renders vcs section when populated"] {
+    fullySpec.rendered["vcs"]["clientKind"] == "git"
+    fullySpec.rendered["vcs"]["useIgnoreFile"] == true
+  }
+  ["minimal config still renders formatter"] {
+    minimal.rendered["formatter"]["indentStyle"] == "space"
+    minimal.rendered["formatter"]["indentWidth"] == 2
+  }
+}

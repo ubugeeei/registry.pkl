@@ -1,0 +1,64 @@
+/// Tests for `target.rust.cargo.Cargo` rendering.
+amends "pkl:test"
+
+import "../cargo/Cargo.pkl"
+
+local manifest = (Cargo) {
+  package {
+    name = "registry-pkl-cli"
+    version = "0.1.0"
+    edition = "2024"
+    license = "Apache-2.0"
+    rustVersion = "1.85"
+  }
+  dependencies {
+    ["anyhow"] = "1.0.97"
+    ["clap"] = new Cargo.Dependency {
+      version = "4.5.32"
+      features {
+        "derive"
+      }
+    }
+  }
+  features {
+    ["default"] = new Listing {
+      "cli"
+    }
+    ["cli"] = new Listing {}
+  }
+  profile {
+    ["release"] = new Cargo.Profile {
+      lto = true
+      codegenUnits = 1
+      strip = true
+    }
+  }
+}
+
+facts {
+  ["package section renders SemVer fields"] {
+    manifest.rendered["package"]["name"] == "registry-pkl-cli"
+    manifest.rendered["package"]["version"] == "0.1.0"
+    manifest.rendered["package"]["edition"] == "2024"
+  }
+  ["rustVersion serializes as rust-version"] {
+    manifest.rendered["package"]["rust-version"] == "1.85"
+  }
+  ["string dependency stays a string"] {
+    manifest.rendered["dependencies"]["anyhow"] == "1.0.97"
+  }
+  ["table dependency keeps version and features"] {
+    local clap = manifest.rendered["dependencies"]["clap"]
+    clap["version"] == "4.5.32"
+    clap["features"] == List("derive")
+  }
+  ["features map preserves listings"] {
+    manifest.rendered["features"]["default"] == List("cli")
+    manifest.rendered["features"]["cli"] == List()
+  }
+  ["profile table renames camelCase to dashed-kebab"] {
+    local release = manifest.rendered["profile"]["release"]
+    release["lto"] == true
+    release["codegen-units"] == 1
+  }
+}

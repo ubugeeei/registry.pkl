@@ -1,0 +1,46 @@
+/// Tests for `target.js.prettier.Prettier` rendering.
+amends "pkl:test"
+
+import "../prettier/Prettier.pkl"
+
+local config = (Prettier) {
+  semi = true
+  singleQuote = false
+  trailingComma = "all"
+  printWidth = 100
+  tabWidth = 2
+  plugins {
+    "prettier-plugin-tailwindcss"
+  }
+  overrides {
+    new Prettier.Override {
+      files = "*.md"
+      options {
+        ["proseWrap"] = "always"
+      }
+    }
+  }
+}
+
+facts {
+  ["renders top-level scalar fields"] {
+    config.rendered["semi"] == true
+    config.rendered["singleQuote"] == false
+    config.rendered["trailingComma"] == "all"
+    config.rendered["printWidth"] == 100
+  }
+  ["renders plugins as a list"] {
+    config.rendered["plugins"] == List("prettier-plugin-tailwindcss")
+  }
+  ["renders overrides with their files and options"] {
+    local overrides = config.rendered["overrides"]
+    overrides.length == 1
+    overrides[0]["files"] == "*.md"
+    overrides[0]["options"]["proseWrap"] == "always"
+  }
+  ["omits unset optional fields"] {
+    !config.rendered.containsKey("useTabs")
+    !config.rendered.containsKey("arrowParens")
+    !config.rendered.containsKey("endOfLine")
+  }
+}

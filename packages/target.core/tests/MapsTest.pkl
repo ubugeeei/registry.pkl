@@ -1,0 +1,37 @@
+/// Tests for `Maps` helper module.
+amends "pkl:test"
+
+import "../Maps.pkl"
+
+local baseMapping = new Mapping {
+  ["a"] = 1
+  ["b"] = 2
+}
+
+local extraMapping = new Mapping {
+  ["c"] = 3
+}
+
+local emptyMapping: Mapping<String, Any> = new Mapping {}
+
+facts {
+  ["toMap converts a Mapping to a Map"] {
+    Maps.toMap(baseMapping) == Map("a", 1, "b", 2)
+  }
+  ["toMap is identity on a Map"] {
+    local source = Map("a", 1)
+    Maps.toMap(source) == source
+  }
+  ["withExtra merges additional keys"] {
+    Maps.withExtra(baseMapping, extraMapping) == Map("a", 1, "b", 2, "c", 3)
+  }
+  ["withExtra is a no-op when extra is empty"] {
+    Maps.withExtra(baseMapping, emptyMapping) == Map("a", 1, "b", 2)
+  }
+  ["withExtra overrides base on key conflict"] {
+    local overriding = new Mapping {
+      ["a"] = 99
+    }
+    Maps.withExtra(baseMapping, overriding) == Map("a", 99, "b", 2)
+  }
+}
