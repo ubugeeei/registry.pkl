@@ -78,6 +78,42 @@ jobs:
       - name: Run actionlint
         run: actionlint -color
 
+  registry-records:
+    name: Registry records
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Run registry validator tests
+        run: node --test scripts/tests/*.test.mjs
+
+      - name: Validate changed registry records
+        env:
+          EVENT_BEFORE: ${{ github.event.before || '' }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${PR_BASE_SHA}" ]; then
+            base_ref="${PR_BASE_SHA}"
+          elif [ -n "${EVENT_BEFORE}" ] && [[ ! "${EVENT_BEFORE}" =~ ^0+$ ]]; then
+            base_ref="${EVENT_BEFORE}"
+          else
+            base_ref="HEAD^"
+          fi
+
+          node scripts/validate-registry-records.mjs --changed --base-ref "${base_ref}"
+
   pkl-packages:
     name: Pkl packages
     runs-on: ubuntu-latest

@@ -13,6 +13,8 @@ scripts {
   ["package:artifacts"] = "./scripts/package-artifacts.sh"
   ["package:publish-layout"] = "./scripts/build-publish-layout.sh"
   ["package:sync"] = "./scripts/sync-publish-layout.sh"
+  ["validate:registry"] = "node scripts/validate-registry-records.mjs"
+  ["test:registry"] = "node --test scripts/tests/*.test.mjs"
   ["fmt"] = "pnpm --filter @registry/docs fmt"
   ["lint"] = "pnpm --filter @registry/docs lint"
   ["check"] = "pnpm --filter @registry/docs check"
