@@ -3,13 +3,19 @@
 set -euo pipefail
 
 package_output_dir="${PACKAGE_OUTPUT_DIR:-dist/package-artifacts}"
-publish_dir="${PUBLISH_DIR:-dist/publish}"
+default_publish_dir="dist/publish"
+publish_dir="${PUBLISH_DIR:-${default_publish_dir}}"
 release_dir="${PACKAGE_RELEASE_DIR:-releases}"
 
 if [ ! -d "${package_output_dir}" ]; then
   echo "package artifacts directory not found: ${package_output_dir}" >&2
   echo "run scripts/package-artifacts.sh first" >&2
   exit 1
+fi
+
+if [ "${publish_dir}" = "${default_publish_dir}" ] &&
+  [ "${KEEP_PUBLISH_DIR:-0}" != "1" ]; then
+  rm -rf -- "${publish_dir}"
 fi
 
 mkdir -p "${publish_dir}/${release_dir}"

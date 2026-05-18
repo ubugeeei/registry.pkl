@@ -117,6 +117,11 @@ mise install
 ./scripts/sync-publish-layout.sh
 ```
 
+The artifact and publish-layout scripts clear their default output directories
+before rebuilding, so local rehearsals cannot accidentally reuse stale package
+files. Set `KEEP_PACKAGE_OUTPUT=1` or `KEEP_PUBLISH_DIR=1` only when you are
+intentionally inspecting a previous default output directory.
+
 For actual release hosting, set:
 
 - `PACKAGE_HOST`
