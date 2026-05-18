@@ -151,3 +151,7 @@ Expected Rust responsibilities:
 - shared TOML helpers when renderer wrappers or converters are justified
 
 Pkl integration should use `pklrust`.
+
+## License
+
+This repository is licensed under the Apache License 2.0.
