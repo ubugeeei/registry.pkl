@@ -5,7 +5,7 @@ description: The shortest route through the docs if you are new to registry.pkl.
 hero:
   name: Start Here
   text: Read the docs in one short pass
-  tagline: Start here if you want the minimal path. These pages explain the registry idea, show the authoring workflow, and give the Pkl context before you browse package details.
+  tagline: Start here if you want the minimal path. These pages explain the registry idea, show the planned authoring workflow, and give the Pkl context before you browse package details.
   actions:
     - theme: brand
       text: Getting Started
@@ -23,7 +23,7 @@ features:
     link: ./getting-started/index.html
   - icon: "mdi:rocket-launch-outline"
     title: Quickstart
-    details: See the intended authoring loop from Pkl module to generated tool-native files.
+    details: See the intended authoring loop from Pkl module to generated tool-native files before hosted packages are live.
     link: ./quickstart/index.html
   - icon: "mdi:alpha-p-box-outline"
     title: Why Pkl
@@ -34,7 +34,7 @@ features:
 ## Read This Section In Order
 
 1. Open [Getting Started](./getting-started/index.html) for the mental model.
-2. Continue to [Quickstart](./quickstart/index.html) to see the intended package workflow.
+2. Continue to [Quickstart](./quickstart/index.html) to see the planned package workflow.
 3. Read [Why Pkl](./why-pkl/index.html) if you want the design rationale before looking at package boundaries.
 
 ## If You Want One Answer Fast

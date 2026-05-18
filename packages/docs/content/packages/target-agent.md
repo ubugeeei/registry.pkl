@@ -37,7 +37,11 @@ features:
     details: Windsurf wrapper that maps remote servers to `serverUrl`.
 ---
 
-## Install
+> Status: experimental second-wave package. The import below uses
+> `pkg.example.invalid`, a reserved placeholder, until a real first-party
+> package host exists.
+
+## Planned Import
 
 ```pkl
 amends "package://pkg.example.invalid/target.agent@0.1.0#/vscode/Mcp.pkl"

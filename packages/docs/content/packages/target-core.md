@@ -22,7 +22,10 @@ features:
     details: Merges typed output with `extra` escape-hatch fields so target wrappers stay strict without blocking odd vendor fields.
 ---
 
-## Import
+> Status: planned base package. The module name documents the intended local API
+> shape; it is not a hosted package import until release artifacts are live.
+
+## Planned Local Import
 
 ```pkl
 import "@target.core/Maps.pkl" as Maps

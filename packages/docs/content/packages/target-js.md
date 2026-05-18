@@ -40,7 +40,10 @@ features:
     details: Workspace package boundaries, catalogs, overrides, and package extensions.
 ---
 
-## Install
+> Status: planned flagship package. The import below uses `pkg.example.invalid`,
+> a reserved placeholder, until a real first-party package host exists.
+
+## Planned Import
 
 ```pkl
 amends "package://pkg.example.invalid/target.js@0.1.0#/tsconfig/TsConfig.pkl"

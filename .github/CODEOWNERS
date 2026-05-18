@@ -1,0 +1,8 @@
+# First-party Pkl package source ownership.
+/packages/target.core/ @ubugeeei
+/packages/target.js/ @ubugeeei
+/packages/target.env/ @ubugeeei
+/packages/target.rust/ @ubugeeei
+/packages/target.editor/ @ubugeeei
+/packages/target.ci/ @ubugeeei
+/packages/target.agent/ @ubugeeei

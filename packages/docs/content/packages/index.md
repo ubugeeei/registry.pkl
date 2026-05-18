@@ -1,11 +1,11 @@
 ---
 layout: entry
 title: Packages
-description: Browse the first-party target.* package catalog and current module coverage.
+description: Browse the planned first-party target.* package catalog and current module coverage.
 hero:
   name: Packages
-  text: First-party target.* catalog
-  tagline: Start from package scope, not prose. Each entry tells you what a package owns, what modules it ships, and which install URI to open first.
+  text: Planned first-party target.* catalog
+  tagline: Start from package scope, not prose. Each entry tells you what a package is expected to own, what modules it is expected to ship, and which import URI shape to review first.
   actions:
     - theme: brand
       text: Start Here
@@ -47,6 +47,10 @@ features:
     link: ./target-agent/index.html
 ---
 
+> Status: these package APIs are planned or experimental until hosted artifacts
+> are live. Import URI examples use placeholders and should not be treated as
+> production package coordinates yet.
+
 ## How To Use This Section
 
 1. Open a package page first when the question is "what owns this config surface?"
@@ -55,15 +59,15 @@ features:
 
 ## Package Snapshot
 
-| Package | Status | Focus | Modules | First entrypoint |
+| Package | Status | Focus | Planned modules | Planned entrypoint |
 | --- | --- | --- | --- | --- |
-| [target.core](./target-core.md) | Base package | Shared helpers and renderer glue | 1 | `@target.core/Maps.pkl` |
-| [target.js](./target-js.md) | Flagship | JS and TS workspace config | 7 | `#/tsconfig/TsConfig.pkl` |
-| [target.env](./target-env.md) | First wave | Runtime and toolchain config | 2 | `#/mise/Mise.pkl` |
-| [target.rust](./target-rust.md) | First wave | Cargo and Clippy | 2 | `#/cargo/Cargo.pkl` |
-| [target.editor](./target-editor.md) | First wave | Editor defaults and recommendations | 2 | `#/vscode/Settings.pkl` |
-| [target.ci](./target-ci.md) | Second wave | Repository automation and workflows | 4 | `#/github/NodeCiWorkflow.pkl` |
-| [target.agent](./target-agent.md) | Second wave | MCP wrappers for agent clients | 6 | `#/vscode/Mcp.pkl` |
+| [target.core](./target-core.md) | Planned base package | Shared helpers and renderer glue | 1 | `@target.core/Maps.pkl` |
+| [target.js](./target-js.md) | Planned flagship | JS and TS workspace config | 7 | `#/tsconfig/TsConfig.pkl` |
+| [target.env](./target-env.md) | Planned first wave | Runtime and toolchain config | 2 | `#/mise/Mise.pkl` |
+| [target.rust](./target-rust.md) | Planned first wave | Cargo and Clippy | 2 | `#/cargo/Cargo.pkl` |
+| [target.editor](./target-editor.md) | Planned first wave | Editor defaults and recommendations | 2 | `#/vscode/Settings.pkl` |
+| [target.ci](./target-ci.md) | Experimental second wave | Repository automation and workflows | 4 | `#/github/NodeCiWorkflow.pkl` |
+| [target.agent](./target-agent.md) | Experimental second wave | MCP wrappers for agent clients | 6 | `#/vscode/Mcp.pkl` |
 
 ## Catalog Rules
 
