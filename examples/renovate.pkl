@@ -1,0 +1,48 @@
+amends "@target.js/renovate/Renovate.pkl"
+
+`$schema` = "https://docs.renovatebot.com/renovate-schema.json"
+
+`extends` {
+  "config:base"
+  ":dependencyDashboard"
+}
+
+schedule = new Listing<String> {
+  "before 6am on monday"
+}
+
+timezone = "Asia/Tokyo"
+labels {
+  "dependencies"
+}
+
+prHourlyLimit = 4
+prConcurrentLimit = 10
+rangeStrategy = "bump"
+semanticCommits = "enabled"
+
+packageRules {
+  new PackageRule {
+    matchDepTypes {
+      "devDependencies"
+    }
+    groupName = "dev dependencies"
+    automerge = true
+  }
+  new PackageRule {
+    matchUpdateTypes {
+      "major"
+    }
+    labels {
+      "breaking-change"
+    }
+    automerge = false
+  }
+}
+
+vulnerabilityAlerts = new VulnerabilityAlerts {
+  enabled = true
+  labels {
+    "security"
+  }
+}

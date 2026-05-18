@@ -1,0 +1,86 @@
+/// A typed authoring surface for `.editorconfig`.
+///
+/// `.editorconfig` is an INI-like text file with one or more section
+/// headers (`[glob]`) followed by `key = value` lines. The Pkl standard
+/// library does not ship an INI renderer, but the format is simple enough
+/// to emit directly as text from a typed surface.
+module target.editor.editorconfig.EditorConfig
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias IndentStyle = "tab"|"space"
+typealias EndOfLine = "lf"|"crlf"|"cr"
+typealias Charset = "latin1"|"utf-8"|"utf-8-bom"|"utf-16be"|"utf-16le"
+
+class Section {
+  indentStyle: IndentStyle? = null
+  indentSize: (Int|"tab")? = null
+  tabWidth: Int? = null
+  endOfLine: EndOfLine? = null
+  charset: Charset? = null
+  trimTrailingWhitespace: Boolean? = null
+  insertFinalNewline: Boolean? = null
+  maxLineLength: (Int|"off")? = null
+  extra: Mapping<String, String|Int|Boolean> = new Mapping {}
+}
+
+/// Mark this `.editorconfig` as the project root. Defaults to `true` because
+/// nearly every authored `.editorconfig` lives at a project root.
+root: Boolean = true
+
+/// Section globs in the order they should appear in the rendered output.
+/// The default `*` section is the common starting point.
+sections: Mapping<String, Section> = new Mapping {
+  ["*"] = new Section {}
+}
+
+local function renderValue(value: Any): String =
+  if (value is Boolean) value.toString()
+  else if (value is Int) value.toString()
+  else value.toString()
+
+local function renderSection(name: String, value: Section): String =
+  let (lines =
+    new Listing<String> {
+      "[\(name)]"
+      when (value.indentStyle != null) {
+        "indent_style = \(value.indentStyle)"
+      }
+      when (value.indentSize != null) {
+        "indent_size = \(value.indentSize)"
+      }
+      when (value.tabWidth != null) {
+        "tab_width = \(value.tabWidth)"
+      }
+      when (value.endOfLine != null) {
+        "end_of_line = \(value.endOfLine)"
+      }
+      when (value.charset != null) {
+        "charset = \(value.charset)"
+      }
+      when (value.trimTrailingWhitespace != null) {
+        "trim_trailing_whitespace = \(value.trimTrailingWhitespace)"
+      }
+      when (value.insertFinalNewline != null) {
+        "insert_final_newline = \(value.insertFinalNewline)"
+      }
+      when (value.maxLineLength != null) {
+        "max_line_length = \(value.maxLineLength)"
+      }
+      for (key, raw in value.extra) {
+        "\(key) = \(renderValue(raw))"
+      }
+    }.toList()
+  ) lines.join("\n")
+
+hidden rootLines: List<String> =
+  if (root) List("root = true") else List()
+
+hidden sectionBlocks: List<String> =
+  sections.toMap().entries.map((entry) -> renderSection(entry.key, entry.value))
+
+hidden rendered: String = (rootLines + sectionBlocks).join("\n\n") + "\n"
+
+output {
+  text = rendered
+}

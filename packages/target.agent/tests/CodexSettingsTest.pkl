@@ -1,0 +1,57 @@
+/// Tests for `target.agent.codex.Settings` rendering.
+amends "pkl:test"
+
+import "../codex/Settings.pkl" as CodexSettings
+
+local config = (CodexSettings) {
+  model = "gpt-5-codex"
+  approvalPolicy = "on-request"
+  sandboxMode = "workspace-write"
+  sandboxWorkspaceWrite = new CodexSettings.SandboxWorkspaceWrite {
+    writableRoots {
+      "/tmp"
+    }
+    networkAccess = false
+  }
+  profiles {
+    ["read-only"] = new CodexSettings.Profile {
+      approvalPolicy = "untrusted"
+      sandboxMode = "read-only"
+    }
+  }
+  mcpServers {
+    ["fs"] = new CodexSettings.McpServer {
+      command = "npx"
+      args {
+        "-y"
+        "@modelcontextprotocol/server-filesystem"
+        "/tmp"
+      }
+    }
+  }
+}
+
+facts {
+  ["camelCase fields become snake_case"] {
+    config.rendered["approval_policy"] == "on-request"
+    config.rendered["sandbox_mode"] == "workspace-write"
+  }
+  ["sandbox_workspace_write keeps writable_roots and network_access"] {
+    local sw = config.rendered["sandbox_workspace_write"]
+    sw["writable_roots"] == List("/tmp")
+    sw["network_access"] == false
+  }
+  ["profile entries carry approval_policy and sandbox_mode"] {
+    local profile = config.rendered["profiles"]["read-only"]
+    profile["approval_policy"] == "untrusted"
+    profile["sandbox_mode"] == "read-only"
+  }
+  ["mcp servers keep command and args"] {
+    local server = config.rendered["mcp_servers"]["fs"]
+    server["command"] == "npx"
+    server["args"] == List("-y", "@modelcontextprotocol/server-filesystem", "/tmp")
+  }
+  ["model field passes through"] {
+    config.rendered["model"] == "gpt-5-codex"
+  }
+}

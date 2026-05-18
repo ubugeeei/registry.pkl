@@ -1,0 +1,60 @@
+/// Tests for `target.js.eslint.Eslint` rendering.
+amends "pkl:test"
+
+import "../eslint/Eslint.pkl"
+
+local config = (Eslint) {
+  root = true
+  `extends` {
+    "eslint:recommended"
+  }
+  parser = "@typescript-eslint/parser"
+  parserOptions = new Eslint.ParserOptions {
+    ecmaVersion = "latest"
+    sourceType = "module"
+  }
+  rules {
+    ["no-console"] = "warn"
+    ["semi"] = new Listing {
+      "error"
+      "always"
+    }
+  }
+  overrides {
+    new Eslint.Override {
+      files = "*.test.ts"
+      rules {
+        ["no-console"] = "off"
+      }
+    }
+  }
+  ignorePatterns {
+    "dist/**"
+  }
+}
+
+facts {
+  ["renders root and extends"] {
+    config.rendered["root"] == true
+    config.rendered["extends"] == List("eslint:recommended")
+  }
+  ["parserOptions inlines ecmaVersion and sourceType"] {
+    local opts = config.rendered["parserOptions"]
+    opts["ecmaVersion"] == "latest"
+    opts["sourceType"] == "module"
+  }
+  ["scalar rule stays a string"] {
+    config.rendered["rules"]["no-console"] == "warn"
+  }
+  ["listing rule is rendered as a JSON array"] {
+    config.rendered["rules"]["semi"] == List("error", "always")
+  }
+  ["override carries its own files and rules"] {
+    local entry = config.rendered["overrides"][0]
+    entry["files"] == "*.test.ts"
+    entry["rules"]["no-console"] == "off"
+  }
+  ["ignorePatterns are emitted as a list"] {
+    config.rendered["ignorePatterns"] == List("dist/**")
+  }
+}

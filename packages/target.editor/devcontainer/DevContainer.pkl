@@ -1,0 +1,237 @@
+/// A typed authoring surface for `.devcontainer/devcontainer.json`.
+///
+/// Models the Dev Containers schema documented at
+/// https://containers.dev/implementors/json_reference/.
+module target.editor.devcontainer.DevContainer
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias UserEnvProbe = "none"|"loginShell"|"loginInteractiveShell"|"interactiveShell"
+typealias WaitFor = "initializeCommand"|"onCreateCommand"|"updateContentCommand"|"postCreateCommand"|"postStartCommand"
+typealias CommandLine = String|Listing<String>|Mapping<String, String|Listing<String>>
+
+class BuildSpec {
+  dockerfile: String? = null
+  context: String? = null
+  args: Mapping<String, String> = new Mapping {}
+  target: String? = null
+  cacheFrom: (String|Listing<String>)? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class HostRequirements {
+  cpus: Int? = null
+  memory: String? = null
+  storage: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class PortAttribute {
+  label: String? = null
+  protocol: "http"|"https"? = null
+  onAutoForward: "notify"|"openBrowser"|"openPreview"|"silent"|"ignore"? = null
+  requireLocalPort: Boolean? = null
+  elevateIfNeeded: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Mount {
+  type: "bind"|"volume"
+  source: String
+  target: String
+  readonly: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+name: String? = null
+image: String? = null
+build: BuildSpec? = null
+dockerComposeFile: (String|Listing<String>)? = null
+service: String? = null
+runServices: Listing<String> = new Listing {}
+workspaceFolder: String? = null
+workspaceMount: String? = null
+remoteUser: String? = null
+containerUser: String? = null
+updateRemoteUserUID: Boolean? = null
+userEnvProbe: UserEnvProbe? = null
+waitFor: WaitFor? = null
+overrideCommand: Boolean? = null
+shutdownAction: "none"|"stopContainer"|"stopCompose"? = null
+init: Boolean? = null
+privileged: Boolean? = null
+capAdd: Listing<String> = new Listing {}
+securityOpt: Listing<String> = new Listing {}
+mounts: Listing<Mount> = new Listing {}
+runArgs: Listing<String> = new Listing {}
+containerEnv: Mapping<String, String> = new Mapping {}
+remoteEnv: Mapping<String, String> = new Mapping {}
+features: Mapping<String, Any> = new Mapping {}
+overrideFeatureInstallOrder: Listing<String> = new Listing {}
+forwardPorts: Listing<Int|String> = new Listing {}
+portsAttributes: Mapping<String, PortAttribute> = new Mapping {}
+otherPortsAttributes: PortAttribute? = null
+hostRequirements: HostRequirements? = null
+onCreateCommand: CommandLine? = null
+updateContentCommand: CommandLine? = null
+postCreateCommand: CommandLine? = null
+postStartCommand: CommandLine? = null
+postAttachCommand: CommandLine? = null
+initializeCommand: CommandLine? = null
+customizations: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderCommandLine(value: CommandLine) =
+  if (value is Listing) value.toList()
+  else if (value is Mapping)
+    value.toMap().mapValues((_, raw) -> if (raw is Listing) raw.toList() else raw)
+  else value
+
+local function renderBuild(value: BuildSpec) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.dockerfile != null) { ["dockerfile"] = value.dockerfile }
+      when (value.context != null) { ["context"] = value.context }
+      when (!value.args.toMap().isEmpty) { ["args"] = value.args.toMap() }
+      when (value.target != null) { ["target"] = value.target }
+      when (value.cacheFrom != null) {
+        ["cacheFrom"] =
+          if (value.cacheFrom is Listing) value.cacheFrom.toList() else value.cacheFrom
+      }
+    },
+    value.extra,
+  )
+
+local function renderHostRequirements(value: HostRequirements) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.cpus != null) { ["cpus"] = value.cpus }
+      when (value.memory != null) { ["memory"] = value.memory }
+      when (value.storage != null) { ["storage"] = value.storage }
+    },
+    value.extra,
+  )
+
+local function renderPortAttribute(value: PortAttribute) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.label != null) { ["label"] = value.label }
+      when (value.protocol != null) { ["protocol"] = value.protocol }
+      when (value.onAutoForward != null) {
+        ["onAutoForward"] = value.onAutoForward
+      }
+      when (value.requireLocalPort != null) {
+        ["requireLocalPort"] = value.requireLocalPort
+      }
+      when (value.elevateIfNeeded != null) {
+        ["elevateIfNeeded"] = value.elevateIfNeeded
+      }
+    },
+    value.extra,
+  )
+
+local function renderMount(value: Mount) =
+  Maps.withExtra(
+    new Dynamic {
+      ["type"] = value.type
+      ["source"] = value.source
+      ["target"] = value.target
+      when (value.readonly != null) { ["readonly"] = value.readonly }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (name != null) { ["name"] = name }
+      when (image != null) { ["image"] = image }
+      when (build != null) { ["build"] = renderBuild(build) }
+      when (dockerComposeFile != null) {
+        ["dockerComposeFile"] =
+          if (dockerComposeFile is Listing)
+            dockerComposeFile.toList()
+          else
+            dockerComposeFile
+      }
+      when (service != null) { ["service"] = service }
+      when (!runServices.toList().isEmpty) {
+        ["runServices"] = runServices.toList()
+      }
+      when (workspaceFolder != null) { ["workspaceFolder"] = workspaceFolder }
+      when (workspaceMount != null) { ["workspaceMount"] = workspaceMount }
+      when (remoteUser != null) { ["remoteUser"] = remoteUser }
+      when (containerUser != null) { ["containerUser"] = containerUser }
+      when (updateRemoteUserUID != null) {
+        ["updateRemoteUserUID"] = updateRemoteUserUID
+      }
+      when (userEnvProbe != null) { ["userEnvProbe"] = userEnvProbe }
+      when (waitFor != null) { ["waitFor"] = waitFor }
+      when (overrideCommand != null) {
+        ["overrideCommand"] = overrideCommand
+      }
+      when (shutdownAction != null) { ["shutdownAction"] = shutdownAction }
+      when (init != null) { ["init"] = init }
+      when (privileged != null) { ["privileged"] = privileged }
+      when (!capAdd.toList().isEmpty) { ["capAdd"] = capAdd.toList() }
+      when (!securityOpt.toList().isEmpty) {
+        ["securityOpt"] = securityOpt.toList()
+      }
+      when (!mounts.toList().isEmpty) {
+        ["mounts"] = mounts.toList().map((value) -> renderMount(value))
+      }
+      when (!runArgs.toList().isEmpty) { ["runArgs"] = runArgs.toList() }
+      when (!containerEnv.toMap().isEmpty) {
+        ["containerEnv"] = containerEnv.toMap()
+      }
+      when (!remoteEnv.toMap().isEmpty) {
+        ["remoteEnv"] = remoteEnv.toMap()
+      }
+      when (!features.toMap().isEmpty) {
+        ["features"] = features.toMap()
+      }
+      when (!overrideFeatureInstallOrder.toList().isEmpty) {
+        ["overrideFeatureInstallOrder"] = overrideFeatureInstallOrder.toList()
+      }
+      when (!forwardPorts.toList().isEmpty) {
+        ["forwardPorts"] = forwardPorts.toList()
+      }
+      when (!portsAttributes.toMap().isEmpty) {
+        ["portsAttributes"] =
+          portsAttributes.toMap().mapValues((_, value) -> renderPortAttribute(value))
+      }
+      when (otherPortsAttributes != null) {
+        ["otherPortsAttributes"] = renderPortAttribute(otherPortsAttributes)
+      }
+      when (hostRequirements != null) {
+        ["hostRequirements"] = renderHostRequirements(hostRequirements)
+      }
+      when (onCreateCommand != null) {
+        ["onCreateCommand"] = renderCommandLine(onCreateCommand)
+      }
+      when (updateContentCommand != null) {
+        ["updateContentCommand"] = renderCommandLine(updateContentCommand)
+      }
+      when (postCreateCommand != null) {
+        ["postCreateCommand"] = renderCommandLine(postCreateCommand)
+      }
+      when (postStartCommand != null) {
+        ["postStartCommand"] = renderCommandLine(postStartCommand)
+      }
+      when (postAttachCommand != null) {
+        ["postAttachCommand"] = renderCommandLine(postAttachCommand)
+      }
+      when (initializeCommand != null) {
+        ["initializeCommand"] = renderCommandLine(initializeCommand)
+      }
+      when (!customizations.toMap().isEmpty) {
+        ["customizations"] = customizations.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

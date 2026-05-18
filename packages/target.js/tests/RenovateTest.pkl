@@ -1,0 +1,48 @@
+/// Tests for `target.js.renovate.Renovate` rendering.
+amends "pkl:test"
+
+import "../renovate/Renovate.pkl"
+
+local config = (Renovate) {
+  `extends` {
+    "config:base"
+  }
+  schedule = new Listing<String> {
+    "before 6am on monday"
+  }
+  packageRules {
+    new Renovate.PackageRule {
+      matchDepTypes {
+        "devDependencies"
+      }
+      groupName = "dev"
+      automerge = true
+    }
+  }
+  vulnerabilityAlerts = new Renovate.VulnerabilityAlerts {
+    enabled = true
+    labels {
+      "security"
+    }
+  }
+}
+
+facts {
+  ["extends emitted as a list"] {
+    config.rendered["extends"] == List("config:base")
+  }
+  ["listing schedule stays a list"] {
+    config.rendered["schedule"] == List("before 6am on monday")
+  }
+  ["packageRules carry matchDepTypes and groupName"] {
+    local rule = config.rendered["packageRules"][0]
+    rule["matchDepTypes"] == List("devDependencies")
+    rule["groupName"] == "dev"
+    rule["automerge"] == true
+  }
+  ["vulnerabilityAlerts section renders"] {
+    local alerts = config.rendered["vulnerabilityAlerts"]
+    alerts["enabled"] == true
+    alerts["labels"] == List("security")
+  }
+}

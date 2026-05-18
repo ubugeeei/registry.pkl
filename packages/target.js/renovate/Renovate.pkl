@@ -1,0 +1,179 @@
+/// A typed authoring surface for `renovate.json`.
+///
+/// Models the Renovate Bot configuration schema documented at
+/// https://docs.renovatebot.com/configuration-options/.
+module target.js.renovate.Renovate
+
+import "@target.core/Maps.pkl" as Maps
+
+class PackageRule {
+  matchPackagePatterns: Listing<String> = new Listing {}
+  matchPackageNames: Listing<String> = new Listing {}
+  matchDepTypes: Listing<String> = new Listing {}
+  matchManagers: Listing<String> = new Listing {}
+  matchUpdateTypes: Listing<String> = new Listing {}
+  matchPaths: Listing<String> = new Listing {}
+  matchCurrentVersion: String? = null
+  groupName: String? = null
+  groupSlug: String? = null
+  schedule: (String|Listing<String>)? = null
+  automerge: Boolean? = null
+  automergeType: "branch"|"pr"|"pr-comment"? = null
+  enabled: Boolean? = null
+  labels: Listing<String> = new Listing {}
+  assignees: Listing<String> = new Listing {}
+  reviewers: Listing<String> = new Listing {}
+  prPriority: Int? = null
+  rangeStrategy: "auto"|"pin"|"bump"|"replace"|"widen"|"update-lockfile"|"in-range-only"? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class VulnerabilityAlerts {
+  enabled: Boolean? = null
+  labels: Listing<String> = new Listing {}
+  assignees: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+`extends`: Listing<String> = new Listing {}
+schedule: (String|Listing<String>)? = null
+timezone: String? = null
+labels: Listing<String> = new Listing {}
+assignees: Listing<String> = new Listing {}
+reviewers: Listing<String> = new Listing {}
+baseBranches: Listing<String> = new Listing {}
+ignorePaths: Listing<String> = new Listing {}
+enabledManagers: Listing<String> = new Listing {}
+prHourlyLimit: Int? = null
+prConcurrentLimit: Int? = null
+rangeStrategy: "auto"|"pin"|"bump"|"replace"|"widen"|"update-lockfile"|"in-range-only"? = null
+rebaseWhen: "auto"|"never"|"conflicted"|"behind-base-branch"? = null
+semanticCommits: "auto"|"enabled"|"disabled"? = null
+dependencyDashboard: Boolean? = null
+dependencyDashboardTitle: String? = null
+configMigration: Boolean? = null
+packageRules: Listing<PackageRule> = new Listing {}
+vulnerabilityAlerts: VulnerabilityAlerts? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderListingOrString(value) =
+  if (value is Listing) value.toList() else value
+
+local function renderPackageRule(value: PackageRule) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.matchPackagePatterns.toList().isEmpty) {
+        ["matchPackagePatterns"] = value.matchPackagePatterns.toList()
+      }
+      when (!value.matchPackageNames.toList().isEmpty) {
+        ["matchPackageNames"] = value.matchPackageNames.toList()
+      }
+      when (!value.matchDepTypes.toList().isEmpty) {
+        ["matchDepTypes"] = value.matchDepTypes.toList()
+      }
+      when (!value.matchManagers.toList().isEmpty) {
+        ["matchManagers"] = value.matchManagers.toList()
+      }
+      when (!value.matchUpdateTypes.toList().isEmpty) {
+        ["matchUpdateTypes"] = value.matchUpdateTypes.toList()
+      }
+      when (!value.matchPaths.toList().isEmpty) {
+        ["matchPaths"] = value.matchPaths.toList()
+      }
+      when (value.matchCurrentVersion != null) {
+        ["matchCurrentVersion"] = value.matchCurrentVersion
+      }
+      when (value.groupName != null) { ["groupName"] = value.groupName }
+      when (value.groupSlug != null) { ["groupSlug"] = value.groupSlug }
+      when (value.schedule != null) {
+        ["schedule"] = renderListingOrString(value.schedule)
+      }
+      when (value.automerge != null) { ["automerge"] = value.automerge }
+      when (value.automergeType != null) {
+        ["automergeType"] = value.automergeType
+      }
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (!value.labels.toList().isEmpty) { ["labels"] = value.labels.toList() }
+      when (!value.assignees.toList().isEmpty) {
+        ["assignees"] = value.assignees.toList()
+      }
+      when (!value.reviewers.toList().isEmpty) {
+        ["reviewers"] = value.reviewers.toList()
+      }
+      when (value.prPriority != null) { ["prPriority"] = value.prPriority }
+      when (value.rangeStrategy != null) {
+        ["rangeStrategy"] = value.rangeStrategy
+      }
+    },
+    value.extra,
+  )
+
+local function renderVulnerabilityAlerts(value: VulnerabilityAlerts) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (!value.labels.toList().isEmpty) {
+        ["labels"] = value.labels.toList()
+      }
+      when (!value.assignees.toList().isEmpty) {
+        ["assignees"] = value.assignees.toList()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (!`extends`.toList().isEmpty) { ["extends"] = `extends`.toList() }
+      when (schedule != null) {
+        ["schedule"] = renderListingOrString(schedule)
+      }
+      when (timezone != null) { ["timezone"] = timezone }
+      when (!labels.toList().isEmpty) { ["labels"] = labels.toList() }
+      when (!assignees.toList().isEmpty) { ["assignees"] = assignees.toList() }
+      when (!reviewers.toList().isEmpty) { ["reviewers"] = reviewers.toList() }
+      when (!baseBranches.toList().isEmpty) {
+        ["baseBranches"] = baseBranches.toList()
+      }
+      when (!ignorePaths.toList().isEmpty) {
+        ["ignorePaths"] = ignorePaths.toList()
+      }
+      when (!enabledManagers.toList().isEmpty) {
+        ["enabledManagers"] = enabledManagers.toList()
+      }
+      when (prHourlyLimit != null) { ["prHourlyLimit"] = prHourlyLimit }
+      when (prConcurrentLimit != null) {
+        ["prConcurrentLimit"] = prConcurrentLimit
+      }
+      when (rangeStrategy != null) { ["rangeStrategy"] = rangeStrategy }
+      when (rebaseWhen != null) { ["rebaseWhen"] = rebaseWhen }
+      when (semanticCommits != null) {
+        ["semanticCommits"] = semanticCommits
+      }
+      when (dependencyDashboard != null) {
+        ["dependencyDashboard"] = dependencyDashboard
+      }
+      when (dependencyDashboardTitle != null) {
+        ["dependencyDashboardTitle"] = dependencyDashboardTitle
+      }
+      when (configMigration != null) {
+        ["configMigration"] = configMigration
+      }
+      when (!packageRules.toList().isEmpty) {
+        ["packageRules"] =
+          packageRules.toList().map((value) -> renderPackageRule(value))
+      }
+      when (vulnerabilityAlerts != null) {
+        ["vulnerabilityAlerts"] = renderVulnerabilityAlerts(vulnerabilityAlerts)
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

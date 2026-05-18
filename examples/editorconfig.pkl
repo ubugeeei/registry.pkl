@@ -1,0 +1,20 @@
+amends "@target.editor/editorconfig/EditorConfig.pkl"
+
+sections {
+  ["*"] = new Section {
+    indentStyle = "space"
+    indentSize = 2
+    endOfLine = "lf"
+    charset = "utf-8"
+    trimTrailingWhitespace = true
+    insertFinalNewline = true
+    maxLineLength = 100
+  }
+  ["*.md"] = new Section {
+    trimTrailingWhitespace = false
+    maxLineLength = "off"
+  }
+  ["Makefile"] = new Section {
+    indentStyle = "tab"
+  }
+}

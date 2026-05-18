@@ -38,6 +38,15 @@ features:
   - icon: "mdi:source-fork"
     title: pnpm-workspace/PnpmWorkspace.pkl
     details: Workspace package boundaries, catalogs, overrides, and package extensions.
+  - icon: "mdi:shield-alert-outline"
+    title: eslint/Eslint.pkl
+    details: Legacy `.eslintrc.json` surface with parserOptions, env, rules, overrides, and ignorePatterns.
+  - icon: "mdi:rocket-launch-outline"
+    title: turbo/Turbo.pkl
+    details: Turborepo `turbo.json` pipeline definitions, remote cache wiring, and env mode.
+  - icon: "mdi:autorenew"
+    title: renovate/Renovate.pkl
+    details: Renovate bot policy: extends, schedule, package rules, and vulnerability alerts.
 ---
 
 ## Install
@@ -55,6 +64,9 @@ amends "package://pkg.example.invalid/target.js@0.1.0#/tsconfig/TsConfig.pkl"
 - `.oxlintrc.json`
 - `.oxfmtrc.json`
 - `pnpm-workspace.yaml`
+- `.eslintrc.json`
+- `turbo.json`
+- `renovate.json`
 
 ## Why This Package Exists
 

@@ -1,0 +1,52 @@
+/// Tests for `target.js.turbo.Turbo` rendering.
+amends "pkl:test"
+
+import "../turbo/Turbo.pkl"
+
+local config = (Turbo) {
+  globalDependencies {
+    "tsconfig.base.json"
+  }
+  globalEnv {
+    "NODE_ENV"
+  }
+  tasks {
+    ["build"] = new Turbo.TaskDefinition {
+      dependsOn {
+        "^build"
+      }
+      outputs {
+        "dist/**"
+      }
+    }
+    ["dev"] = new Turbo.TaskDefinition {
+      cache = false
+      persistent = true
+    }
+  }
+  ui = "tui"
+}
+
+facts {
+  ["renders globals at top level"] {
+    config.rendered["globalDependencies"] == List("tsconfig.base.json")
+    config.rendered["globalEnv"] == List("NODE_ENV")
+  }
+  ["build task keeps dependsOn and outputs"] {
+    local task = config.rendered["tasks"]["build"]
+    task["dependsOn"] == List("^build")
+    task["outputs"] == List("dist/**")
+  }
+  ["dev task emits cache=false and persistent=true"] {
+    local task = config.rendered["tasks"]["dev"]
+    task["cache"] == false
+    task["persistent"] == true
+  }
+  ["ui flag emitted only when set"] {
+    config.rendered["ui"] == "tui"
+  }
+  ["unset top-level fields stay out"] {
+    !config.rendered.containsKey("daemon")
+    !config.rendered.containsKey("remoteCache")
+  }
+}

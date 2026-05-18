@@ -1,0 +1,50 @@
+amends "@target.agent/codex/Settings.pkl"
+
+model = "gpt-5-codex"
+approvalPolicy = "on-request"
+sandboxMode = "workspace-write"
+fileOpener = "vscode"
+
+sandboxWorkspaceWrite = new SandboxWorkspaceWrite {
+  writableRoots {
+    "/tmp"
+  }
+  networkAccess = false
+}
+
+shellEnvironmentPolicy = new ShellEnvironmentPolicy {
+  inherit = "core"
+  exclude {
+    "AWS_*"
+    "AZURE_*"
+  }
+  set {
+    ["GIT_PAGER"] = "cat"
+  }
+}
+
+profiles {
+  ["read-only"] = new Profile {
+    approvalPolicy = "untrusted"
+    sandboxMode = "read-only"
+  }
+  ["yolo"] = new Profile {
+    approvalPolicy = "never"
+    sandboxMode = "danger-full-access"
+  }
+}
+
+mcpServers {
+  ["filesystem"] = new McpServer {
+    command = "npx"
+    args {
+      "-y"
+      "@modelcontextprotocol/server-filesystem"
+      "/Users/me/projects"
+    }
+  }
+}
+
+history = new HistoryConfig {
+  persistence = "save-all"
+}

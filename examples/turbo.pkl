@@ -1,0 +1,40 @@
+amends "@target.js/turbo/Turbo.pkl"
+
+`$schema` = "https://turborepo.com/schema.json"
+
+globalDependencies {
+  "tsconfig.base.json"
+  ".env"
+}
+
+globalEnv {
+  "NODE_ENV"
+}
+
+tasks {
+  ["build"] = new TaskDefinition {
+    dependsOn {
+      "^build"
+    }
+    outputs {
+      "dist/**"
+    }
+    outputLogs = "new-only"
+  }
+  ["test"] = new TaskDefinition {
+    dependsOn {
+      "build"
+    }
+    inputs {
+      "src/**"
+      "tests/**"
+    }
+  }
+  ["dev"] = new TaskDefinition {
+    cache = false
+    persistent = true
+  }
+}
+
+ui = "tui"
+envMode = "strict"

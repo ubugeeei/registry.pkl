@@ -1,0 +1,17 @@
+amends "@target.rust/rustfmt/Rustfmt.pkl"
+
+edition = "2024"
+maxWidth = 100
+tabSpaces = 4
+hardTabs = false
+newlineStyle = "Unix"
+
+reorderImports = true
+reorderModules = true
+useFieldInitShorthand = true
+useTryShorthand = true
+
+imports = new ImportsLayout {
+  granularity = "Crate"
+  groupImportsBy = "StdExternalCrate"
+}

@@ -1,0 +1,34 @@
+/// Tests for `target.rust.rustfmt.Rustfmt` rendering.
+amends "pkl:test"
+
+import "../rustfmt/Rustfmt.pkl"
+
+local config = (Rustfmt) {
+  edition = "2024"
+  maxWidth = 100
+  tabSpaces = 4
+  reorderImports = true
+  imports = new Rustfmt.ImportsLayout {
+    granularity = "Crate"
+    groupImportsBy = "StdExternalCrate"
+  }
+}
+
+facts {
+  ["renames camelCase fields to snake_case"] {
+    config.rendered["max_width"] == 100
+    config.rendered["tab_spaces"] == 4
+    config.rendered["reorder_imports"] == true
+  }
+  ["edition is kept as-is"] {
+    config.rendered["edition"] == "2024"
+  }
+  ["imports class fields are flattened to top level"] {
+    config.rendered["granularity"] == "Crate"
+    config.rendered["group_imports"] == "StdExternalCrate"
+  }
+  ["unset options are omitted"] {
+    !config.rendered.containsKey("hard_tabs")
+    !config.rendered.containsKey("disable_all_formatting")
+  }
+}

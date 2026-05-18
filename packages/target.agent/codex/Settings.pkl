@@ -1,0 +1,287 @@
+/// A typed authoring surface for the OpenAI Codex CLI config file
+/// (`~/.codex/config.toml` on macOS/Linux).
+///
+/// Modeled after https://github.com/openai/codex/blob/main/docs/config.md.
+/// The schema favors the fields most teams override: model selection,
+/// approval policy, sandbox tuning, and MCP server registrations.
+module target.agent.codex.Settings
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias ApprovalPolicy = "untrusted"|"on-request"|"on-failure"|"never"
+typealias SandboxMode = "read-only"|"workspace-write"|"danger-full-access"
+typealias FileOpener = "vscode"|"vscode-insiders"|"windsurf"|"cursor"|"none"
+typealias Reasoning = "minimal"|"low"|"medium"|"high"
+
+class SandboxWorkspaceWrite {
+  writableRoots: Listing<String> = new Listing {}
+  networkAccess: Boolean? = null
+  excludeTmpdirEnvVar: Boolean? = null
+  excludeSlashTmp: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ShellEnvironmentPolicy {
+  inherit: "core"|"all"|"none"? = null
+  ignoreDefaultExcludes: Boolean? = null
+  exclude: Listing<String> = new Listing {}
+  set: Mapping<String, String> = new Mapping {}
+  include: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class HistoryConfig {
+  persistence: "save-all"|"none"? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class TuiConfig {
+  notifications: Boolean|Listing<String>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class McpServer {
+  command: String
+  args: Listing<String> = new Listing {}
+  env: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ModelProvider {
+  name: String? = null
+  baseUrl: String? = null
+  envKey: String? = null
+  wireApi: "chat"|"responses"? = null
+  requestMaxRetries: Int? = null
+  streamMaxRetries: Int? = null
+  streamIdleTimeoutMs: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Profile {
+  model: String? = null
+  modelProvider: String? = null
+  modelReasoningEffort: Reasoning? = null
+  modelReasoningSummary: "auto"|"concise"|"detailed"|"none"? = null
+  modelVerbosity: "low"|"medium"|"high"? = null
+  approvalPolicy: ApprovalPolicy? = null
+  sandboxMode: SandboxMode? = null
+  fileOpener: FileOpener? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+model: String? = null
+modelProvider: String? = null
+modelReasoningEffort: Reasoning? = null
+modelReasoningSummary: "auto"|"concise"|"detailed"|"none"? = null
+modelVerbosity: "low"|"medium"|"high"? = null
+approvalPolicy: ApprovalPolicy? = null
+sandboxMode: SandboxMode? = null
+sandboxWorkspaceWrite: SandboxWorkspaceWrite? = null
+fileOpener: FileOpener? = null
+hideAgentReasoning: Boolean? = null
+showRawAgentReasoning: Boolean? = null
+modelSupportsReasoningSummaries: Boolean? = null
+projectDoc: String? = null
+projectDocMaxBytes: Int? = null
+disableResponseStorage: Boolean? = null
+tools: Mapping<String, Boolean> = new Mapping {}
+shellEnvironmentPolicy: ShellEnvironmentPolicy? = null
+mcpServers: Mapping<String, McpServer> = new Mapping {}
+modelProviders: Mapping<String, ModelProvider> = new Mapping {}
+profiles: Mapping<String, Profile> = new Mapping {}
+profile: String? = null
+history: HistoryConfig? = null
+tui: TuiConfig? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderProfileLike(map: Map<String, Any>): Map<String, Any> =
+  map.filter((_, value) -> value != null)
+
+local function renderProfile(value: Profile): Map<String, Any> =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.model != null) { ["model"] = value.model }
+      when (value.modelProvider != null) {
+        ["model_provider"] = value.modelProvider
+      }
+      when (value.modelReasoningEffort != null) {
+        ["model_reasoning_effort"] = value.modelReasoningEffort
+      }
+      when (value.modelReasoningSummary != null) {
+        ["model_reasoning_summary"] = value.modelReasoningSummary
+      }
+      when (value.modelVerbosity != null) {
+        ["model_verbosity"] = value.modelVerbosity
+      }
+      when (value.approvalPolicy != null) {
+        ["approval_policy"] = value.approvalPolicy
+      }
+      when (value.sandboxMode != null) {
+        ["sandbox_mode"] = value.sandboxMode
+      }
+      when (value.fileOpener != null) {
+        ["file_opener"] = value.fileOpener
+      }
+    },
+    value.extra,
+  )
+
+local function renderWorkspaceWrite(value: SandboxWorkspaceWrite) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.writableRoots.toList().isEmpty) {
+        ["writable_roots"] = value.writableRoots.toList()
+      }
+      when (value.networkAccess != null) {
+        ["network_access"] = value.networkAccess
+      }
+      when (value.excludeTmpdirEnvVar != null) {
+        ["exclude_tmpdir_env_var"] = value.excludeTmpdirEnvVar
+      }
+      when (value.excludeSlashTmp != null) {
+        ["exclude_slash_tmp"] = value.excludeSlashTmp
+      }
+    },
+    value.extra,
+  )
+
+local function renderShellEnvPolicy(value: ShellEnvironmentPolicy) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.inherit != null) { ["inherit"] = value.inherit }
+      when (value.ignoreDefaultExcludes != null) {
+        ["ignore_default_excludes"] = value.ignoreDefaultExcludes
+      }
+      when (!value.exclude.toList().isEmpty) {
+        ["exclude"] = value.exclude.toList()
+      }
+      when (!value.set.toMap().isEmpty) { ["set"] = value.set.toMap() }
+      when (!value.include.toList().isEmpty) {
+        ["include"] = value.include.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderHistory(value: HistoryConfig) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.persistence != null) {
+        ["persistence"] = value.persistence
+      }
+    },
+    value.extra,
+  )
+
+local function renderTui(value: TuiConfig) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.notifications != null) {
+        ["notifications"] =
+          if (value.notifications is Listing)
+            value.notifications.toList()
+          else
+            value.notifications
+      }
+    },
+    value.extra,
+  )
+
+local function renderMcpServer(value: McpServer) =
+  Maps.withExtra(
+    new Dynamic {
+      ["command"] = value.command
+      when (!value.args.toList().isEmpty) { ["args"] = value.args.toList() }
+      when (!value.env.toMap().isEmpty) { ["env"] = value.env.toMap() }
+    },
+    value.extra,
+  )
+
+local function renderModelProvider(value: ModelProvider) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.baseUrl != null) { ["base_url"] = value.baseUrl }
+      when (value.envKey != null) { ["env_key"] = value.envKey }
+      when (value.wireApi != null) { ["wire_api"] = value.wireApi }
+      when (value.requestMaxRetries != null) {
+        ["request_max_retries"] = value.requestMaxRetries
+      }
+      when (value.streamMaxRetries != null) {
+        ["stream_max_retries"] = value.streamMaxRetries
+      }
+      when (value.streamIdleTimeoutMs != null) {
+        ["stream_idle_timeout_ms"] = value.streamIdleTimeoutMs
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Dynamic {
+      when (model != null) { ["model"] = model }
+      when (modelProvider != null) {
+        ["model_provider"] = modelProvider
+      }
+      when (modelReasoningEffort != null) {
+        ["model_reasoning_effort"] = modelReasoningEffort
+      }
+      when (modelReasoningSummary != null) {
+        ["model_reasoning_summary"] = modelReasoningSummary
+      }
+      when (modelVerbosity != null) {
+        ["model_verbosity"] = modelVerbosity
+      }
+      when (approvalPolicy != null) {
+        ["approval_policy"] = approvalPolicy
+      }
+      when (sandboxMode != null) { ["sandbox_mode"] = sandboxMode }
+      when (sandboxWorkspaceWrite != null) {
+        ["sandbox_workspace_write"] = renderWorkspaceWrite(sandboxWorkspaceWrite)
+      }
+      when (fileOpener != null) { ["file_opener"] = fileOpener }
+      when (hideAgentReasoning != null) {
+        ["hide_agent_reasoning"] = hideAgentReasoning
+      }
+      when (showRawAgentReasoning != null) {
+        ["show_raw_agent_reasoning"] = showRawAgentReasoning
+      }
+      when (modelSupportsReasoningSummaries != null) {
+        ["model_supports_reasoning_summaries"] = modelSupportsReasoningSummaries
+      }
+      when (projectDoc != null) { ["project_doc"] = projectDoc }
+      when (projectDocMaxBytes != null) {
+        ["project_doc_max_bytes"] = projectDocMaxBytes
+      }
+      when (disableResponseStorage != null) {
+        ["disable_response_storage"] = disableResponseStorage
+      }
+      when (!tools.toMap().isEmpty) { ["tools"] = tools.toMap() }
+      when (shellEnvironmentPolicy != null) {
+        ["shell_environment_policy"] = renderShellEnvPolicy(shellEnvironmentPolicy)
+      }
+      when (!mcpServers.toMap().isEmpty) {
+        ["mcp_servers"] =
+          mcpServers.toMap().mapValues((_, value) -> renderMcpServer(value))
+      }
+      when (!modelProviders.toMap().isEmpty) {
+        ["model_providers"] =
+          modelProviders.toMap().mapValues((_, value) -> renderModelProvider(value))
+      }
+      when (!profiles.toMap().isEmpty) {
+        ["profiles"] =
+          profiles.toMap().mapValues((_, value) -> renderProfile(value))
+      }
+      when (profile != null) { ["profile"] = profile }
+      when (history != null) { ["history"] = renderHistory(history) }
+      when (tui != null) { ["tui"] = renderTui(tui) }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}
