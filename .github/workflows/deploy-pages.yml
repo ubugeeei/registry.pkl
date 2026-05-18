@@ -13,28 +13,37 @@ concurrency:
   group: github-pages
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     permissions:
       contents: read
     env:
       DOCS_BASE: /registry.pkl/
       DOCS_SITE_URL: https://ubugeeei.github.io/registry.pkl/
+      NODE_VERSION: 24
       PKL_VERSION: 0.31.0
+      PKL_LINUX_AMD64_SHA256: 5a5c2a889b68ca92ff4258f9d277f92412b98dfef5057daef7564202a20870b6
+      PNPM_VERSION: 10.31.0
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Setup Pkl
-        run: |
-          curl -L -o pkl "https://github.com/apple/pkl/releases/download/${PKL_VERSION}/pkl-linux-amd64"
-          chmod +x pkl
-          sudo mv pkl /usr/local/bin/pkl
-          pkl --version
+        uses: ./.github/actions/setup-pkl
+        with:
+          version: ${{ env.PKL_VERSION }}
+          linux-amd64-sha256: ${{ env.PKL_LINUX_AMD64_SHA256 }}
 
       - name: Generate workspace manifests
         run: pkl eval -m . root-files.pkl
@@ -42,15 +51,20 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.31.0
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Install docs browser dependencies
+        run: pnpm --filter @registry/docs exec puppeteer browsers install chrome-headless-shell
 
       - name: Validate GitHub Pages-safe docs links
         run: |
@@ -62,6 +76,9 @@ jobs:
       - name: Run checks
         run: pnpm check
 
+      - name: Run tests
+        run: pnpm test
+
       - name: Build docs
         run: pnpm build
 
@@ -72,6 +89,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
     permissions:
       pages: write
