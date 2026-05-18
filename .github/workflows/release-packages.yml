@@ -6,9 +6,13 @@ on:
       - "target.*-v*"
   workflow_dispatch:
     inputs:
+      confirm:
+        description: "Type 'publish' to confirm manual package publishing"
+        required: true
+        type: string
       projects:
-        description: "Optional package names or project paths to release (for example: target.js target.rust)"
-        required: false
+        description: "Package names or project paths to release (for example: target.js target.rust)"
+        required: true
         type: string
 
 permissions:
@@ -52,12 +56,36 @@ jobs:
       - name: Resolve release projects
         id: release-projects
         shell: bash
+        env:
+          RELEASE_CONFIRM_INPUT: ${{ github.event.inputs.confirm || '' }}
+          RELEASE_PROJECTS_INPUT: ${{ github.event.inputs.projects || '' }}
         run: |
           set -euo pipefail
 
-          release_input="${{ github.event.inputs.projects || '' }}"
+          release_input="${RELEASE_PROJECTS_INPUT}"
+          release_confirm="${RELEASE_CONFIRM_INPUT}"
           ref_name="${GITHUB_REF_NAME:-}"
           projects=()
+
+          validate_package_name() {
+            if [[ ! "$1" =~ ^target\.[A-Za-z0-9._-]+$ ]]; then
+              echo "invalid package name: $1" >&2
+              echo "expected target.<name> or packages/target.<name>" >&2
+              exit 1
+            fi
+          }
+
+          if [ "${GITHUB_EVENT_NAME:-}" = "workflow_dispatch" ]; then
+            if [ "${release_confirm}" != "publish" ]; then
+              echo "manual releases require confirm=publish" >&2
+              exit 1
+            fi
+
+            if [ -z "${release_input}" ]; then
+              echo "manual releases must specify one or more projects" >&2
+              exit 1
+            fi
+          fi
 
           if [ -n "${release_input}" ]; then
             normalized_input="${release_input//,/ }"
@@ -65,9 +93,13 @@ jobs:
             for token in ${normalized_input}; do
               if [[ "${token}" == packages/* ]]; then
                 project="${token%/}"
+                package_name="${project#packages/}"
               else
-                project="packages/${token%/}"
+                package_name="${token%/}"
+                project="packages/${package_name}"
               fi
+
+              validate_package_name "${package_name}"
 
               if [ ! -d "${project}" ]; then
                 echo "unknown package project: ${project}" >&2
@@ -77,7 +109,9 @@ jobs:
               projects+=("${project}")
             done
           elif [[ "${ref_name}" == target.*-v* ]]; then
-            project="packages/${ref_name%%-v*}"
+            package_name="${ref_name%%-v*}"
+            validate_package_name "${package_name}"
+            project="packages/${package_name}"
 
             if [ ! -d "${project}" ]; then
               echo "unknown tagged package project: ${project}" >&2
@@ -86,7 +120,8 @@ jobs:
 
             projects=("${project}")
           else
-            projects=(packages/target.*)
+            echo "release projects could not be resolved from manual input or tag ref" >&2
+            exit 1
           fi
 
           printf 'projects<<EOF\n' >> "${GITHUB_OUTPUT}"
