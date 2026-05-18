@@ -14,10 +14,10 @@ scripts {
   ["dev"] = "vite"
   ["build"] = "vite build"
   ["preview"] = "vite preview"
-  ["fmt"] = "pnpm exec oxfmt --write vite.config.ts tsconfig.json"
-  ["lint"] = "pnpm exec oxlint --type-aware --type-check vite.config.ts"
-  ["check"] = "pnpm exec oxlint --type-aware --type-check vite.config.ts"
-  ["test"] = "pnpm exec vitest run"
+  ["fmt"] = "pnpm exec oxfmt --write vite.config.ts vitest.config.ts src/base.ts tests/base.test.ts tsconfig.json"
+  ["lint"] = "pnpm exec oxlint --type-aware --type-check vite.config.ts vitest.config.ts src tests"
+  ["check"] = "pnpm exec oxlint --type-aware --type-check vite.config.ts vitest.config.ts src tests"
+  ["test"] = "pnpm exec vitest run --config vitest.config.ts"
 }
 
 devDependencies {
