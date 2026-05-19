@@ -1,0 +1,55 @@
+/// Tests for `target.rust.nextest.Nextest` rendering.
+amends "pkl:test"
+
+import "../nextest/Nextest.pkl"
+
+local n = (Nextest) {
+  profiles {
+    ["default"] = new Nextest.Profile {
+      retries = new Nextest.RetryConfig {
+        backoff = "exponential"
+        count = 3
+        delay = "5s"
+      }
+      slowTimeout = "60s"
+      failFast = true
+      statusLevel = "retry"
+    }
+    ["ci"] = new Nextest.Profile {
+      retries = 2
+      junit = new Nextest.Junit {
+        path = "junit.xml"
+        reportName = "registry"
+      }
+    }
+  }
+  testGroups {
+    ["serial"] = new Nextest.TestGroup {
+      maxThreads = 1
+    }
+  }
+}
+
+facts {
+  ["default profile retries as object"] {
+    local r = n.rendered["profile"]["default"]["retries"]
+    r["backoff"] == "exponential"
+    r["count"] == 3
+    r["delay"] == "5s"
+  }
+  ["slow-timeout and fail-fast use kebab-case"] {
+    n.rendered["profile"]["default"]["slow-timeout"] == "60s"
+    n.rendered["profile"]["default"]["fail-fast"] == true
+  }
+  ["ci profile retries as int"] {
+    n.rendered["profile"]["ci"]["retries"] == 2
+  }
+  ["junit nests under report-name"] {
+    local j = n.rendered["profile"]["ci"]["junit"]
+    j["path"] == "junit.xml"
+    j["report-name"] == "registry"
+  }
+  ["test-groups use max-threads"] {
+    n.rendered["test-groups"]["serial"]["max-threads"] == 1
+  }
+}

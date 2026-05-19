@@ -1,0 +1,100 @@
+/// A typed authoring surface for `.cargo/mutants.toml`.
+///
+/// cargo-mutants (https://mutants.rs) generates and runs source-code
+/// mutations to surface gaps in your test suite. The TOML config tunes
+/// the timeout, test tool, examine/exclude globs, and the regex /
+/// path filters that limit which mutants get spawned.
+///
+/// Reference: https://mutants.rs/configuration.html
+module target.rust.cargo_mutants.CargoMutants
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+additional_cargo_args: Listing<String> = new Listing {}
+additional_cargo_test_args: Listing<String> = new Listing {}
+baseline: ("run"|"skip")? = null
+cap_lints: Boolean? = null
+copy_target: Boolean? = null
+copy_vcs: Boolean? = null
+error_values: Listing<String> = new Listing {}
+exclude_globs: Listing<String> = new Listing {}
+exclude_re: Listing<String> = new Listing {}
+examine_globs: Listing<String> = new Listing {}
+examine_re: Listing<String> = new Listing {}
+hpp_examine_caller_functions: Boolean? = null
+in_place: Boolean? = null
+iterate: Boolean? = null
+minimum_test_timeout: Int? = null
+outputDir: String? = null
+profile: String? = null
+skip_calls: Listing<String> = new Listing {}
+skip_calls_defaults: Boolean? = null
+test_package: Listing<String> = new Listing {}
+test_tool: ("cargo"|"nextest")? = null
+test_workspace: Boolean? = null
+timeout_multiplier: Float? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!additional_cargo_args.toList().isEmpty) {
+        ["additional_cargo_args"] = additional_cargo_args.toList()
+      }
+      when (!additional_cargo_test_args.toList().isEmpty) {
+        ["additional_cargo_test_args"] = additional_cargo_test_args.toList()
+      }
+      when (baseline != null) { ["baseline"] = baseline }
+      when (cap_lints != null) { ["cap_lints"] = cap_lints }
+      when (copy_target != null) { ["copy_target"] = copy_target }
+      when (copy_vcs != null) { ["copy_vcs"] = copy_vcs }
+      when (!error_values.toList().isEmpty) {
+        ["error_values"] = error_values.toList()
+      }
+      when (!exclude_globs.toList().isEmpty) {
+        ["exclude_globs"] = exclude_globs.toList()
+      }
+      when (!exclude_re.toList().isEmpty) {
+        ["exclude_re"] = exclude_re.toList()
+      }
+      when (!examine_globs.toList().isEmpty) {
+        ["examine_globs"] = examine_globs.toList()
+      }
+      when (!examine_re.toList().isEmpty) {
+        ["examine_re"] = examine_re.toList()
+      }
+      when (hpp_examine_caller_functions != null) {
+        ["hpp_examine_caller_functions"] = hpp_examine_caller_functions
+      }
+      when (in_place != null) { ["in_place"] = in_place }
+      when (iterate != null) { ["iterate"] = iterate }
+      when (minimum_test_timeout != null) {
+        ["minimum_test_timeout"] = minimum_test_timeout
+      }
+      when (outputDir != null) { ["output"] = outputDir }
+      when (profile != null) { ["profile"] = profile }
+      when (!skip_calls.toList().isEmpty) {
+        ["skip_calls"] = skip_calls.toList()
+      }
+      when (skip_calls_defaults != null) {
+        ["skip_calls_defaults"] = skip_calls_defaults
+      }
+      when (!test_package.toList().isEmpty) {
+        ["test_package"] = test_package.toList()
+      }
+      when (test_tool != null) { ["test_tool"] = test_tool }
+      when (test_workspace != null) {
+        ["test_workspace"] = test_workspace
+      }
+      when (timeout_multiplier != null) {
+        ["timeout_multiplier"] = timeout_multiplier
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

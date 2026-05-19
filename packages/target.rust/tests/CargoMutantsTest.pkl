@@ -1,0 +1,41 @@
+/// Tests for `target.rust.cargo_mutants.CargoMutants` rendering.
+amends "pkl:test"
+
+import "../cargo-mutants/CargoMutants.pkl"
+
+local m = (CargoMutants) {
+  test_tool = "nextest"
+  timeout_multiplier = 2.0
+  minimum_test_timeout = 60
+  examine_globs {
+    "src/**/*.rs"
+  }
+  exclude_globs {
+    "src/main.rs"
+  }
+  skip_calls {
+    "tracing::info"
+    "log::debug"
+  }
+  additional_cargo_test_args {
+    "--release"
+  }
+}
+
+facts {
+  ["scalars pass through"] {
+    m.rendered["test_tool"] == "nextest"
+    m.rendered["timeout_multiplier"] == 2.0
+    m.rendered["minimum_test_timeout"] == 60
+  }
+  ["glob lists emit"] {
+    m.rendered["examine_globs"] == List("src/**/*.rs")
+    m.rendered["exclude_globs"] == List("src/main.rs")
+  }
+  ["skip_calls list passes through"] {
+    m.rendered["skip_calls"] == List("tracing::info", "log::debug")
+  }
+  ["additional_cargo_test_args"] {
+    m.rendered["additional_cargo_test_args"] == List("--release")
+  }
+}

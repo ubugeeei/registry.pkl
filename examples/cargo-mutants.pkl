@@ -1,0 +1,33 @@
+amends "@target.rust/cargo-mutants/CargoMutants.pkl"
+
+test_tool = "nextest"
+timeout_multiplier = 2.0
+minimum_test_timeout = 60
+profile = "release"
+
+examine_globs {
+  "crates/registry-validator/src/**/*.rs"
+  "crates/search-index/src/**/*.rs"
+}
+
+exclude_globs {
+  "**/main.rs"
+  "**/tests/**"
+}
+
+skip_calls {
+  "tracing::info"
+  "tracing::debug"
+  "log::info"
+  "log::debug"
+  "eprintln"
+}
+
+skip_calls_defaults = true
+
+additional_cargo_test_args {
+  "--release"
+}
+
+copy_target = false
+in_place = false

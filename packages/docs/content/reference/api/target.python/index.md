@@ -9,6 +9,8 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 
 ## Modules
 
+- [`target.python.poetry.Poetry`](./poetry/Poetry.html)
 - [`target.python.pyproject.PyProject`](./pyproject/PyProject.html)
 - [`target.python.pytest.Pytest`](./pytest/Pytest.html)
 - [`target.python.ruff.Ruff`](./ruff/Ruff.html)
+- [`target.python.uv.Uv`](./uv/Uv.html)

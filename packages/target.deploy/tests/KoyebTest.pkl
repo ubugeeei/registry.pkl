@@ -1,0 +1,53 @@
+/// Tests for `target.deploy.koyeb.Koyeb` rendering.
+amends "pkl:test"
+
+import "../koyeb/Koyeb.pkl"
+
+local app = (Koyeb) {
+  services {
+    new Koyeb.Service {
+      name = "api"
+      type = "web"
+      regions { "fra" }
+      instance_types { "free" }
+      ports {
+        new Koyeb.Port { port = 8080; protocol = "http" }
+      }
+      routes {
+        new Koyeb.Route { path = "/"; port = 8080 }
+      }
+      env {
+        new Koyeb.Env { key = "LOG_LEVEL"; value = "info" }
+        new Koyeb.Env { key = "DATABASE_URL"; secret = "DATABASE_URL" }
+      }
+      scaling = new Koyeb.Scaling {
+        min = 1
+        max = 5
+      }
+    }
+  }
+}
+
+facts {
+  ["service shape"] {
+    local s = app.rendered["services"][0]
+    s["name"] == "api"
+    s["type"] == "web"
+    s["regions"] == List("fra")
+    s["instance_types"] == List("free")
+  }
+  ["port + route"] {
+    local s = app.rendered["services"][0]
+    s["ports"][0] == Map("port", 8080, "protocol", "http")
+    s["routes"][0] == Map("path", "/", "port", 8080)
+  }
+  ["env value vs secret"] {
+    local env = app.rendered["services"][0]["env"]
+    env[0] == Map("key", "LOG_LEVEL", "value", "info")
+    env[1] == Map("key", "DATABASE_URL", "secret", "DATABASE_URL")
+  }
+  ["scaling"] {
+    app.rendered["services"][0]["scaling"]["min"] == 1
+    app.rendered["services"][0]["scaling"]["max"] == 5
+  }
+}

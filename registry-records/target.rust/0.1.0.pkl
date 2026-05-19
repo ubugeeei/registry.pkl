@@ -11,6 +11,8 @@ targets {
   "rust-toolchain.toml"
   "deny.toml"
   "bacon.toml"
+  ".config/nextest.toml"
+  ".cargo/mutants.toml"
 }
 
 formats {

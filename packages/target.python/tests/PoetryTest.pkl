@@ -1,0 +1,54 @@
+/// Tests for `target.python.poetry.Poetry` rendering.
+amends "pkl:test"
+
+import "../poetry/Poetry.pkl"
+
+local p = (Poetry) {
+  name = "demo"
+  version = "0.1.0"
+  authors {
+    "ubugeeei <ubuge1122@gmail.com>"
+  }
+  dependencies {
+    ["python"] = "^3.12"
+    ["httpx"] = new Poetry.Dependency {
+      version = "^0.27"
+      extras = new Listing<String> { "http2" }
+    }
+  }
+  groups {
+    ["dev"] = new Poetry.Group {
+      optional = false
+      dependencies {
+        ["pytest"] = "^8.0"
+        ["ruff"] = "^0.5"
+      }
+    }
+  }
+  scripts {
+    ["demo"] = "demo.cli:main"
+  }
+}
+
+facts {
+  ["nests under [tool.poetry]"] {
+    p.rendered["tool"]["poetry"]["name"] == "demo"
+    p.rendered["tool"]["poetry"]["version"] == "0.1.0"
+  }
+  ["string dependency stays as string"] {
+    p.rendered["tool"]["poetry"]["dependencies"]["python"] == "^3.12"
+  }
+  ["object dependency renders as map"] {
+    local httpx = p.rendered["tool"]["poetry"]["dependencies"]["httpx"]
+    httpx["version"] == "^0.27"
+    httpx["extras"] == List("http2")
+  }
+  ["groups nest under [tool.poetry.group.<name>.dependencies]"] {
+    local dev = p.rendered["tool"]["poetry"]["group"]["dev"]
+    dev["optional"] == false
+    dev["dependencies"]["pytest"] == "^8.0"
+  }
+  ["scripts pass through"] {
+    p.rendered["tool"]["poetry"]["scripts"]["demo"] == "demo.cli:main"
+  }
+}

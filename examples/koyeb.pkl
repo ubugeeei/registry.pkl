@@ -1,0 +1,55 @@
+amends "@target.deploy/koyeb/Koyeb.pkl"
+
+services {
+  new Service {
+    name = "registry-api"
+    type = "web"
+    regions {
+      "fra"
+      "was"
+    }
+    instance_types {
+      "nano"
+    }
+    ports {
+      new Port { port = 8080; protocol = "http" }
+    }
+    routes {
+      new Route { path = "/"; port = 8080 }
+    }
+    env {
+      new Env { key = "LOG_LEVEL"; value = "info" }
+      new Env { key = "DATABASE_URL"; secret = "DATABASE_URL" }
+      new Env { key = "JWT_SIGNING_KEY"; secret = "JWT_SIGNING_KEY" }
+    }
+    scaling = new Scaling {
+      min = 1
+      max = 5
+      targets {
+        new Mapping<String, Any> {
+          ["cpu"] = new Mapping<String, Int> {
+            ["value"] = 60
+          }.toMap()
+        }
+      }
+    }
+    health_checks {
+      new HealthCheck {
+        http = new Mapping<String, Any> {
+          ["path"] = "/healthz"
+          ["port"] = 8080
+        }
+        interval = 30
+        timeout = 5
+        grace_period = 10
+        restart_limit = 3
+      }
+    }
+    git = new Mapping<String, Any> {
+      ["repository"] = "github.com/ubugeeei/registry.pkl"
+      ["branch"] = "main"
+      ["build_command"] = "cargo build --release"
+      ["run_command"] = "./target/release/registry-api"
+    }
+  }
+}

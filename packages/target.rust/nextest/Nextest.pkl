@@ -1,0 +1,219 @@
+/// A typed authoring surface for `.config/nextest.toml`.
+///
+/// cargo-nextest reads its config from `.config/nextest.toml` by
+/// default. This module models the most-frequently-tuned options —
+/// retries, thread budget, per-profile filter expressions, reporter
+/// formatting, and per-test overrides.
+///
+/// Reference: https://nexte.st/book/configuration.html
+module target.rust.nextest.Nextest
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class StoreConfig {
+  dir: String? = null
+}
+
+class RetryConfig {
+  backoff: ("fixed"|"exponential")? = null
+  count: Int? = null
+  delay: String? = null
+  jitter: Boolean? = null
+  maxDelay: String? = null
+}
+
+class StatusLevel {
+  /// "none" / "fail" / "retry" / "slow" / "leak" / "pass" / "skip" / "all"
+  value: String? = null
+}
+
+class FailureOutput {
+  /// "immediate" / "immediate-final" / "final" / "never"
+  value: String? = null
+}
+
+class Junit {
+  path: String? = null
+  reportName: String? = null
+  storeSuccessOutput: Boolean? = null
+  storeFailureOutput: Boolean? = null
+}
+
+class Profile {
+  retries: (Int|RetryConfig)? = null
+  testThreads: (Int|String)? = null
+  threadsRequired: (Int|String)? = null
+  runExtraArgs: Listing<String> = new Listing {}
+  slowTimeout: (String|Mapping<String, Any>)? = null
+  leakTimeout: String? = null
+  failureOutput: String? = null
+  successOutput: String? = null
+  statusLevel: String? = null
+  finalStatusLevel: String? = null
+  failFast: (Boolean|Mapping<String, Any>)? = null
+  filter: String? = null
+  defaultFilter: String? = null
+  archiveIncludes: Listing<Mapping<String, Any>> = new Listing {}
+  junit: Junit? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Override {
+  filter: String
+  retries: (Int|RetryConfig)? = null
+  threadsRequired: (Int|String)? = null
+  slowTimeout: (String|Mapping<String, Any>)? = null
+  leakTimeout: String? = null
+  testGroup: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class TestGroup {
+  maxThreads: (Int|String)? = null
+}
+
+store: StoreConfig? = null
+profiles: Mapping<String, Profile> = new Mapping {}
+overrides: Listing<Override> = new Listing {}
+testGroups: Mapping<String, TestGroup> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderRetry(value: Int|RetryConfig) =
+  if (value is Int) value
+  else
+    new Mapping<String, Any> {
+      when (value.backoff != null) { ["backoff"] = value.backoff }
+      when (value.count != null) { ["count"] = value.count }
+      when (value.delay != null) { ["delay"] = value.delay }
+      when (value.jitter != null) { ["jitter"] = value.jitter }
+      when (value.maxDelay != null) {
+        ["max-delay"] = value.maxDelay
+      }
+    }.toMap()
+
+local function renderSlow(value: String|Mapping<String, Any>) =
+  if (value is Mapping) value.toMap() else value
+
+local function renderJunit(value: Junit) =
+  new Mapping<String, Any> {
+    when (value.path != null) { ["path"] = value.path }
+    when (value.reportName != null) { ["report-name"] = value.reportName }
+    when (value.storeSuccessOutput != null) {
+      ["store-success-output"] = value.storeSuccessOutput
+    }
+    when (value.storeFailureOutput != null) {
+      ["store-failure-output"] = value.storeFailureOutput
+    }
+  }.toMap()
+
+local function renderProfile(value: Profile) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.retries != null) {
+        ["retries"] = renderRetry(value.retries)
+      }
+      when (value.testThreads != null) {
+        ["test-threads"] = value.testThreads
+      }
+      when (value.threadsRequired != null) {
+        ["threads-required"] = value.threadsRequired
+      }
+      when (!value.runExtraArgs.toList().isEmpty) {
+        ["run-extra-args"] = value.runExtraArgs.toList()
+      }
+      when (value.slowTimeout != null) {
+        ["slow-timeout"] = renderSlow(value.slowTimeout)
+      }
+      when (value.leakTimeout != null) {
+        ["leak-timeout"] = value.leakTimeout
+      }
+      when (value.failureOutput != null) {
+        ["failure-output"] = value.failureOutput
+      }
+      when (value.successOutput != null) {
+        ["success-output"] = value.successOutput
+      }
+      when (value.statusLevel != null) {
+        ["status-level"] = value.statusLevel
+      }
+      when (value.finalStatusLevel != null) {
+        ["final-status-level"] = value.finalStatusLevel
+      }
+      when (value.failFast != null) {
+        ["fail-fast"] = if (value.failFast is Mapping) value.failFast.toMap() else value.failFast
+      }
+      when (value.filter != null) { ["filter"] = value.filter }
+      when (value.defaultFilter != null) {
+        ["default-filter"] = value.defaultFilter
+      }
+      when (!value.archiveIncludes.toList().isEmpty) {
+        ["archive"] = new Mapping<String, Any> {
+          ["include"] = value.archiveIncludes.toList().map((m) -> m.toMap())
+        }.toMap()
+      }
+      when (value.junit != null) {
+        ["junit"] = renderJunit(value.junit)
+      }
+    },
+    value.extra,
+  )
+
+local function renderOverride(value: Override) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["filter"] = value.filter
+      when (value.retries != null) {
+        ["retries"] = renderRetry(value.retries)
+      }
+      when (value.threadsRequired != null) {
+        ["threads-required"] = value.threadsRequired
+      }
+      when (value.slowTimeout != null) {
+        ["slow-timeout"] = renderSlow(value.slowTimeout)
+      }
+      when (value.leakTimeout != null) {
+        ["leak-timeout"] = value.leakTimeout
+      }
+      when (value.testGroup != null) {
+        ["test-group"] = value.testGroup
+      }
+    },
+    value.extra,
+  )
+
+local function renderTestGroup(value: TestGroup) =
+  new Mapping<String, Any> {
+    when (value.maxThreads != null) {
+      ["max-threads"] = value.maxThreads
+    }
+  }.toMap()
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (store != null && store.dir != null) {
+        ["store"] = new Mapping<String, Any> {
+          ["dir"] = store.dir
+        }.toMap()
+      }
+      when (!profiles.toMap().isEmpty) {
+        ["profile"] = profiles.toMap()
+          .mapValues((_, p) -> renderProfile(p))
+      }
+      when (!overrides.toList().isEmpty) {
+        ["[[profile.default.overrides]]"] = overrides.toList()
+          .map((o) -> renderOverride(o))
+      }
+      when (!testGroups.toMap().isEmpty) {
+        ["test-groups"] = testGroups.toMap()
+          .mapValues((_, g) -> renderTestGroup(g))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

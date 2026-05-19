@@ -1,0 +1,178 @@
+/// A typed authoring surface for the `[tool.poetry]` block of `pyproject.toml`.
+///
+/// Poetry historically lived in `[tool.poetry]`; under PEP 621 it
+/// migrated most metadata into `[project]`. This module models the
+/// `[tool.poetry]` shape — readers should prefer
+/// `@target.python/pyproject/PyProject.pkl` for the standard
+/// project metadata and use this module only for Poetry-specific
+/// extensions such as `[tool.poetry.dependencies]` and `groups`.
+///
+/// Reference: https://python-poetry.org/docs/pyproject/
+module target.python.poetry.Poetry
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class Dependency {
+  version: String? = null
+  extras: Listing<String> = new Listing {}
+  python: String? = null
+  source: String? = null
+  markers: String? = null
+  optional: Boolean? = null
+  develop: Boolean? = null
+  path: String? = null
+  url: String? = null
+  git: String? = null
+  branch: String? = null
+  tag: String? = null
+  rev: String? = null
+  subdirectory: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Group {
+  optional: Boolean? = null
+  dependencies: Mapping<String, String|Dependency> = new Mapping {}
+}
+
+class Source {
+  name: String
+  url: String? = null
+  priority: ("default"|"primary"|"supplemental"|"explicit")? = null
+}
+
+name: String? = null
+version: String? = null
+description: String? = null
+license: String? = null
+authors: Listing<String> = new Listing {}
+maintainers: Listing<String> = new Listing {}
+readme: (String|Listing<String>)? = null
+homepage: String? = null
+repository: String? = null
+documentation: String? = null
+keywords: Listing<String> = new Listing {}
+classifiers: Listing<String> = new Listing {}
+packages: Listing<Mapping<String, Any>> = new Listing {}
+include: Listing<String|Mapping<String, Any>> = new Listing {}
+exclude: Listing<String> = new Listing {}
+dependencies: Mapping<String, String|Dependency> = new Mapping {}
+groups: Mapping<String, Group> = new Mapping {}
+scripts: Mapping<String, String> = new Mapping {}
+plugins: Mapping<String, Mapping<String, String>> = new Mapping {}
+urls: Mapping<String, String> = new Mapping {}
+sources: Listing<Source> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderDependency(value: String|Dependency) =
+  if (value is String) value
+  else
+    Maps.withExtra(
+      new Mapping<String, Any> {
+        when (value.version != null) { ["version"] = value.version }
+        when (!value.extras.toList().isEmpty) {
+          ["extras"] = value.extras.toList()
+        }
+        when (value.python != null) { ["python"] = value.python }
+        when (value.source != null) { ["source"] = value.source }
+        when (value.markers != null) { ["markers"] = value.markers }
+        when (value.optional != null) { ["optional"] = value.optional }
+        when (value.develop != null) { ["develop"] = value.develop }
+        when (value.path != null) { ["path"] = value.path }
+        when (value.url != null) { ["url"] = value.url }
+        when (value.git != null) { ["git"] = value.git }
+        when (value.branch != null) { ["branch"] = value.branch }
+        when (value.tag != null) { ["tag"] = value.tag }
+        when (value.rev != null) { ["rev"] = value.rev }
+        when (value.subdirectory != null) {
+          ["subdirectory"] = value.subdirectory
+        }
+      },
+      value.extra,
+    )
+
+local function renderGroup(value: Group) =
+  new Mapping<String, Any> {
+    when (value.optional != null) { ["optional"] = value.optional }
+    when (!value.dependencies.toMap().isEmpty) {
+      ["dependencies"] = value.dependencies.toMap()
+        .mapValues((_, v) -> renderDependency(v))
+    }
+  }.toMap()
+
+local function renderSource(value: Source) =
+  new Mapping<String, Any> {
+    ["name"] = value.name
+    when (value.url != null) { ["url"] = value.url }
+    when (value.priority != null) { ["priority"] = value.priority }
+  }.toMap()
+
+hidden poetryBlock =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (name != null) { ["name"] = name }
+      when (version != null) { ["version"] = version }
+      when (description != null) { ["description"] = description }
+      when (license != null) { ["license"] = license }
+      when (!authors.toList().isEmpty) { ["authors"] = authors.toList() }
+      when (!maintainers.toList().isEmpty) {
+        ["maintainers"] = maintainers.toList()
+      }
+      when (readme != null) {
+        ["readme"] = if (readme is Listing) readme.toList() else readme
+      }
+      when (homepage != null) { ["homepage"] = homepage }
+      when (repository != null) { ["repository"] = repository }
+      when (documentation != null) {
+        ["documentation"] = documentation
+      }
+      when (!keywords.toList().isEmpty) {
+        ["keywords"] = keywords.toList()
+      }
+      when (!classifiers.toList().isEmpty) {
+        ["classifiers"] = classifiers.toList()
+      }
+      when (!packages.toList().isEmpty) {
+        ["packages"] = packages.toList().map((p) -> p.toMap())
+      }
+      when (!include.toList().isEmpty) {
+        ["include"] = include.toList().map((i) ->
+          if (i is Mapping) i.toMap() else i
+        )
+      }
+      when (!exclude.toList().isEmpty) {
+        ["exclude"] = exclude.toList()
+      }
+      when (!dependencies.toMap().isEmpty) {
+        ["dependencies"] = dependencies.toMap()
+          .mapValues((_, v) -> renderDependency(v))
+      }
+      when (!groups.toMap().isEmpty) {
+        ["group"] = groups.toMap()
+          .mapValues((_, g) -> renderGroup(g))
+      }
+      when (!scripts.toMap().isEmpty) {
+        ["scripts"] = scripts.toMap()
+      }
+      when (!plugins.toMap().isEmpty) {
+        ["plugins"] = plugins.toMap().mapValues((_, m) -> m.toMap())
+      }
+      when (!urls.toMap().isEmpty) { ["urls"] = urls.toMap() }
+      when (!sources.toList().isEmpty) {
+        ["source"] = sources.toList().map((s) -> renderSource(s))
+      }
+    },
+    extra,
+  )
+
+hidden rendered = new Mapping<String, Any> {
+  ["tool"] = new Mapping<String, Any> {
+    ["poetry"] = poetryBlock
+  }.toMap()
+}
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

@@ -8,6 +8,8 @@ targets {
   "pyproject.toml"
   "ruff.toml"
   "pytest.ini"
+  "pyproject.toml#tool.poetry"
+  "pyproject.toml#tool.uv"
 }
 
 formats {
@@ -20,6 +22,8 @@ tags {
   "ruff"
   "pytest"
   "pyproject"
+  "poetry"
+  "uv"
 }
 
 description = "Typed Pkl modules for Python project tooling."

@@ -9,6 +9,8 @@ targets {
   "netlify.toml"
   "fly.toml"
   "render.yaml"
+  "koyeb.yaml"
+  "railway.json"
 }
 
 formats {
@@ -23,6 +25,8 @@ tags {
   "netlify"
   "fly"
   "render"
+  "koyeb"
+  "railway"
 }
 
 description = "Typed Pkl modules for the most common deployment platforms."

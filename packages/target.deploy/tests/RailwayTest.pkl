@@ -1,0 +1,50 @@
+/// Tests for `target.deploy.railway.Railway` rendering.
+amends "pkl:test"
+
+import "../railway/Railway.pkl"
+
+local app = (Railway) {
+  `$schema` = "https://railway.com/railway.schema.json"
+  build = new Railway.Build {
+    builder = "DOCKERFILE"
+    dockerfilePath = "Dockerfile"
+    watchPatterns { "**/*.rs"; "Cargo.toml" }
+  }
+  deploy = new Railway.Deploy {
+    startCommand = "./target/release/registry-api"
+    numReplicas = 2
+    region = new Listing<String> { "us-east-1"; "eu-west-1" }
+    healthcheckPath = "/healthz"
+    healthcheckTimeout = 30
+    restartPolicyType = "ON_FAILURE"
+    restartPolicyMaxRetries = 5
+  }
+  environments {
+    ["staging"] = new Railway.EnvironmentConfig {
+      deploy = new Railway.Deploy {
+        numReplicas = 1
+      }
+    }
+  }
+}
+
+facts {
+  ["build.builder enum"] {
+    app.rendered["build"]["builder"] == "DOCKERFILE"
+  }
+  ["watchPatterns list"] {
+    app.rendered["build"]["watchPatterns"] == List("**/*.rs", "Cargo.toml")
+  }
+  ["deploy scalars"] {
+    app.rendered["deploy"]["startCommand"] == "./target/release/registry-api"
+    app.rendered["deploy"]["numReplicas"] == 2
+    app.rendered["deploy"]["healthcheckPath"] == "/healthz"
+    app.rendered["deploy"]["restartPolicyType"] == "ON_FAILURE"
+  }
+  ["region listing flattens"] {
+    app.rendered["deploy"]["region"] == List("us-east-1", "eu-west-1")
+  }
+  ["environments override deploy"] {
+    app.rendered["environments"]["staging"]["deploy"]["numReplicas"] == 1
+  }
+}

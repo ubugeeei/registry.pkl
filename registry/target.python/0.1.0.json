@@ -11,7 +11,9 @@
   "targets": [
     "pyproject.toml",
     "ruff.toml",
-    "pytest.ini"
+    "pytest.ini",
+    "pyproject.toml#tool.poetry",
+    "pyproject.toml#tool.uv"
   ],
   "formats": [
     "toml",
@@ -21,7 +23,9 @@
     "python",
     "ruff",
     "pytest",
-    "pyproject"
+    "pyproject",
+    "poetry",
+    "uv"
   ],
   "maintainers": [
     "ubugeeei"
