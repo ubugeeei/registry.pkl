@@ -1,0 +1,229 @@
+/// A typed authoring surface for `.golangci.yml`.
+module target.go.golangci_lint.Golangci
+
+import "@target.core/Maps.pkl" as Maps
+
+class Run {
+  timeout: String? = null
+  modulesDownloadMode: String? = null
+  issuesExitCode: Int? = null
+  tests: Boolean? = null
+  buildTags: Listing<String> = new Listing {}
+  skipDirs: Listing<String> = new Listing {}
+  skipFiles: Listing<String> = new Listing {}
+  go: String? = null
+  concurrency: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Linters {
+  enable: Listing<String> = new Listing {}
+  disable: Listing<String> = new Listing {}
+  enableAll: Boolean? = null
+  disableAll: Boolean? = null
+  presets: Listing<String> = new Listing {}
+  fast: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class IssueRule {
+  text: String? = null
+  source: String? = null
+  path: String? = null
+  pathExcept: String? = null
+  linters: Listing<String> = new Listing {}
+  severity: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class IssuesSection {
+  excludeUseDefault: Boolean? = null
+  exclude: Listing<String> = new Listing {}
+  excludeRules: Listing<IssueRule> = new Listing {}
+  excludeDirs: Listing<String> = new Listing {}
+  excludeFiles: Listing<String> = new Listing {}
+  maxIssuesPerLinter: Int? = null
+  maxSameIssues: Int? = null
+  newFromRev: String? = null
+  newFromPatch: String? = null
+  `new`: Boolean? = null
+  whole: Boolean? = null
+  fix: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Output {
+  formats: (String|Listing<Mapping<String, Any>>)? = null
+  sortResults: Boolean? = null
+  printIssuedLines: Boolean? = null
+  printLinterName: Boolean? = null
+  uniqByLine: Boolean? = null
+  pathPrefix: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+run: Run? = null
+linters: Linters? = null
+linterSettings: Mapping<String, Any> = new Mapping {}
+issues: IssuesSection? = null
+reportOutput: Output? = null
+severity: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderRun(value: Run) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.timeout != null) { ["timeout"] = value.timeout }
+      when (value.modulesDownloadMode != null) {
+        ["modules-download-mode"] = value.modulesDownloadMode
+      }
+      when (value.issuesExitCode != null) {
+        ["issues-exit-code"] = value.issuesExitCode
+      }
+      when (value.tests != null) { ["tests"] = value.tests }
+      when (!value.buildTags.toList().isEmpty) {
+        ["build-tags"] = value.buildTags.toList()
+      }
+      when (!value.skipDirs.toList().isEmpty) {
+        ["skip-dirs"] = value.skipDirs.toList()
+      }
+      when (!value.skipFiles.toList().isEmpty) {
+        ["skip-files"] = value.skipFiles.toList()
+      }
+      when (value.go != null) { ["go"] = value.go }
+      when (value.concurrency != null) {
+        ["concurrency"] = value.concurrency
+      }
+    },
+    value.extra,
+  )
+
+local function renderLinters(value: Linters) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.enable.toList().isEmpty) {
+        ["enable"] = value.enable.toList()
+      }
+      when (!value.disable.toList().isEmpty) {
+        ["disable"] = value.disable.toList()
+      }
+      when (value.enableAll != null) {
+        ["enable-all"] = value.enableAll
+      }
+      when (value.disableAll != null) {
+        ["disable-all"] = value.disableAll
+      }
+      when (!value.presets.toList().isEmpty) {
+        ["presets"] = value.presets.toList()
+      }
+      when (value.fast != null) { ["fast"] = value.fast }
+    },
+    value.extra,
+  )
+
+local function renderIssueRule(value: IssueRule) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.text != null) { ["text"] = value.text }
+      when (value.source != null) { ["source"] = value.source }
+      when (value.path != null) { ["path"] = value.path }
+      when (value.pathExcept != null) {
+        ["path-except"] = value.pathExcept
+      }
+      when (!value.linters.toList().isEmpty) {
+        ["linters"] = value.linters.toList()
+      }
+      when (value.severity != null) { ["severity"] = value.severity }
+    },
+    value.extra,
+  )
+
+local function renderIssues(value: IssuesSection) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.excludeUseDefault != null) {
+        ["exclude-use-default"] = value.excludeUseDefault
+      }
+      when (!value.exclude.toList().isEmpty) {
+        ["exclude"] = value.exclude.toList()
+      }
+      when (!value.excludeRules.toList().isEmpty) {
+        ["exclude-rules"] = value.excludeRules.toList().map((r) -> renderIssueRule(r))
+      }
+      when (!value.excludeDirs.toList().isEmpty) {
+        ["exclude-dirs"] = value.excludeDirs.toList()
+      }
+      when (!value.excludeFiles.toList().isEmpty) {
+        ["exclude-files"] = value.excludeFiles.toList()
+      }
+      when (value.maxIssuesPerLinter != null) {
+        ["max-issues-per-linter"] = value.maxIssuesPerLinter
+      }
+      when (value.maxSameIssues != null) {
+        ["max-same-issues"] = value.maxSameIssues
+      }
+      when (value.newFromRev != null) {
+        ["new-from-rev"] = value.newFromRev
+      }
+      when (value.newFromPatch != null) {
+        ["new-from-patch"] = value.newFromPatch
+      }
+      when (value.`new` != null) { ["new"] = value.`new` }
+      when (value.whole != null) { ["whole"] = value.whole }
+      when (value.fix != null) { ["fix"] = value.fix }
+    },
+    value.extra,
+  )
+
+local function renderOutput(value: Output) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.formats != null) {
+        ["formats"] =
+          if (value.formats is Listing)
+            value.formats.toList().map((f) -> f.toMap())
+          else
+            value.formats
+      }
+      when (value.sortResults != null) {
+        ["sort-results"] = value.sortResults
+      }
+      when (value.printIssuedLines != null) {
+        ["print-issued-lines"] = value.printIssuedLines
+      }
+      when (value.printLinterName != null) {
+        ["print-linter-name"] = value.printLinterName
+      }
+      when (value.uniqByLine != null) {
+        ["uniq-by-line"] = value.uniqByLine
+      }
+      when (value.pathPrefix != null) {
+        ["path-prefix"] = value.pathPrefix
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (run != null) { ["run"] = renderRun(run) }
+      when (linters != null) { ["linters"] = renderLinters(linters) }
+      when (!linterSettings.toMap().isEmpty) {
+        ["linters-settings"] = linterSettings.toMap()
+      }
+      when (issues != null) { ["issues"] = renderIssues(issues) }
+      when (reportOutput != null) {
+        ["output"] = renderOutput(reportOutput)
+      }
+      when (!severity.toMap().isEmpty) {
+        ["severity"] = severity.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

@@ -1,0 +1,90 @@
+amends "@target.go/goreleaser/Goreleaser.pkl"
+
+projectName = "registry-pkl"
+version = 2
+
+builds {
+  new Build {
+    id = "cli"
+    main = "./cmd/registry-pkl"
+    binary = "registry-pkl"
+    env {
+      "CGO_ENABLED=0"
+    }
+    goos {
+      "linux"
+      "darwin"
+      "windows"
+    }
+    goarch {
+      "amd64"
+      "arm64"
+    }
+    ldflags = new Listing<String> {
+      "-s"
+      "-w"
+      "-X main.version={{.Version}}"
+    }
+  }
+}
+
+archives {
+  new Archive {
+    id = "default"
+    formats {
+      "tar.gz"
+    }
+    nameTemplate = "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formatOverrides {
+      new Mapping<String, Any> {
+        ["goos"] = "windows"
+        ["formats"] = new Listing<String> { "zip" }.toList()
+      }
+    }
+    files {
+      "README.md"
+      "LICENSE"
+    }
+  }
+}
+
+snapshot = new Snapshot {
+  nameTemplate = "{{ incpatch .Version }}-snapshot"
+}
+
+changelog = new Changelog {
+  use = "github"
+  sort = "asc"
+  groups {
+    new Mapping<String, Any> {
+      ["title"] = "Features"
+      ["regexp"] = "^feat"
+      ["order"] = 0
+    }
+    new Mapping<String, Any> {
+      ["title"] = "Fixes"
+      ["regexp"] = "^fix"
+      ["order"] = 1
+    }
+  }
+  filters {
+    ["exclude"] = new Listing<String> {
+      "^chore:"
+      "merge conflict"
+    }
+  }
+}
+
+brews {
+  new Brew {
+    name = "registry-pkl"
+    description = "Registry tooling for Pkl config packages"
+    homepage = "https://ubugeeei.github.io/registry.pkl/"
+    license = "Apache-2.0"
+    repository {
+      ["owner"] = "ubugeeei"
+      ["name"] = "homebrew-tap"
+    }
+    install = "bin.install \"registry-pkl\""
+  }
+}

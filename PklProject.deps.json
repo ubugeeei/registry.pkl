@@ -30,6 +30,11 @@
       "uri": "projectpackage://pkg.registry.invalid/target.js@0.1.0",
       "path": "packages/target.js"
     },
+    "package://pkg.registry.invalid/target.go@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.registry.invalid/target.go@0.1.0",
+      "path": "packages/target.go"
+    },
     "package://pkg.registry.invalid/target.lint@0": {
       "type": "local",
       "uri": "projectpackage://pkg.registry.invalid/target.lint@0.1.0",
