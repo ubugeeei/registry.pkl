@@ -1,0 +1,102 @@
+/// Tests for `target.core.RegistryRecord` rendering.
+amends "pkl:test"
+
+import "../RegistryRecord.pkl"
+
+local minimal = (RegistryRecord) {
+  name = "target.js"
+  version = "0.1.0"
+  packageUri = "package://pkg.registry.invalid/target.js@0.1.0"
+  metadataUrl = "https://example.com/target.js/0.1.0.json"
+  packageZipUrl = "https://example.com/target.js@0.1.0.zip"
+  docsUrl = "https://example.com/target-js/"
+  ecosystem = "javascript"
+  targets {
+    "package.json"
+    "tsconfig.json"
+  }
+  formats {
+    "json"
+  }
+  maintainers {
+    "ubugeeei"
+  }
+  source = new RegistryRecord.Source {
+    repo = "https://github.com/ubugeeei/registry.pkl"
+    directory = "packages/target.js"
+  }
+}
+
+local extended = (RegistryRecord) {
+  name = "target.k8s"
+  version = "0.2.0"
+  packageUri = "package://pkg.registry.invalid/target.k8s@0.2.0"
+  metadataUrl = "https://example.com/target.k8s/0.2.0.json"
+  packageZipUrl = "https://example.com/target.k8s@0.2.0.zip"
+  packageZipSha256Url = "https://example.com/target.k8s@0.2.0.zip.sha256"
+  docsUrl = "https://example.com/target-k8s/"
+  ecosystem = "k8s"
+  firstParty = true
+  targets {
+    "kustomization.yaml"
+    "Chart.yaml"
+  }
+  formats {
+    "yaml"
+  }
+  tags {
+    "kubernetes"
+    "infra"
+  }
+  maintainers {
+    "ubugeeei"
+  }
+  description = "Typed Pkl modules for Kubernetes manifest authoring."
+  source = new RegistryRecord.Source {
+    repo = "https://github.com/ubugeeei/registry.pkl"
+    directory = "packages/target.k8s"
+  }
+  releasedAt = "2026-05-19T00:00:00Z"
+  supersedes = "target.k8s@0.1.0"
+}
+
+facts {
+  ["required fields pass through"] {
+    minimal.rendered["name"] == "target.js"
+    minimal.rendered["version"] == "0.1.0"
+    minimal.rendered["packageUri"] == "package://pkg.registry.invalid/target.js@0.1.0"
+    minimal.rendered["ecosystem"] == "javascript"
+  }
+  ["minimal record omits optional fields"] {
+    !minimal.rendered.containsKey("firstParty")
+    !minimal.rendered.containsKey("packageZipSha256Url")
+    !minimal.rendered.containsKey("tags")
+    !minimal.rendered.containsKey("description")
+    !minimal.rendered.containsKey("supersedes")
+    !minimal.rendered.containsKey("releasedAt")
+  }
+  ["targets + formats render as lists"] {
+    minimal.rendered["targets"] == List("package.json", "tsconfig.json")
+    minimal.rendered["formats"] == List("json")
+  }
+  ["maintainers list emits"] {
+    minimal.rendered["maintainers"] == List("ubugeeei")
+  }
+  ["source nests repo + directory"] {
+    minimal.rendered["source"]
+      == Map("repo", "https://github.com/ubugeeei/registry.pkl",
+             "directory", "packages/target.js")
+  }
+  ["extended record includes optional fields"] {
+    extended.rendered["firstParty"] == true
+    extended.rendered["packageZipSha256Url"]
+      == "https://example.com/target.k8s@0.2.0.zip.sha256"
+    extended.rendered["description"]
+      == "Typed Pkl modules for Kubernetes manifest authoring."
+    extended.rendered["supersedes"] == "target.k8s@0.1.0"
+    extended.rendered["releasedAt"] == "2026-05-19T00:00:00Z"
+  }
+  ["tags list emits when present"] {
+    extended.rendered["tags"] == List("kubernetes", "infra")
+  }
+}

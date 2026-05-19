@@ -1,0 +1,55 @@
+name: Registry Records
+
+on:
+  pull_request:
+    paths:
+      - "registry/**"
+      - "packages/target.core/RegistryRecord.pkl"
+      - "crates/registry-validator/**"
+      - "Cargo.toml"
+      - ".github/workflows/registry-validate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "registry/**"
+      - "packages/target.core/RegistryRecord.pkl"
+      - "crates/registry-validator/**"
+      - "Cargo.toml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: registry-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-registry-validator-${{ hashFiles('**/Cargo.lock', 'crates/registry-validator/**/*.rs') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-validator-
+
+      - name: Build validator
+        run: cargo build --release -p registry-validator
+
+      - name: Run validator unit + integration tests
+        run: cargo test --release -p registry-validator
+
+      - name: Validate checked-in records
+        run: ./target/release/registry-validator registry
