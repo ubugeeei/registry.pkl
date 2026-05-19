@@ -1,0 +1,42 @@
+/// Tests for `target.lint.gitleaks.Gitleaks` rendering.
+amends "pkl:test"
+
+import "../gitleaks/Gitleaks.pkl"
+
+local config = (Gitleaks) {
+  title = "test"
+  rules {
+    new Gitleaks.Rule {
+      id = "github-pat"
+      description = "GitHub PAT"
+      regex = "ghp_[A-Za-z0-9]{36,}"
+      keywords {
+        "ghp_"
+      }
+      tags {
+        "github"
+      }
+    }
+  }
+  allowlist = new Gitleaks.Allowlist {
+    paths {
+      ".*\\.lock"
+    }
+  }
+}
+
+facts {
+  ["title passes through"] {
+    config.rendered["title"] == "test"
+  }
+  ["rules carry id, regex, keywords"] {
+    local rule = config.rendered["rules"][0]
+    rule["id"] == "github-pat"
+    rule["regex"] == "ghp_[A-Za-z0-9]{36,}"
+    rule["keywords"] == List("ghp_")
+    rule["tags"] == List("github")
+  }
+  ["top-level allowlist paths emit"] {
+    config.rendered["allowlist"]["paths"] == List(".*\\.lock")
+  }
+}
