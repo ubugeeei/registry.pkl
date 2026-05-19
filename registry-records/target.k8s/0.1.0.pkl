@@ -8,6 +8,10 @@ targets {
   "kustomization.yaml"
   "Chart.yaml"
   "values.yaml"
+  "deployment.yaml"
+  "service.yaml"
+  "configmap.yaml"
+  "pod.yaml"
 }
 
 formats {

@@ -1,0 +1,64 @@
+/// Tests for `target.k8s.deployment.Deployment` rendering.
+amends "pkl:test"
+
+import "../deployment/Deployment.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+local dep = (Deployment) {
+  metadata = new Pod.ObjectMeta {
+    name = "demo"
+    namespace = "default"
+    labels { ["app"] = "demo" }
+  }
+  spec = new Deployment.Spec {
+    replicas = 3
+    selector = new Deployment.LabelSelector {
+      matchLabels { ["app"] = "demo" }
+    }
+    template = new Deployment.Template {
+      metadata = new Pod.ObjectMeta {
+        labels { ["app"] = "demo" }
+      }
+      spec = new Pod.PodTemplateSpec {
+        containers {
+          new Pod.Container {
+            name = "app"
+            image = "ghcr.io/example/app:1.0"
+          }
+        }
+      }
+    }
+    strategy = new Deployment.Strategy {
+      type = "RollingUpdate"
+      rollingUpdate = new Deployment.RollingUpdate {
+        maxSurge = "25%"
+        maxUnavailable = "25%"
+      }
+    }
+    revisionHistoryLimit = 10
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    dep.rendered["apiVersion"] == "apps/v1"
+    dep.rendered["kind"] == "Deployment"
+  }
+  ["replicas + selector"] {
+    dep.rendered["spec"]["replicas"] == 3
+    dep.rendered["spec"]["selector"]["matchLabels"] == Map("app", "demo")
+  }
+  ["template reuses PodTemplate rendering"] {
+    local container =
+      dep.rendered["spec"]["template"]["spec"]["containers"][0]
+    container["name"] == "app"
+    container["image"] == "ghcr.io/example/app:1.0"
+  }
+  ["strategy block"] {
+    dep.rendered["spec"]["strategy"]["type"] == "RollingUpdate"
+    dep.rendered["spec"]["strategy"]["rollingUpdate"]["maxSurge"] == "25%"
+  }
+  ["revisionHistoryLimit"] {
+    dep.rendered["spec"]["revisionHistoryLimit"] == 10
+  }
+}

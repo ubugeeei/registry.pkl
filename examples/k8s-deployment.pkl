@@ -1,0 +1,127 @@
+amends "@target.k8s/deployment/Deployment.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+
+metadata = new Pod.ObjectMeta {
+  name = "registry-api"
+  namespace = "registry"
+  labels {
+    ["app"] = "registry-api"
+    ["app.kubernetes.io/managed-by"] = "pkl"
+  }
+}
+
+spec = new Spec {
+  replicas = 3
+  selector = new LabelSelector {
+    matchLabels {
+      ["app"] = "registry-api"
+    }
+  }
+  strategy = new Strategy {
+    type = "RollingUpdate"
+    rollingUpdate = new RollingUpdate {
+      maxSurge = 1
+      maxUnavailable = 0
+    }
+  }
+  revisionHistoryLimit = 10
+  template = new Template {
+    metadata = new Pod.ObjectMeta {
+      labels {
+        ["app"] = "registry-api"
+      }
+    }
+    spec = new Pod.PodTemplateSpec {
+      serviceAccountName = "registry-api"
+      securityContext = new Pod.SecurityContext {
+        runAsNonRoot = true
+        runAsUser = 1000
+      }
+      containers {
+        new Pod.Container {
+          name = "api"
+          image = "ghcr.io/ubugeeei/registry-api:0.1.0"
+          imagePullPolicy = "IfNotPresent"
+          ports {
+            new Pod.ContainerPort {
+              name = "http"
+              containerPort = 8080
+              protocol = "TCP"
+            }
+            new Pod.ContainerPort {
+              name = "metrics"
+              containerPort = 9090
+              protocol = "TCP"
+            }
+          }
+          env {
+            new Pod.EnvVar {
+              name = "LOG_LEVEL"
+              value = "info"
+            }
+            new Pod.EnvVar {
+              name = "DATABASE_URL"
+              valueFrom = new Mapping<String, Any> {
+                ["secretKeyRef"] = new Mapping<String, String> {
+                  ["name"] = "registry-api-secrets"
+                  ["key"] = "DATABASE_URL"
+                }.toMap()
+              }
+            }
+          }
+          envFrom {
+            new Pod.EnvFromSource {
+              configMapRef = new Mapping<String, String> {
+                ["name"] = "registry-api-config"
+              }
+            }
+          }
+          resources = new Pod.Resources {
+            limits = new Pod.ResourceRequirement {
+              cpu = "1000m"
+              memory = "512Mi"
+            }
+            requests = new Pod.ResourceRequirement {
+              cpu = "100m"
+              memory = "128Mi"
+            }
+          }
+          livenessProbe = new Pod.Probe {
+            httpGet = new Pod.HttpGetAction {
+              path = "/healthz"
+              port = "http"
+            }
+            initialDelaySeconds = 15
+            periodSeconds = 10
+            timeoutSeconds = 3
+            failureThreshold = 3
+          }
+          readinessProbe = new Pod.Probe {
+            httpGet = new Pod.HttpGetAction {
+              path = "/readyz"
+              port = "http"
+            }
+            initialDelaySeconds = 5
+            periodSeconds = 5
+          }
+          securityContext = new Pod.SecurityContext {
+            allowPrivilegeEscalation = false
+            readOnlyRootFilesystem = true
+            capabilities = new Mapping<String, Listing<String>> {
+              ["drop"] = new Listing<String> { "ALL" }
+            }
+          }
+        }
+      }
+      tolerations {
+        new Mapping<String, Any> {
+          ["key"] = "dedicated"
+          ["operator"] = "Equal"
+          ["value"] = "registry"
+          ["effect"] = "NoSchedule"
+        }
+      }
+    }
+  }
+}

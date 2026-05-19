@@ -1,0 +1,41 @@
+/// Tests for `target.k8s.service.Service` rendering.
+amends "pkl:test"
+
+import "../service/Service.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+local svc = (Service) {
+  metadata = new Pod.ObjectMeta {
+    name = "demo"
+    namespace = "default"
+    labels { ["app"] = "demo" }
+  }
+  spec = new Service.Spec {
+    type = "ClusterIP"
+    selector { ["app"] = "demo" }
+    ports {
+      new Service.ServicePort {
+        name = "http"
+        port = 80
+        targetPort = 8080
+        protocol = "TCP"
+      }
+    }
+    sessionAffinity = "ClientIP"
+  }
+}
+
+facts {
+  ["scalars pass through"] {
+    svc.rendered["apiVersion"] == "v1"
+    svc.rendered["kind"] == "Service"
+    svc.rendered["spec"]["type"] == "ClusterIP"
+    svc.rendered["spec"]["sessionAffinity"] == "ClientIP"
+  }
+  ["selector and ports"] {
+    svc.rendered["spec"]["selector"] == Map("app", "demo")
+    svc.rendered["spec"]["ports"][0]["name"] == "http"
+    svc.rendered["spec"]["ports"][0]["port"] == 80
+    svc.rendered["spec"]["ports"][0]["targetPort"] == 8080
+  }
+}

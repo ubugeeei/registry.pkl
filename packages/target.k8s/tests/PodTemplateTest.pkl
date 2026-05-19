@@ -1,0 +1,88 @@
+/// Tests for `target.k8s.podtemplate.PodTemplate` rendering.
+amends "pkl:test"
+
+import "../podtemplate/PodTemplate.pkl"
+
+local pod = (PodTemplate) {
+  metadata = new PodTemplate.ObjectMeta {
+    name = "demo"
+    namespace = "default"
+    labels {
+      ["app"] = "demo"
+    }
+  }
+  spec = new PodTemplate.PodTemplateSpec {
+    containers {
+      new PodTemplate.Container {
+        name = "app"
+        image = "ghcr.io/example/app:1.0"
+        ports {
+          new PodTemplate.ContainerPort {
+            containerPort = 8080
+            protocol = "TCP"
+          }
+        }
+        env {
+          new PodTemplate.EnvVar {
+            name = "LOG_LEVEL"
+            value = "info"
+          }
+        }
+        resources = new PodTemplate.Resources {
+          limits = new PodTemplate.ResourceRequirement {
+            cpu = "500m"
+            memory = "256Mi"
+          }
+          requests = new PodTemplate.ResourceRequirement {
+            cpu = "100m"
+            memory = "128Mi"
+          }
+        }
+        livenessProbe = new PodTemplate.Probe {
+          httpGet = new PodTemplate.HttpGetAction {
+            path = "/healthz"
+            port = 8080
+          }
+          initialDelaySeconds = 10
+          periodSeconds = 5
+        }
+      }
+    }
+    restartPolicy = "Always"
+    serviceAccountName = "demo"
+    securityContext = new PodTemplate.SecurityContext {
+      runAsNonRoot = true
+      runAsUser = 1000
+    }
+  }
+}
+
+facts {
+  ["apiVersion and kind pass through"] {
+    pod.rendered["apiVersion"] == "v1"
+    pod.rendered["kind"] == "Pod"
+  }
+  ["metadata renders labels"] {
+    pod.rendered["metadata"]["labels"] == Map("app", "demo")
+  }
+  ["container ports list"] {
+    pod.rendered["spec"]["containers"][0]["ports"][0]["containerPort"] == 8080
+    pod.rendered["spec"]["containers"][0]["ports"][0]["protocol"] == "TCP"
+  }
+  ["resources render limits + requests"] {
+    local res = pod.rendered["spec"]["containers"][0]["resources"]
+    res["limits"]["cpu"] == "500m"
+    res["limits"]["memory"] == "256Mi"
+    res["requests"]["cpu"] == "100m"
+  }
+  ["liveness probe httpGet renders"] {
+    local p = pod.rendered["spec"]["containers"][0]["livenessProbe"]
+    p["httpGet"]["path"] == "/healthz"
+    p["httpGet"]["port"] == 8080
+    p["initialDelaySeconds"] == 10
+  }
+  ["securityContext runAsNonRoot emits"] {
+    pod.rendered["spec"]["securityContext"]["runAsNonRoot"] == true
+    pod.rendered["spec"]["securityContext"]["runAsUser"] == 1000
+  }
+}

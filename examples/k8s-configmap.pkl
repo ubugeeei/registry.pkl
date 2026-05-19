@@ -1,0 +1,28 @@
+amends "@target.k8s/configmap/ConfigMap.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+
+metadata = new Pod.ObjectMeta {
+  name = "registry-api-config"
+  namespace = "registry"
+  labels {
+    ["app"] = "registry-api"
+  }
+}
+
+data {
+  ["LOG_LEVEL"] = "info"
+  ["FEATURE_FLAGS"] = "search,api-v2"
+  ["RATE_LIMIT_QPS"] = "100"
+  ["nginx.conf"] = """
+    server {
+      listen 8080;
+      location /healthz {
+        return 200;
+      }
+      location /readyz {
+        return 200;
+      }
+    }
+    """
+}
