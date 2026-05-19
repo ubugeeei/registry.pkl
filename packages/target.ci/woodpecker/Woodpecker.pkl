@@ -1,0 +1,239 @@
+/// A typed authoring surface for Woodpecker's `.woodpecker.yml` /
+/// `.woodpecker/*.yml`.
+///
+/// Reference: https://woodpecker-ci.org/docs/usage/workflow-syntax
+module target.ci.woodpecker.Woodpecker
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias WhenValue = String|Listing<String>
+
+class WhenBlock {
+  branch: WhenValue? = null
+  event: WhenValue? = null
+  status: WhenValue? = null
+  path: WhenValue? = null
+  ref: WhenValue? = null
+  repo: WhenValue? = null
+  platform: WhenValue? = null
+  environment: WhenValue? = null
+  matrix: Mapping<String, String> = new Mapping {}
+  evaluate: String? = null
+  cron: WhenValue? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Step {
+  name: String? = null
+  image: String
+  commands: Listing<String> = new Listing {}
+  entrypoint: (String|Listing<String>)? = null
+  environment: Mapping<String, String> = new Mapping {}
+  secrets: Listing<String|Mapping<String, String>> = new Listing {}
+  settings: Mapping<String, Any> = new Mapping {}
+  failure: ("fail"|"ignore")? = null
+  detach: Boolean? = null
+  privileged: Boolean? = null
+  group: String? = null
+  pull: Boolean? = null
+  volumes: Listing<String> = new Listing {}
+  `when`: (WhenBlock|Listing<WhenBlock>)? = null
+  depends_on: Listing<String> = new Listing {}
+  directory: String? = null
+  backend_options: Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Service {
+  image: String
+  ports: Listing<String|Int> = new Listing {}
+  environment: Mapping<String, String> = new Mapping {}
+  entrypoint: (String|Listing<String>)? = null
+  privileged: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Clone {
+  image: String? = null
+  settings: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`when`: (WhenBlock|Listing<WhenBlock>)? = null
+labels: Mapping<String, String> = new Mapping {}
+variables: Mapping<String, Any> = new Mapping {}
+matrix: Mapping<String, Listing<String>> = new Mapping {}
+clone: Clone? = null
+skip_clone: Boolean? = null
+steps: Mapping<String, Step> = new Mapping {}
+services: Mapping<String, Service> = new Mapping {}
+depends_on: Listing<String> = new Listing {}
+runs_on: Listing<String> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderWhenValue(v: WhenValue) =
+  if (v is Listing) v.toList() else v
+
+local function renderWhenBlock(value: WhenBlock) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.branch != null) {
+        ["branch"] = renderWhenValue(value.branch)
+      }
+      when (value.event != null) {
+        ["event"] = renderWhenValue(value.event)
+      }
+      when (value.status != null) {
+        ["status"] = renderWhenValue(value.status)
+      }
+      when (value.path != null) {
+        ["path"] = renderWhenValue(value.path)
+      }
+      when (value.ref != null) {
+        ["ref"] = renderWhenValue(value.ref)
+      }
+      when (value.repo != null) {
+        ["repo"] = renderWhenValue(value.repo)
+      }
+      when (value.platform != null) {
+        ["platform"] = renderWhenValue(value.platform)
+      }
+      when (value.environment != null) {
+        ["environment"] = renderWhenValue(value.environment)
+      }
+      when (!value.matrix.toMap().isEmpty) {
+        ["matrix"] = value.matrix.toMap()
+      }
+      when (value.evaluate != null) {
+        ["evaluate"] = value.evaluate
+      }
+      when (value.cron != null) {
+        ["cron"] = renderWhenValue(value.cron)
+      }
+    },
+    value.extra,
+  )
+
+local function renderWhen(value: WhenBlock|Listing<WhenBlock>) =
+  if (value is Listing)
+    value.toList().map((b) -> renderWhenBlock(b))
+  else
+    renderWhenBlock(value)
+
+local function renderSecretEntry(s: String|Mapping<String, String>) =
+  if (s is Mapping) s.toMap() else s
+
+local function renderStep(value: Step) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      ["image"] = value.image
+      when (!value.commands.toList().isEmpty) {
+        ["commands"] = value.commands.toList()
+      }
+      when (value.entrypoint != null) {
+        ["entrypoint"] = if (value.entrypoint is Listing) value.entrypoint.toList() else value.entrypoint
+      }
+      when (!value.environment.toMap().isEmpty) {
+        ["environment"] = value.environment.toMap()
+      }
+      when (!value.secrets.toList().isEmpty) {
+        ["secrets"] = value.secrets.toList().map((s) -> renderSecretEntry(s))
+      }
+      when (!value.settings.toMap().isEmpty) {
+        ["settings"] = value.settings.toMap()
+      }
+      when (value.failure != null) { ["failure"] = value.failure }
+      when (value.detach != null) { ["detach"] = value.detach }
+      when (value.privileged != null) {
+        ["privileged"] = value.privileged
+      }
+      when (value.group != null) { ["group"] = value.group }
+      when (value.pull != null) { ["pull"] = value.pull }
+      when (!value.volumes.toList().isEmpty) {
+        ["volumes"] = value.volumes.toList()
+      }
+      when (value.`when` != null) {
+        ["when"] = renderWhen(value.`when`)
+      }
+      when (!value.depends_on.toList().isEmpty) {
+        ["depends_on"] = value.depends_on.toList()
+      }
+      when (value.directory != null) {
+        ["directory"] = value.directory
+      }
+      when (value.backend_options != null) {
+        ["backend_options"] = value.backend_options.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderService(value: Service) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["image"] = value.image
+      when (!value.ports.toList().isEmpty) {
+        ["ports"] = value.ports.toList()
+      }
+      when (!value.environment.toMap().isEmpty) {
+        ["environment"] = value.environment.toMap()
+      }
+      when (value.entrypoint != null) {
+        ["entrypoint"] = if (value.entrypoint is Listing) value.entrypoint.toList() else value.entrypoint
+      }
+      when (value.privileged != null) {
+        ["privileged"] = value.privileged
+      }
+    },
+    value.extra,
+  )
+
+local function renderClone(value: Clone) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.image != null) { ["image"] = value.image }
+      when (!value.settings.toMap().isEmpty) {
+        ["settings"] = value.settings.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`when` != null) { ["when"] = renderWhen(`when`) }
+      when (!labels.toMap().isEmpty) {
+        ["labels"] = labels.toMap()
+      }
+      when (!variables.toMap().isEmpty) {
+        ["variables"] = variables.toMap()
+      }
+      when (!matrix.toMap().isEmpty) {
+        ["matrix"] = matrix.toMap().mapValues((_, l) -> l.toList())
+      }
+      when (clone != null) { ["clone"] = renderClone(clone) }
+      when (skip_clone != null) { ["skip_clone"] = skip_clone }
+      when (!steps.toMap().isEmpty) {
+        ["steps"] = steps.toMap()
+          .mapValues((_, s) -> renderStep(s))
+      }
+      when (!services.toMap().isEmpty) {
+        ["services"] = services.toMap()
+          .mapValues((_, s) -> renderService(s))
+      }
+      when (!depends_on.toList().isEmpty) {
+        ["depends_on"] = depends_on.toList()
+      }
+      when (!runs_on.toList().isEmpty) {
+        ["runs_on"] = runs_on.toList()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

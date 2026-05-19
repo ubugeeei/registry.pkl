@@ -1,0 +1,63 @@
+/// Tests for `target.ci.circleci.CircleCi` rendering.
+amends "pkl:test"
+
+import "../circleci/CircleCi.pkl"
+
+local config = (CircleCi) {
+  orbs {
+    ["node"] = "circleci/node@5.2.0"
+  }
+  executors {
+    ["node-lts"] = new CircleCi.Executor {
+      docker {
+        new CircleCi.DockerImage {
+          image = "cimg/node:lts"
+        }
+      }
+      resourceClass = "large"
+    }
+  }
+  jobs {
+    ["build"] = new CircleCi.Job {
+      executor = "node-lts"
+      steps {
+        "checkout"
+        new Mapping<String, Any> {
+          ["run"] = new Mapping<String, Any> {
+            ["name"] = "Install deps"
+            ["command"] = "pnpm install"
+          }.toMap()
+        }
+      }
+    }
+  }
+  workflows {
+    ["main"] = new CircleCi.Workflow {
+      jobs {
+        "build"
+      }
+    }
+  }
+}
+
+facts {
+  ["version is 2.1"] {
+    config.rendered["version"] == 2.1
+  }
+  ["orbs map passes through"] {
+    config.rendered["orbs"]["node"] == "circleci/node@5.2.0"
+  }
+  ["executor docker images render"] {
+    config.rendered["executors"]["node-lts"]["docker"][0]["image"]
+      == "cimg/node:lts"
+  }
+  ["executor resourceClass uses snake_case"] {
+    config.rendered["executors"]["node-lts"]["resource_class"] == "large"
+  }
+  ["job step strings stay as strings"] {
+    config.rendered["jobs"]["build"]["steps"][0] == "checkout"
+  }
+  ["workflow jobs list emits"] {
+    config.rendered["workflows"]["main"]["jobs"] == List("build")
+  }
+}

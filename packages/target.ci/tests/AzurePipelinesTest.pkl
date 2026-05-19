@@ -1,0 +1,70 @@
+/// Tests for `target.ci.azurePipelines.AzurePipelines` rendering.
+amends "pkl:test"
+
+import "../azurePipelines/AzurePipelines.pkl"
+
+local config = (AzurePipelines) {
+  name = "$(Date:yyyyMMdd)$(Rev:.r)"
+  trigger = new AzurePipelines.TriggerBlock {
+    branches = new AzurePipelines.TriggerBranches {
+      include { "main"; "release/*" }
+      exclude { "experimental/*" }
+    }
+  }
+  pool = new AzurePipelines.Pool {
+    vmImage = "ubuntu-latest"
+  }
+  stages {
+    new AzurePipelines.Stage {
+      stage = "Build"
+      jobs {
+        new AzurePipelines.Job {
+          job = "build"
+          displayName = "Build"
+          pool = new AzurePipelines.Pool {
+            vmImage = "ubuntu-latest"
+          }
+          steps {
+            new AzurePipelines.Step {
+              script = "pnpm install"
+              displayName = "Install"
+            }
+            new AzurePipelines.Step {
+              task = "PublishTestResults@2"
+              displayName = "Publish test results"
+              inputs {
+                ["testResultsFormat"] = "JUnit"
+                ["testResultsFiles"] = "**/junit.xml"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+facts {
+  ["name passes through"] {
+    config.rendered["name"] == "$(Date:yyyyMMdd)$(Rev:.r)"
+  }
+  ["trigger branches include/exclude render"] {
+    local b = config.rendered["trigger"]["branches"]
+    b["include"] == List("main", "release/*")
+    b["exclude"] == List("experimental/*")
+  }
+  ["pool.vmImage passes through"] {
+    config.rendered["pool"]["vmImage"] == "ubuntu-latest"
+  }
+  ["stage with jobs and steps renders"] {
+    local stage = config.rendered["stages"][0]
+    stage["stage"] == "Build"
+    stage["jobs"][0]["job"] == "build"
+    stage["jobs"][0]["steps"][0]["script"] == "pnpm install"
+  }
+  ["task step with inputs renders inputs map"] {
+    local task = config.rendered["stages"][0]["jobs"][0]["steps"][1]
+    task["task"] == "PublishTestResults@2"
+    task["inputs"] == Map("testResultsFormat", "JUnit", "testResultsFiles", "**/junit.xml")
+  }
+}

@@ -1,0 +1,381 @@
+/// A typed authoring surface for Azure DevOps Pipelines (`azure-pipelines.yml`).
+///
+/// Reference: https://learn.microsoft.com/azure/devops/pipelines/yaml-schema
+module target.ci.azurePipelines.AzurePipelines
+
+import "@target.core/Maps.pkl" as Maps
+
+class Resources {
+  pipelines: Listing<Mapping<String, Any>> = new Listing {}
+  repositories: Listing<Mapping<String, Any>> = new Listing {}
+  containers: Listing<Mapping<String, Any>> = new Listing {}
+  packages: Listing<Mapping<String, Any>> = new Listing {}
+  webhooks: Listing<Mapping<String, Any>> = new Listing {}
+  builds: Listing<Mapping<String, Any>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class TriggerBranches {
+  include: Listing<String> = new Listing {}
+  exclude: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class TriggerBlock {
+  batch: Boolean? = null
+  branches: TriggerBranches? = null
+  paths: TriggerBranches? = null
+  tags: TriggerBranches? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Pool {
+  name: String? = null
+  vmImage: String? = null
+  demands: (String|Listing<String>)? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Strategy {
+  matrix: Mapping<String, Mapping<String, Any>> = new Mapping {}
+  maxParallel: Int? = null
+  parallel: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Step {
+  /// Step kind: usually `script`, `bash`, `pwsh`, `powershell`, `task`,
+  /// `template`, `publish`, `download`, `checkout`, `download`, etc.
+  /// We render whichever key is set first.
+  script: String? = null
+  bash: String? = null
+  pwsh: String? = null
+  powershell: String? = null
+  task: String? = null
+  template: String? = null
+  publish: String? = null
+  download: String? = null
+  checkout: String? = null
+  displayName: String? = null
+  name: String? = null
+  condition: String? = null
+  continueOnError: Boolean? = null
+  enabled: Boolean? = null
+  timeoutInMinutes: Int? = null
+  retryCountOnTaskFailure: Int? = null
+  env: Mapping<String, String> = new Mapping {}
+  inputs: Mapping<String, Any> = new Mapping {}
+  parameters: Mapping<String, Any> = new Mapping {}
+  workingDirectory: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Job {
+  job: String
+  displayName: String? = null
+  dependsOn: (String|Listing<String>)? = null
+  condition: String? = null
+  continueOnError: Boolean? = null
+  timeoutInMinutes: Int? = null
+  cancelTimeoutInMinutes: Int? = null
+  variables: (Mapping<String, Any>|Listing<Mapping<String, Any>>)? = null
+  strategy: Strategy? = null
+  pool: Pool? = null
+  workspace: Mapping<String, Any>? = null
+  container: (String|Mapping<String, Any>)? = null
+  services: Mapping<String, Any> = new Mapping {}
+  steps: Listing<Step> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Stage {
+  stage: String
+  displayName: String? = null
+  dependsOn: (String|Listing<String>)? = null
+  condition: String? = null
+  variables: (Mapping<String, Any>|Listing<Mapping<String, Any>>)? = null
+  jobs: Listing<Job> = new Listing {}
+  pool: Pool? = null
+  lockBehavior: ("sequential"|"runLatest")? = null
+  isSkippable: Boolean? = null
+  trigger: ("automatic"|"manual"|"none")? = null
+  templateContext: Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+name: String? = null
+trigger: (TriggerBlock|String|Listing<String>)? = null
+pr: (TriggerBlock|String|Listing<String>)? = null
+schedules: Listing<Mapping<String, Any>> = new Listing {}
+resources: Resources? = null
+variables: (Mapping<String, Any>|Listing<Mapping<String, Any>>)? = null
+parameters: Listing<Mapping<String, Any>> = new Listing {}
+pool: Pool? = null
+container: (String|Mapping<String, Any>)? = null
+strategy: Strategy? = null
+stages: Listing<Stage> = new Listing {}
+jobs: Listing<Job> = new Listing {}
+steps: Listing<Step> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderTriggerBranches(value: TriggerBranches) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.include.toList().isEmpty) {
+        ["include"] = value.include.toList()
+      }
+      when (!value.exclude.toList().isEmpty) {
+        ["exclude"] = value.exclude.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderTriggerBlock(value: TriggerBlock) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.batch != null) { ["batch"] = value.batch }
+      when (value.branches != null) {
+        ["branches"] = renderTriggerBranches(value.branches)
+      }
+      when (value.paths != null) {
+        ["paths"] = renderTriggerBranches(value.paths)
+      }
+      when (value.tags != null) {
+        ["tags"] = renderTriggerBranches(value.tags)
+      }
+    },
+    value.extra,
+  )
+
+local function renderTrigger(value: TriggerBlock|String|Listing<String>) =
+  if (value is TriggerBlock) renderTriggerBlock(value)
+  else if (value is Listing) value.toList()
+  else value
+
+local function renderPool(value: Pool) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.vmImage != null) { ["vmImage"] = value.vmImage }
+      when (value.demands != null) {
+        ["demands"] = if (value.demands is Listing) value.demands.toList() else value.demands
+      }
+    },
+    value.extra,
+  )
+
+local function renderStrategy(value: Strategy) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.matrix.toMap().isEmpty) {
+        ["matrix"] = value.matrix.toMap()
+          .mapValues((_, m) -> m.toMap())
+      }
+      when (value.maxParallel != null) {
+        ["maxParallel"] = value.maxParallel
+      }
+      when (value.parallel != null) {
+        ["parallel"] = value.parallel
+      }
+    },
+    value.extra,
+  )
+
+local function renderStep(value: Step) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.script != null) { ["script"] = value.script }
+      when (value.bash != null) { ["bash"] = value.bash }
+      when (value.pwsh != null) { ["pwsh"] = value.pwsh }
+      when (value.powershell != null) {
+        ["powershell"] = value.powershell
+      }
+      when (value.task != null) { ["task"] = value.task }
+      when (value.template != null) { ["template"] = value.template }
+      when (value.publish != null) { ["publish"] = value.publish }
+      when (value.download != null) { ["download"] = value.download }
+      when (value.checkout != null) { ["checkout"] = value.checkout }
+      when (value.displayName != null) {
+        ["displayName"] = value.displayName
+      }
+      when (value.name != null) { ["name"] = value.name }
+      when (value.condition != null) {
+        ["condition"] = value.condition
+      }
+      when (value.continueOnError != null) {
+        ["continueOnError"] = value.continueOnError
+      }
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (value.timeoutInMinutes != null) {
+        ["timeoutInMinutes"] = value.timeoutInMinutes
+      }
+      when (value.retryCountOnTaskFailure != null) {
+        ["retryCountOnTaskFailure"] = value.retryCountOnTaskFailure
+      }
+      when (!value.env.toMap().isEmpty) {
+        ["env"] = value.env.toMap()
+      }
+      when (!value.inputs.toMap().isEmpty) {
+        ["inputs"] = value.inputs.toMap()
+      }
+      when (!value.parameters.toMap().isEmpty) {
+        ["parameters"] = value.parameters.toMap()
+      }
+      when (value.workingDirectory != null) {
+        ["workingDirectory"] = value.workingDirectory
+      }
+    },
+    value.extra,
+  )
+
+local function renderVariables(value: Mapping<String, Any>|Listing<Mapping<String, Any>>) =
+  if (value is Listing)
+    value.toList().map((m) -> m.toMap())
+  else
+    value.toMap()
+
+local function renderJob(value: Job) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["job"] = value.job
+      when (value.displayName != null) {
+        ["displayName"] = value.displayName
+      }
+      when (value.dependsOn != null) {
+        ["dependsOn"] = if (value.dependsOn is Listing) value.dependsOn.toList() else value.dependsOn
+      }
+      when (value.condition != null) {
+        ["condition"] = value.condition
+      }
+      when (value.continueOnError != null) {
+        ["continueOnError"] = value.continueOnError
+      }
+      when (value.timeoutInMinutes != null) {
+        ["timeoutInMinutes"] = value.timeoutInMinutes
+      }
+      when (value.cancelTimeoutInMinutes != null) {
+        ["cancelTimeoutInMinutes"] = value.cancelTimeoutInMinutes
+      }
+      when (value.variables != null) {
+        ["variables"] = renderVariables(value.variables)
+      }
+      when (value.strategy != null) {
+        ["strategy"] = renderStrategy(value.strategy)
+      }
+      when (value.pool != null) { ["pool"] = renderPool(value.pool) }
+      when (value.workspace != null) {
+        ["workspace"] = value.workspace.toMap()
+      }
+      when (value.container != null) {
+        ["container"] = if (value.container is Mapping) value.container.toMap() else value.container
+      }
+      when (!value.services.toMap().isEmpty) {
+        ["services"] = value.services.toMap()
+      }
+      ["steps"] = value.steps.toList().map((s) -> renderStep(s))
+    },
+    value.extra,
+  )
+
+local function renderStage(value: Stage) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["stage"] = value.stage
+      when (value.displayName != null) {
+        ["displayName"] = value.displayName
+      }
+      when (value.dependsOn != null) {
+        ["dependsOn"] = if (value.dependsOn is Listing) value.dependsOn.toList() else value.dependsOn
+      }
+      when (value.condition != null) {
+        ["condition"] = value.condition
+      }
+      when (value.variables != null) {
+        ["variables"] = renderVariables(value.variables)
+      }
+      ["jobs"] = value.jobs.toList().map((j) -> renderJob(j))
+      when (value.pool != null) { ["pool"] = renderPool(value.pool) }
+      when (value.lockBehavior != null) {
+        ["lockBehavior"] = value.lockBehavior
+      }
+      when (value.isSkippable != null) {
+        ["isSkippable"] = value.isSkippable
+      }
+      when (value.trigger != null) {
+        ["trigger"] = value.trigger
+      }
+      when (value.templateContext != null) {
+        ["templateContext"] = value.templateContext.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderResources(value: Resources) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.pipelines.toList().isEmpty) {
+        ["pipelines"] = value.pipelines.toList().map((m) -> m.toMap())
+      }
+      when (!value.repositories.toList().isEmpty) {
+        ["repositories"] = value.repositories.toList().map((m) -> m.toMap())
+      }
+      when (!value.containers.toList().isEmpty) {
+        ["containers"] = value.containers.toList().map((m) -> m.toMap())
+      }
+      when (!value.packages.toList().isEmpty) {
+        ["packages"] = value.packages.toList().map((m) -> m.toMap())
+      }
+      when (!value.webhooks.toList().isEmpty) {
+        ["webhooks"] = value.webhooks.toList().map((m) -> m.toMap())
+      }
+      when (!value.builds.toList().isEmpty) {
+        ["builds"] = value.builds.toList().map((m) -> m.toMap())
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (name != null) { ["name"] = name }
+      when (trigger != null) { ["trigger"] = renderTrigger(trigger) }
+      when (pr != null) { ["pr"] = renderTrigger(pr) }
+      when (!schedules.toList().isEmpty) {
+        ["schedules"] = schedules.toList().map((m) -> m.toMap())
+      }
+      when (resources != null) {
+        ["resources"] = renderResources(resources)
+      }
+      when (variables != null) {
+        ["variables"] = renderVariables(variables)
+      }
+      when (!parameters.toList().isEmpty) {
+        ["parameters"] = parameters.toList().map((m) -> m.toMap())
+      }
+      when (pool != null) { ["pool"] = renderPool(pool) }
+      when (container != null) {
+        ["container"] = if (container is Mapping) container.toMap() else container
+      }
+      when (strategy != null) {
+        ["strategy"] = renderStrategy(strategy)
+      }
+      when (!stages.toList().isEmpty) {
+        ["stages"] = stages.toList().map((s) -> renderStage(s))
+      }
+      when (!jobs.toList().isEmpty) {
+        ["jobs"] = jobs.toList().map((j) -> renderJob(j))
+      }
+      when (!steps.toList().isEmpty) {
+        ["steps"] = steps.toList().map((s) -> renderStep(s))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

@@ -1,0 +1,67 @@
+/// Tests for `target.ci.buildkite.Buildkite` rendering.
+amends "pkl:test"
+
+import "../buildkite/Buildkite.pkl"
+
+local config = (Buildkite) {
+  env {
+    ["CI"] = "true"
+  }
+  agents {
+    ["queue"] = "default"
+  }
+  steps {
+    new Buildkite.CommandStep {
+      label = ":hammer: Build"
+      key = "build"
+      command = "pnpm build"
+      retry = new Buildkite.Retry {
+        automatic = true
+      }
+    }
+    new Buildkite.WaitStep {
+      wait = "~"
+      continue_on_failure = false
+    }
+    new Buildkite.BlockStep {
+      block = ":rocket: Release"
+      prompt = "Promote to production?"
+      blocked_state = "passed"
+      key = "release-block"
+    }
+    new Buildkite.CommandStep {
+      label = ":package: Deploy"
+      key = "deploy"
+      command = "pnpm deploy"
+      dependsOn { "release-block" }
+    }
+  }
+}
+
+facts {
+  ["env passes through"] {
+    config.rendered["env"] == Map("CI", "true")
+  }
+  ["agents pass through"] {
+    config.rendered["agents"] == Map("queue", "default")
+  }
+  ["command step emits label + key + command"] {
+    local s = config.rendered["steps"][0]
+    s["label"] == ":hammer: Build"
+    s["key"] == "build"
+    s["command"] == "pnpm build"
+  }
+  ["wait step renders wait key with ~"] {
+    config.rendered["steps"][1]["wait"] == "~"
+    config.rendered["steps"][1]["continue_on_failure"] == false
+  }
+  ["block step renders prompt + blocked_state"] {
+    local b = config.rendered["steps"][2]
+    b["block"] == ":rocket: Release"
+    b["prompt"] == "Promote to production?"
+    b["blocked_state"] == "passed"
+  }
+  ["depends_on uses snake_case"] {
+    config.rendered["steps"][3]["depends_on"] == List("release-block")
+  }
+}

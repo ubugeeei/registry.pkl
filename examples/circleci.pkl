@@ -1,0 +1,94 @@
+amends "@target.ci/circleci/CircleCi.pkl"
+
+orbs {
+  ["node"] = "circleci/node@5.2.0"
+  ["aws-cli"] = "circleci/aws-cli@4.1.3"
+}
+
+executors {
+  ["node-lts"] = new Executor {
+    docker {
+      new DockerImage {
+        image = "cimg/node:lts"
+      }
+    }
+    resourceClass = "large"
+  }
+  ["node-with-postgres"] = new Executor {
+    docker {
+      new DockerImage {
+        image = "cimg/node:lts"
+      }
+      new DockerImage {
+        image = "cimg/postgres:16.2"
+        environment {
+          ["POSTGRES_USER"] = "postgres"
+        }
+      }
+    }
+  }
+}
+
+commands {
+  ["restore-pnpm-cache"] = new Command {
+    description = "Restore pnpm store + node_modules"
+    steps {
+      new Mapping<String, Any> {
+        ["restore_cache"] = new Mapping<String, Any> {
+          ["keys"] = new Listing<String> {
+            "pnpm-{{ checksum \"pnpm-lock.yaml\" }}"
+            "pnpm-"
+          }.toList()
+        }.toMap()
+      }
+    }
+  }
+}
+
+jobs {
+  ["build"] = new Job {
+    executor = "node-lts"
+    steps {
+      "checkout"
+      "restore-pnpm-cache"
+      new Mapping<String, Any> {
+        ["run"] = new Mapping<String, Any> {
+          ["name"] = "Install dependencies"
+          ["command"] = "pnpm install --frozen-lockfile"
+        }.toMap()
+      }
+      new Mapping<String, Any> {
+        ["run"] = new Mapping<String, Any> {
+          ["name"] = "Build"
+          ["command"] = "pnpm build"
+        }.toMap()
+      }
+    }
+  }
+  ["test"] = new Job {
+    executor = "node-with-postgres"
+    steps {
+      "checkout"
+      "restore-pnpm-cache"
+      new Mapping<String, Any> {
+        ["run"] = new Mapping<String, Any> {
+          ["name"] = "Test"
+          ["command"] = "pnpm test"
+        }.toMap()
+      }
+    }
+  }
+}
+
+workflows {
+  ["main"] = new Workflow {
+    jobs {
+      "build"
+      new Mapping<String, WorkflowJob> {
+        ["test"] = new WorkflowJob {
+          requires { "build" }
+        }
+      }
+    }
+  }
+}
