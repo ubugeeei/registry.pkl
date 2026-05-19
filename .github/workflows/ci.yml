@@ -40,6 +40,18 @@ jobs:
       - name: Render every example
         run: bash scripts/render-examples.sh
 
+      - name: Setup Rust toolchain (for pkl-reference --check)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Verify api/ reference pages are in sync
+        run: |
+          cargo build --release -p pkl-reference
+          ./target/release/pkl-reference \
+            --packages-root packages \
+            --output packages/docs/content/reference/api \
+            --source-url-template "https://github.com/${{ github.repository }}/blob/main/packages/%path#L%line-L%endLine" \
+            --check
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -67,8 +79,12 @@ jobs:
         run: pnpm build
 
   rust:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,9 +106,11 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Format check
+        if: matrix.os == 'ubuntu-latest'
         run: cargo fmt --all -- --check
 
       - name: Clippy
+        if: matrix.os == 'ubuntu-latest'
         run: cargo clippy --release --all-targets -- -D warnings
 
       - name: Build

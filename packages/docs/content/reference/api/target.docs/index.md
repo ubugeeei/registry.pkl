@@ -9,6 +9,6 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 
 ## Modules
 
-- [`target.docs.Docusaurus`](./Docusaurus.html)
-- [`target.docs.Typedoc`](./Typedoc.html)
-- [`target.docs.Vitepress`](./Vitepress.html)
+- [`target.docs.docusaurus.Docusaurus`](./docusaurus/Docusaurus.html)
+- [`target.docs.typedoc.Typedoc`](./typedoc/Typedoc.html)
+- [`target.docs.vitepress.Vitepress`](./vitepress/Vitepress.html)

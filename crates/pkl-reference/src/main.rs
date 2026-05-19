@@ -35,6 +35,12 @@ struct Cli {
     /// Only render this family (e.g. `target.js`). Defaults to all.
     #[arg(long)]
     family: Option<String>,
+
+    /// Check that the on-disk output matches what we'd generate. Exits
+    /// 1 if anything would change. Useful in CI to keep the api/ tree
+    /// in sync with the Pkl module sources.
+    #[arg(long)]
+    check: bool,
 }
 
 fn main() -> Result<ExitCode> {
@@ -45,9 +51,13 @@ fn main() -> Result<ExitCode> {
             cli.packages_root.display()
         ));
     }
-    fs::create_dir_all(&cli.output).with_context(|| format!("create {}", cli.output.display()))?;
+    if !cli.check {
+        fs::create_dir_all(&cli.output)
+            .with_context(|| format!("create {}", cli.output.display()))?;
+    }
 
     let mut written = 0;
+    let mut drift: Vec<PathBuf> = Vec::new();
     let mut family_pages: Vec<(String, Vec<(String, PathBuf)>)> = Vec::new();
     for family_entry in fs::read_dir(&cli.packages_root)? {
         let family_dir = family_entry?.path();
@@ -86,15 +96,22 @@ fn main() -> Result<ExitCode> {
                 .collect();
             module_files.sort();
 
+            let module_dir_name = module_dir
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("")
+                .to_string();
             for src in module_files {
                 let module_basename = src
                     .file_stem()
                     .and_then(|s| s.to_str())
                     .unwrap_or("Module")
                     .to_string();
-                let label = format!("{family_name}.{module_basename}");
-                let out_dir = cli.output.join(&family_name);
-                fs::create_dir_all(&out_dir)?;
+                let label = format!("{family_name}.{module_dir_name}.{module_basename}");
+                let out_dir = cli.output.join(&family_name).join(&module_dir_name);
+                if !cli.check {
+                    fs::create_dir_all(&out_dir)?;
+                }
                 let out_path = out_dir.join(format!("{module_basename}.md"));
                 let url = cli.source_url_template.as_deref().map(|template| {
                     template.replace(
@@ -107,8 +124,14 @@ fn main() -> Result<ExitCode> {
                 });
                 let md = render_file(&src, &label, url.as_deref())
                     .with_context(|| format!("render {}", src.display()))?;
-                fs::write(&out_path, md)
-                    .with_context(|| format!("write {}", out_path.display()))?;
+                if cli.check {
+                    if fs::read_to_string(&out_path).ok().as_ref() != Some(&md) {
+                        drift.push(out_path.clone());
+                    }
+                } else {
+                    fs::write(&out_path, md)
+                        .with_context(|| format!("write {}", out_path.display()))?;
+                }
                 modules_for_family.push((label, out_path));
                 written += 1;
             }
@@ -125,17 +148,45 @@ fn main() -> Result<ExitCode> {
         entry.1.sort();
         let idx_path = cli.output.join(&entry.0).join("index.md");
         let body = render_family_index(&entry.0, &entry.1);
-        fs::write(&idx_path, body).with_context(|| format!("write {}", idx_path.display()))?;
+        if cli.check {
+            if fs::read_to_string(&idx_path).ok().as_ref() != Some(&body) {
+                drift.push(idx_path.clone());
+            }
+        } else {
+            fs::write(&idx_path, body).with_context(|| format!("write {}", idx_path.display()))?;
+        }
         written += 1;
     }
 
     // Emit a top-level api/index.md.
     let top_idx = cli.output.join("index.md");
-    fs::write(&top_idx, render_top_index(&family_pages))?;
+    let top_body = render_top_index(&family_pages);
+    if cli.check {
+        if fs::read_to_string(&top_idx).ok().as_ref() != Some(&top_body) {
+            drift.push(top_idx);
+        }
+    } else {
+        fs::write(&top_idx, top_body)?;
+    }
     written += 1;
 
-    eprintln!("wrote {written} page(s)");
-    Ok(ExitCode::SUCCESS)
+    if cli.check {
+        if drift.is_empty() {
+            eprintln!("OK: {written} page(s) are up to date");
+            Ok(ExitCode::SUCCESS)
+        } else {
+            eprintln!("DRIFT: {} page(s) differ from sources:", drift.len());
+            for p in &drift {
+                eprintln!("  - {}", p.display());
+            }
+            eprintln!();
+            eprintln!("Re-run `pkl-reference` without --check to regenerate.");
+            Ok(ExitCode::from(1))
+        }
+    } else {
+        eprintln!("wrote {written} page(s)");
+        Ok(ExitCode::SUCCESS)
+    }
 }
 
 fn render_family_index(family: &str, modules: &[(String, PathBuf)]) -> String {
@@ -150,11 +201,16 @@ fn render_family_index(family: &str, modules: &[(String, PathBuf)]) -> String {
     out.push_str("Auto-generated from the Pkl module sources. One section per shipped module.\n\n");
     out.push_str("## Modules\n\n");
     for (label, path) in modules {
+        let parent = path
+            .parent()
+            .and_then(|p| p.file_name())
+            .and_then(|s| s.to_str())
+            .unwrap_or("");
         let slug = path
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("module");
-        out.push_str(&format!("- [`{label}`](./{slug}.html)\n"));
+        out.push_str(&format!("- [`{label}`](./{parent}/{slug}.html)\n"));
     }
     out
 }

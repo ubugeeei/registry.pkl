@@ -16,6 +16,13 @@ body:
         - target.editor
         - target.agent
         - target.ci
+        - target.python
+        - target.lint
+        - target.container
+        - target.go
+        - target.deploy
+        - target.docs
+        - target.k8s
         - target.core
     validations:
       required: true

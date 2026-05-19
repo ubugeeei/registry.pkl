@@ -1,0 +1,52 @@
+name: Bug report
+description: A typed module renders the wrong thing, the validator misses a regression, or the docs break.
+title: "bug: <one-line summary>"
+labels:
+  - bug
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Concrete steps + the wrong output.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where does the bug live?
+      multiple: true
+      options:
+        - typed Pkl module (packages/target.*)
+        - validator CLI (crates/registry-validator)
+        - search index (crates/search-index)
+        - pkl-reference CLI
+        - release-cut CLI
+        - docs site
+        - CI workflow
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal repro
+      description: A `pkl eval ...` invocation or a small `.pkl` snippet that reproduces the issue.
+      render: pkl
+  - type: input
+    id: pkl-version
+    attributes:
+      label: Pkl version
+      description: Output of `pkl --version`. Required for module / renderer bugs.
+      placeholder: "Pkl 0.31.0"
+  - type: input
+    id: registry-version
+    attributes:
+      label: registry.pkl revision
+      description: Commit SHA or branch the issue was observed against.

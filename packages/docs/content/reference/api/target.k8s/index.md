@@ -9,6 +9,6 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 
 ## Modules
 
-- [`target.k8s.Chart`](./Chart.html)
-- [`target.k8s.Kustomization`](./Kustomization.html)
-- [`target.k8s.Values`](./Values.html)
+- [`target.k8s.helm-chart.Chart`](./helm-chart/Chart.html)
+- [`target.k8s.helm-values.Values`](./helm-values/Values.html)
+- [`target.k8s.kustomization.Kustomization`](./kustomization/Kustomization.html)

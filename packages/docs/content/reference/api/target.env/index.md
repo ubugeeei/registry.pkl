@@ -9,10 +9,10 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 
 ## Modules
 
-- [`target.env.Asdf`](./Asdf.html)
-- [`target.env.Deno`](./Deno.html)
-- [`target.env.Direnv`](./Direnv.html)
-- [`target.env.Mise`](./Mise.html)
-- [`target.env.Nvm`](./Nvm.html)
-- [`target.env.Proto`](./Proto.html)
-- [`target.env.Wrangler`](./Wrangler.html)
+- [`target.env.asdf.Asdf`](./asdf/Asdf.html)
+- [`target.env.deno.Deno`](./deno/Deno.html)
+- [`target.env.direnv.Direnv`](./direnv/Direnv.html)
+- [`target.env.mise.Mise`](./mise/Mise.html)
+- [`target.env.nvm.Nvm`](./nvm/Nvm.html)
+- [`target.env.proto.Proto`](./proto/Proto.html)
+- [`target.env.wrangler.Wrangler`](./wrangler/Wrangler.html)
