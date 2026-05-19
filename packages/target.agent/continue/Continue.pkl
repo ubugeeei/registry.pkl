@@ -1,0 +1,250 @@
+/// A typed authoring surface for Continue's `~/.continue/config.json`.
+///
+/// Reference: https://docs.continue.dev/reference/config
+module target.agent.continue.Continue
+
+import "@target.core/Maps.pkl" as Maps
+
+class CompletionOptions {
+  temperature: Float? = null
+  topP: Float? = null
+  topK: Int? = null
+  presencePenalty: Float? = null
+  frequencyPenalty: Float? = null
+  maxTokens: Int? = null
+  stop: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Model {
+  title: String
+  provider: String
+  model: String
+  apiKey: String? = null
+  apiBase: String? = null
+  apiType: String? = null
+  region: String? = null
+  contextLength: Int? = null
+  template: String? = null
+  systemMessage: String? = null
+  completionOptions: CompletionOptions? = null
+  capabilities: Mapping<String, Boolean> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class SlashCommand {
+  name: String
+  description: String? = null
+  step: String? = null
+  params: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ContextProvider {
+  name: String
+  params: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Embeddings {
+  provider: String
+  model: String? = null
+  apiKey: String? = null
+  apiBase: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class TabAutocomplete {
+  disable: Boolean? = null
+  useCache: Boolean? = null
+  useFileSuffix: Boolean? = null
+  maxPromptTokens: Int? = null
+  debounceDelay: Int? = null
+  maxSuffixPercentage: Float? = null
+  prefixPercentage: Float? = null
+  template: String? = null
+  multilineCompletions: ("auto"|"always"|"never")? = null
+  useOtherFiles: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+models: Listing<Model> = new Listing {}
+tabAutocompleteModel: Model? = null
+embeddingsProvider: Embeddings? = null
+slashCommands: Listing<SlashCommand> = new Listing {}
+contextProviders: Listing<ContextProvider> = new Listing {}
+customCommands: Listing<Mapping<String, Any>> = new Listing {}
+allowAnonymousTelemetry: Boolean? = null
+disableIndexing: Boolean? = null
+disableSessionTitles: Boolean? = null
+tabAutocompleteOptions: TabAutocomplete? = null
+systemMessage: String? = null
+ui: Mapping<String, Any>? = null
+experimental: Mapping<String, Any>? = null
+docs: Listing<Mapping<String, Any>> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderCompletion(value: CompletionOptions) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.temperature != null) {
+        ["temperature"] = value.temperature
+      }
+      when (value.topP != null) { ["topP"] = value.topP }
+      when (value.topK != null) { ["topK"] = value.topK }
+      when (value.presencePenalty != null) {
+        ["presencePenalty"] = value.presencePenalty
+      }
+      when (value.frequencyPenalty != null) {
+        ["frequencyPenalty"] = value.frequencyPenalty
+      }
+      when (value.maxTokens != null) { ["maxTokens"] = value.maxTokens }
+      when (!value.stop.toList().isEmpty) {
+        ["stop"] = value.stop.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderModel(value: Model) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["title"] = value.title
+      ["provider"] = value.provider
+      ["model"] = value.model
+      when (value.apiKey != null) { ["apiKey"] = value.apiKey }
+      when (value.apiBase != null) { ["apiBase"] = value.apiBase }
+      when (value.apiType != null) { ["apiType"] = value.apiType }
+      when (value.region != null) { ["region"] = value.region }
+      when (value.contextLength != null) {
+        ["contextLength"] = value.contextLength
+      }
+      when (value.template != null) { ["template"] = value.template }
+      when (value.systemMessage != null) {
+        ["systemMessage"] = value.systemMessage
+      }
+      when (value.completionOptions != null) {
+        ["completionOptions"] = renderCompletion(value.completionOptions)
+      }
+      when (!value.capabilities.toMap().isEmpty) {
+        ["capabilities"] = value.capabilities.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSlash(value: SlashCommand) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = value.name
+      when (value.description != null) {
+        ["description"] = value.description
+      }
+      when (value.step != null) { ["step"] = value.step }
+      when (!value.params.toMap().isEmpty) {
+        ["params"] = value.params.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderContextProvider(value: ContextProvider) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = value.name
+      when (!value.params.toMap().isEmpty) {
+        ["params"] = value.params.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderEmbeddings(value: Embeddings) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["provider"] = value.provider
+      when (value.model != null) { ["model"] = value.model }
+      when (value.apiKey != null) { ["apiKey"] = value.apiKey }
+      when (value.apiBase != null) { ["apiBase"] = value.apiBase }
+    },
+    value.extra,
+  )
+
+local function renderTabAutocomplete(value: TabAutocomplete) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.disable != null) { ["disable"] = value.disable }
+      when (value.useCache != null) { ["useCache"] = value.useCache }
+      when (value.useFileSuffix != null) {
+        ["useFileSuffix"] = value.useFileSuffix
+      }
+      when (value.maxPromptTokens != null) {
+        ["maxPromptTokens"] = value.maxPromptTokens
+      }
+      when (value.debounceDelay != null) {
+        ["debounceDelay"] = value.debounceDelay
+      }
+      when (value.maxSuffixPercentage != null) {
+        ["maxSuffixPercentage"] = value.maxSuffixPercentage
+      }
+      when (value.prefixPercentage != null) {
+        ["prefixPercentage"] = value.prefixPercentage
+      }
+      when (value.template != null) { ["template"] = value.template }
+      when (value.multilineCompletions != null) {
+        ["multilineCompletions"] = value.multilineCompletions
+      }
+      when (value.useOtherFiles != null) {
+        ["useOtherFiles"] = value.useOtherFiles
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!models.toList().isEmpty) {
+        ["models"] = models.toList().map((m) -> renderModel(m))
+      }
+      when (tabAutocompleteModel != null) {
+        ["tabAutocompleteModel"] = renderModel(tabAutocompleteModel)
+      }
+      when (embeddingsProvider != null) {
+        ["embeddingsProvider"] = renderEmbeddings(embeddingsProvider)
+      }
+      when (!slashCommands.toList().isEmpty) {
+        ["slashCommands"] = slashCommands.toList().map((s) -> renderSlash(s))
+      }
+      when (!contextProviders.toList().isEmpty) {
+        ["contextProviders"] = contextProviders.toList().map((c) -> renderContextProvider(c))
+      }
+      when (!customCommands.toList().isEmpty) {
+        ["customCommands"] = customCommands.toList().map((m) -> m.toMap())
+      }
+      when (allowAnonymousTelemetry != null) {
+        ["allowAnonymousTelemetry"] = allowAnonymousTelemetry
+      }
+      when (disableIndexing != null) {
+        ["disableIndexing"] = disableIndexing
+      }
+      when (disableSessionTitles != null) {
+        ["disableSessionTitles"] = disableSessionTitles
+      }
+      when (tabAutocompleteOptions != null) {
+        ["tabAutocompleteOptions"] = renderTabAutocomplete(tabAutocompleteOptions)
+      }
+      when (systemMessage != null) { ["systemMessage"] = systemMessage }
+      when (ui != null) { ["ui"] = ui.toMap() }
+      when (experimental != null) { ["experimental"] = experimental.toMap() }
+      when (!docs.toList().isEmpty) {
+        ["docs"] = docs.toList().map((m) -> m.toMap())
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

@@ -1,0 +1,52 @@
+/// Tests for `target.agent.aider.Aider` rendering.
+amends "pkl:test"
+
+import "../aider/Aider.pkl"
+
+local config = (Aider) {
+  model = "claude-3-5-sonnet-20241022"
+  editFormat = "diff"
+  darkMode = true
+  autoCommits = false
+  files {
+    "src/index.ts"
+  }
+  `read` {
+    "CONVENTIONS.md"
+  }
+  lint = new Aider.Lint {
+    lint_cmds {
+      ["typescript"] = "pnpm tsc --noEmit"
+      ["python"] = "ruff check"
+    }
+  }
+  yes = true
+}
+
+facts {
+  ["model passes through"] {
+    config.rendered["model"] == "claude-3-5-sonnet-20241022"
+  }
+  ["edit-format uses kebab-case key"] {
+    config.rendered["edit-format"] == "diff"
+  }
+  ["dark-mode emits"] {
+    config.rendered["dark-mode"] == true
+  }
+  ["auto-commits maps from camelCase"] {
+    config.rendered["auto-commits"] == false
+  }
+  ["files key emits as 'file' (Aider's actual key)"] {
+    config.rendered["file"] == List("src/index.ts")
+  }
+  ["read list emits"] {
+    config.rendered["read"] == List("CONVENTIONS.md")
+  }
+  ["lint.lint-cmds renders as nested map"] {
+    config.rendered["lint"]["lint-cmds"]
+      == Map("typescript", "pnpm tsc --noEmit", "python", "ruff check")
+  }
+  ["yes maps to yes-always"] {
+    config.rendered["yes-always"] == true
+  }
+}

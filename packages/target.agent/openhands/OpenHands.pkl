@@ -1,0 +1,393 @@
+/// A typed authoring surface for OpenHands (All Hands AI) `config.toml`.
+///
+/// Reference: https://docs.all-hands.dev/usage/configuration-options
+module target.agent.openhands.OpenHands
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class LlmConfig {
+  model: String? = null
+  apiKey: String? = null
+  apiBase: String? = null
+  apiVersion: String? = null
+  embeddingModel: String? = null
+  embeddingBaseUrl: String? = null
+  embeddingDeploymentName: String? = null
+  awsAccessKeyId: String? = null
+  awsSecretAccessKey: String? = null
+  awsRegionName: String? = null
+  openrouterSiteUrl: String? = null
+  openrouterAppName: String? = null
+  numRetries: Int? = null
+  retryMultiplier: Float? = null
+  retryMinWait: Int? = null
+  retryMaxWait: Int? = null
+  timeout: Int? = null
+  maxMessageChars: Int? = null
+  temperature: Float? = null
+  topP: Float? = null
+  customLlmProvider: String? = null
+  maxInputTokens: Int? = null
+  maxOutputTokens: Int? = null
+  inputCostPerToken: Float? = null
+  outputCostPerToken: Float? = null
+  ollamaBaseUrl: String? = null
+  drop_params: Boolean? = null
+  modify_params: Boolean? = null
+  disable_vision: Boolean? = null
+  caching_prompt: Boolean? = null
+  log_completions: Boolean? = null
+  log_completions_folder: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class AgentConfig {
+  llm_config: String? = null
+  enable_browsing: Boolean? = null
+  enable_llm_editor: Boolean? = null
+  enable_jupyter: Boolean? = null
+  enable_history_truncation: Boolean? = null
+  enable_prompt_extensions: Boolean? = null
+  disabled_microagents: Listing<String> = new Listing {}
+  enable_som_visual_browsing: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class SandboxConfig {
+  base_container_image: String? = null
+  runtime_container_image: String? = null
+  runtime_extra_deps: String? = null
+  runtime_startup_env_vars: Mapping<String, String> = new Mapping {}
+  user_id: Int? = null
+  timeout: Int? = null
+  enable_auto_lint: Boolean? = null
+  use_host_network: Boolean? = null
+  initialize_plugins: Boolean? = null
+  force_rebuild_runtime: Boolean? = null
+  keep_runtime_alive: Boolean? = null
+  pause_closed_runtimes: Boolean? = null
+  api_key: String? = null
+  remote_runtime_api_url: String? = null
+  local_runtime_url: String? = null
+  remote_runtime_init_timeout: Int? = null
+  remote_runtime_resource_factor: Int? = null
+  enable_gpu: Boolean? = null
+  volumes: String? = null
+  selected_repo: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class CoreConfig {
+  workspace_base: String? = null
+  workspace_mount_path: String? = null
+  workspace_mount_path_in_sandbox: String? = null
+  workspace_mount_rewrite: String? = null
+  cache_dir: String? = null
+  debug: Boolean? = null
+  disable_color: Boolean? = null
+  save_trajectory_path: String? = null
+  replay_trajectory_path: String? = null
+  file_store: String? = null
+  file_store_path: String? = null
+  file_uploads_allowed_extensions: Listing<String> = new Listing {}
+  file_uploads_max_file_size_mb: Int? = null
+  file_uploads_restrict_file_types: Boolean? = null
+  max_iterations: Int? = null
+  max_budget_per_task: Float? = null
+  default_agent: String? = null
+  jwt_secret: String? = null
+  runtime: String? = null
+  conversation_max_age_seconds: Int? = null
+  enable_default_condenser: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+core: CoreConfig? = null
+llm: LlmConfig? = null
+agent: AgentConfig? = null
+sandbox: SandboxConfig? = null
+namedLlm: Mapping<String, LlmConfig> = new Mapping {}
+namedAgent: Mapping<String, AgentConfig> = new Mapping {}
+security: Mapping<String, Any>? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderLlm(value: LlmConfig) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.model != null) { ["model"] = value.model }
+      when (value.apiKey != null) { ["api_key"] = value.apiKey }
+      when (value.apiBase != null) { ["base_url"] = value.apiBase }
+      when (value.apiVersion != null) {
+        ["api_version"] = value.apiVersion
+      }
+      when (value.embeddingModel != null) {
+        ["embedding_model"] = value.embeddingModel
+      }
+      when (value.embeddingBaseUrl != null) {
+        ["embedding_base_url"] = value.embeddingBaseUrl
+      }
+      when (value.embeddingDeploymentName != null) {
+        ["embedding_deployment_name"] = value.embeddingDeploymentName
+      }
+      when (value.awsAccessKeyId != null) {
+        ["aws_access_key_id"] = value.awsAccessKeyId
+      }
+      when (value.awsSecretAccessKey != null) {
+        ["aws_secret_access_key"] = value.awsSecretAccessKey
+      }
+      when (value.awsRegionName != null) {
+        ["aws_region_name"] = value.awsRegionName
+      }
+      when (value.openrouterSiteUrl != null) {
+        ["openrouter_site_url"] = value.openrouterSiteUrl
+      }
+      when (value.openrouterAppName != null) {
+        ["openrouter_app_name"] = value.openrouterAppName
+      }
+      when (value.numRetries != null) {
+        ["num_retries"] = value.numRetries
+      }
+      when (value.retryMultiplier != null) {
+        ["retry_multiplier"] = value.retryMultiplier
+      }
+      when (value.retryMinWait != null) {
+        ["retry_min_wait"] = value.retryMinWait
+      }
+      when (value.retryMaxWait != null) {
+        ["retry_max_wait"] = value.retryMaxWait
+      }
+      when (value.timeout != null) { ["timeout"] = value.timeout }
+      when (value.maxMessageChars != null) {
+        ["max_message_chars"] = value.maxMessageChars
+      }
+      when (value.temperature != null) {
+        ["temperature"] = value.temperature
+      }
+      when (value.topP != null) { ["top_p"] = value.topP }
+      when (value.customLlmProvider != null) {
+        ["custom_llm_provider"] = value.customLlmProvider
+      }
+      when (value.maxInputTokens != null) {
+        ["max_input_tokens"] = value.maxInputTokens
+      }
+      when (value.maxOutputTokens != null) {
+        ["max_output_tokens"] = value.maxOutputTokens
+      }
+      when (value.inputCostPerToken != null) {
+        ["input_cost_per_token"] = value.inputCostPerToken
+      }
+      when (value.outputCostPerToken != null) {
+        ["output_cost_per_token"] = value.outputCostPerToken
+      }
+      when (value.ollamaBaseUrl != null) {
+        ["ollama_base_url"] = value.ollamaBaseUrl
+      }
+      when (value.drop_params != null) {
+        ["drop_params"] = value.drop_params
+      }
+      when (value.modify_params != null) {
+        ["modify_params"] = value.modify_params
+      }
+      when (value.disable_vision != null) {
+        ["disable_vision"] = value.disable_vision
+      }
+      when (value.caching_prompt != null) {
+        ["caching_prompt"] = value.caching_prompt
+      }
+      when (value.log_completions != null) {
+        ["log_completions"] = value.log_completions
+      }
+      when (value.log_completions_folder != null) {
+        ["log_completions_folder"] = value.log_completions_folder
+      }
+    },
+    value.extra,
+  )
+
+local function renderAgent(value: AgentConfig) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.llm_config != null) {
+        ["llm_config"] = value.llm_config
+      }
+      when (value.enable_browsing != null) {
+        ["enable_browsing"] = value.enable_browsing
+      }
+      when (value.enable_llm_editor != null) {
+        ["enable_llm_editor"] = value.enable_llm_editor
+      }
+      when (value.enable_jupyter != null) {
+        ["enable_jupyter"] = value.enable_jupyter
+      }
+      when (value.enable_history_truncation != null) {
+        ["enable_history_truncation"] = value.enable_history_truncation
+      }
+      when (value.enable_prompt_extensions != null) {
+        ["enable_prompt_extensions"] = value.enable_prompt_extensions
+      }
+      when (!value.disabled_microagents.toList().isEmpty) {
+        ["disabled_microagents"] = value.disabled_microagents.toList()
+      }
+      when (value.enable_som_visual_browsing != null) {
+        ["enable_som_visual_browsing"] = value.enable_som_visual_browsing
+      }
+    },
+    value.extra,
+  )
+
+local function renderSandbox(value: SandboxConfig) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.base_container_image != null) {
+        ["base_container_image"] = value.base_container_image
+      }
+      when (value.runtime_container_image != null) {
+        ["runtime_container_image"] = value.runtime_container_image
+      }
+      when (value.runtime_extra_deps != null) {
+        ["runtime_extra_deps"] = value.runtime_extra_deps
+      }
+      when (!value.runtime_startup_env_vars.toMap().isEmpty) {
+        ["runtime_startup_env_vars"] = value.runtime_startup_env_vars.toMap()
+      }
+      when (value.user_id != null) { ["user_id"] = value.user_id }
+      when (value.timeout != null) { ["timeout"] = value.timeout }
+      when (value.enable_auto_lint != null) {
+        ["enable_auto_lint"] = value.enable_auto_lint
+      }
+      when (value.use_host_network != null) {
+        ["use_host_network"] = value.use_host_network
+      }
+      when (value.initialize_plugins != null) {
+        ["initialize_plugins"] = value.initialize_plugins
+      }
+      when (value.force_rebuild_runtime != null) {
+        ["force_rebuild_runtime"] = value.force_rebuild_runtime
+      }
+      when (value.keep_runtime_alive != null) {
+        ["keep_runtime_alive"] = value.keep_runtime_alive
+      }
+      when (value.pause_closed_runtimes != null) {
+        ["pause_closed_runtimes"] = value.pause_closed_runtimes
+      }
+      when (value.api_key != null) { ["api_key"] = value.api_key }
+      when (value.remote_runtime_api_url != null) {
+        ["remote_runtime_api_url"] = value.remote_runtime_api_url
+      }
+      when (value.local_runtime_url != null) {
+        ["local_runtime_url"] = value.local_runtime_url
+      }
+      when (value.remote_runtime_init_timeout != null) {
+        ["remote_runtime_init_timeout"] = value.remote_runtime_init_timeout
+      }
+      when (value.remote_runtime_resource_factor != null) {
+        ["remote_runtime_resource_factor"] =
+          value.remote_runtime_resource_factor
+      }
+      when (value.enable_gpu != null) {
+        ["enable_gpu"] = value.enable_gpu
+      }
+      when (value.volumes != null) { ["volumes"] = value.volumes }
+      when (value.selected_repo != null) {
+        ["selected_repo"] = value.selected_repo
+      }
+    },
+    value.extra,
+  )
+
+local function renderCore(value: CoreConfig) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.workspace_base != null) {
+        ["workspace_base"] = value.workspace_base
+      }
+      when (value.workspace_mount_path != null) {
+        ["workspace_mount_path"] = value.workspace_mount_path
+      }
+      when (value.workspace_mount_path_in_sandbox != null) {
+        ["workspace_mount_path_in_sandbox"] =
+          value.workspace_mount_path_in_sandbox
+      }
+      when (value.workspace_mount_rewrite != null) {
+        ["workspace_mount_rewrite"] = value.workspace_mount_rewrite
+      }
+      when (value.cache_dir != null) { ["cache_dir"] = value.cache_dir }
+      when (value.debug != null) { ["debug"] = value.debug }
+      when (value.disable_color != null) {
+        ["disable_color"] = value.disable_color
+      }
+      when (value.save_trajectory_path != null) {
+        ["save_trajectory_path"] = value.save_trajectory_path
+      }
+      when (value.replay_trajectory_path != null) {
+        ["replay_trajectory_path"] = value.replay_trajectory_path
+      }
+      when (value.file_store != null) {
+        ["file_store"] = value.file_store
+      }
+      when (value.file_store_path != null) {
+        ["file_store_path"] = value.file_store_path
+      }
+      when (!value.file_uploads_allowed_extensions.toList().isEmpty) {
+        ["file_uploads_allowed_extensions"] =
+          value.file_uploads_allowed_extensions.toList()
+      }
+      when (value.file_uploads_max_file_size_mb != null) {
+        ["file_uploads_max_file_size_mb"] =
+          value.file_uploads_max_file_size_mb
+      }
+      when (value.file_uploads_restrict_file_types != null) {
+        ["file_uploads_restrict_file_types"] =
+          value.file_uploads_restrict_file_types
+      }
+      when (value.max_iterations != null) {
+        ["max_iterations"] = value.max_iterations
+      }
+      when (value.max_budget_per_task != null) {
+        ["max_budget_per_task"] = value.max_budget_per_task
+      }
+      when (value.default_agent != null) {
+        ["default_agent"] = value.default_agent
+      }
+      when (value.jwt_secret != null) {
+        ["jwt_secret"] = value.jwt_secret
+      }
+      when (value.runtime != null) { ["runtime"] = value.runtime }
+      when (value.conversation_max_age_seconds != null) {
+        ["conversation_max_age_seconds"] =
+          value.conversation_max_age_seconds
+      }
+      when (value.enable_default_condenser != null) {
+        ["enable_default_condenser"] = value.enable_default_condenser
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (core != null) { ["core"] = renderCore(core) }
+      when (llm != null) { ["llm"] = renderLlm(llm) }
+      when (agent != null) { ["agent"] = renderAgent(agent) }
+      when (sandbox != null) { ["sandbox"] = renderSandbox(sandbox) }
+      when (!namedLlm.toMap().isEmpty) {
+        ["llm.named"] = namedLlm.toMap()
+          .mapValues((_, l) -> renderLlm(l))
+      }
+      when (!namedAgent.toMap().isEmpty) {
+        ["agent.named"] = namedAgent.toMap()
+          .mapValues((_, a) -> renderAgent(a))
+      }
+      when (security != null) {
+        ["security"] = security.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

@@ -1,0 +1,65 @@
+/// Tests for `target.agent.geminiCli.GeminiCli` rendering.
+amends "pkl:test"
+
+import "../geminiCli/GeminiCli.pkl"
+import "../mcp/Core.pkl" as mcp
+
+local config = (GeminiCli) {
+  theme = "GitHub"
+  model = "gemini-2.0-flash"
+  selectedAuthType = "use-gemini"
+  sandbox = "docker"
+  checkpointing = true
+  hideBanner = true
+  contextFileName = new Listing<String> { "GEMINI.md"; "AGENTS.md" }
+  mcpServers {
+    ["filesystem"] = new mcp.StdioServer {
+      command = "npx"
+      args { "-y"; "@modelcontextprotocol/server-filesystem"; "/workspace" }
+    }
+    ["github"] = new mcp.RemoteServer {
+      type = "http"
+      url = "https://mcp.github.com"
+      headers {
+        ["Authorization"] = "Bearer $GH_TOKEN"
+      }
+    }
+  }
+  excludeTools { "WebFetchTool" }
+  telemetry = new GeminiCli.Telemetry {
+    enabled = false
+    target = "local"
+  }
+}
+
+facts {
+  ["scalars pass through"] {
+    config.rendered["theme"] == "GitHub"
+    config.rendered["model"] == "gemini-2.0-flash"
+    config.rendered["selectedAuthType"] == "use-gemini"
+  }
+  ["sandbox as string passes through"] {
+    config.rendered["sandbox"] == "docker"
+  }
+  ["contextFileName listing flattens"] {
+    config.rendered["contextFileName"] == List("GEMINI.md", "AGENTS.md")
+  }
+  ["stdio mcp server renders command + args"] {
+    local fs = config.rendered["mcpServers"]["filesystem"]
+    fs["command"] == "npx"
+    fs["args"] == List("-y", "@modelcontextprotocol/server-filesystem", "/workspace")
+  }
+  ["remote mcp server renders type + url + headers"] {
+    local gh = config.rendered["mcpServers"]["github"]
+    gh["type"] == "http"
+    gh["url"] == "https://mcp.github.com"
+    gh["headers"] == Map("Authorization", "Bearer $GH_TOKEN")
+  }
+  ["excludeTools list emits"] {
+    config.rendered["excludeTools"] == List("WebFetchTool")
+  }
+  ["telemetry block emits"] {
+    config.rendered["telemetry"]["enabled"] == false
+    config.rendered["telemetry"]["target"] == "local"
+  }
+}

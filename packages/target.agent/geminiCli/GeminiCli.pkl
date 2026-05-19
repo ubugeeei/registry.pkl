@@ -1,0 +1,146 @@
+/// A typed authoring surface for the Gemini CLI's `~/.config/gemini/config.json`.
+///
+/// Reference: https://github.com/google-gemini/gemini-cli
+module target.agent.geminiCli.GeminiCli
+
+import "@target.core/Maps.pkl" as Maps
+import "../mcp/Core.pkl" as mcp
+
+class ToolRegistry {
+  command: String? = null
+  trustedFolders: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Telemetry {
+  enabled: Boolean? = null
+  target: ("local"|"gcp")? = null
+  otlpEndpoint: String? = null
+  logPrompts: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+theme: String? = null
+model: String? = null
+selectedAuthType: ("login-with-google"|"use-gemini"|"use-vertex-ai"|"cloud-shell")? = null
+sandbox: (Boolean|String)? = null
+checkpointing: Boolean? = null
+showMemoryUsage: Boolean? = null
+autoAccept: Boolean? = null
+preferredEditor: ("vscode"|"nano"|"vim"|"neovim"|"emacs"|String)? = null
+fileFiltering: Mapping<String, Any>? = null
+contextFileName: (String|Listing<String>)? = null
+hideTips: Boolean? = null
+hideBanner: Boolean? = null
+mcpServers: Mapping<String, mcp.Server> = new Mapping {}
+excludeTools: Listing<String> = new Listing {}
+toolDiscovery: ToolRegistry? = null
+telemetry: Telemetry? = null
+usageStatisticsEnabled: Boolean? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderTelemetry(value: Telemetry) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (value.target != null) { ["target"] = value.target }
+      when (value.otlpEndpoint != null) {
+        ["otlpEndpoint"] = value.otlpEndpoint
+      }
+      when (value.logPrompts != null) {
+        ["logPrompts"] = value.logPrompts
+      }
+    },
+    value.extra,
+  )
+
+local function renderToolRegistry(value: ToolRegistry) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.command != null) { ["command"] = value.command }
+      when (!value.trustedFolders.toList().isEmpty) {
+        ["trustedFolders"] = value.trustedFolders.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderServer(value: mcp.Server) =
+  if (value is mcp.StdioServer)
+    Maps.withExtra(
+      new Mapping<String, Any> {
+        when (value.type != null) { ["type"] = value.type }
+        ["command"] = value.command
+        when (!value.args.toList().isEmpty) {
+          ["args"] = value.args.toList()
+        }
+        when (!value.env.toMap().isEmpty) {
+          ["env"] = value.env.toMap()
+        }
+        when (value.envFile != null) { ["envFile"] = value.envFile }
+      },
+      value.extra,
+    )
+  else
+    Maps.withExtra(
+      new Mapping<String, Any> {
+        when (value.type != null) { ["type"] = value.type }
+        ["url"] = value.url
+        when (!value.headers.toMap().isEmpty) {
+          ["headers"] = value.headers.toMap()
+        }
+      },
+      value.extra,
+    )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (theme != null) { ["theme"] = theme }
+      when (model != null) { ["model"] = model }
+      when (selectedAuthType != null) {
+        ["selectedAuthType"] = selectedAuthType
+      }
+      when (sandbox != null) { ["sandbox"] = sandbox }
+      when (checkpointing != null) { ["checkpointing"] = checkpointing }
+      when (showMemoryUsage != null) {
+        ["showMemoryUsage"] = showMemoryUsage
+      }
+      when (autoAccept != null) { ["autoAccept"] = autoAccept }
+      when (preferredEditor != null) {
+        ["preferredEditor"] = preferredEditor
+      }
+      when (fileFiltering != null) {
+        ["fileFiltering"] = fileFiltering.toMap()
+      }
+      when (contextFileName != null) {
+        ["contextFileName"] =
+          if (contextFileName is Listing) contextFileName.toList()
+          else contextFileName
+      }
+      when (hideTips != null) { ["hideTips"] = hideTips }
+      when (hideBanner != null) { ["hideBanner"] = hideBanner }
+      when (!mcpServers.toMap().isEmpty) {
+        ["mcpServers"] = mcpServers.toMap()
+          .mapValues((_, s) -> renderServer(s))
+      }
+      when (!excludeTools.toList().isEmpty) {
+        ["excludeTools"] = excludeTools.toList()
+      }
+      when (toolDiscovery != null) {
+        ["toolDiscovery"] = renderToolRegistry(toolDiscovery)
+      }
+      when (telemetry != null) {
+        ["telemetry"] = renderTelemetry(telemetry)
+      }
+      when (usageStatisticsEnabled != null) {
+        ["usageStatisticsEnabled"] = usageStatisticsEnabled
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

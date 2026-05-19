@@ -1,0 +1,74 @@
+amends "@target.agent/openhands/OpenHands.pkl"
+
+core = new CoreConfig {
+  workspace_base = "/workspace"
+  workspace_mount_path_in_sandbox = "/workspace"
+  cache_dir = "/tmp/cache"
+  max_iterations = 250
+  max_budget_per_task = 10.0
+  default_agent = "CodeActAgent"
+  runtime = "docker"
+  debug = false
+  disable_color = false
+  file_uploads_allowed_extensions {
+    ".pkl"
+    ".md"
+    ".json"
+    ".toml"
+  }
+  file_uploads_max_file_size_mb = 16
+  enable_default_condenser = true
+}
+
+llm = new LlmConfig {
+  model = "anthropic/claude-3-5-sonnet-20241022"
+  apiKey = "$ANTHROPIC_API_KEY"
+  maxInputTokens = 200000
+  maxOutputTokens = 4096
+  temperature = 0.0
+  topP = 1.0
+  caching_prompt = true
+  drop_params = false
+  numRetries = 5
+  retryMultiplier = 2.0
+  retryMinWait = 4
+  retryMaxWait = 60
+  timeout = 600
+}
+
+agent = new AgentConfig {
+  enable_browsing = true
+  enable_jupyter = true
+  enable_history_truncation = true
+  enable_prompt_extensions = true
+  enable_som_visual_browsing = false
+  disabled_microagents {
+    "experimental"
+  }
+}
+
+sandbox = new SandboxConfig {
+  base_container_image = "nikolaik/python-nodejs:python3.12-nodejs22"
+  runtime_extra_deps = "pkl"
+  user_id = 1000
+  timeout = 600
+  enable_auto_lint = true
+  use_host_network = false
+  initialize_plugins = true
+  force_rebuild_runtime = false
+  keep_runtime_alive = false
+}
+
+namedLlm {
+  ["opus"] = new LlmConfig {
+    model = "anthropic/claude-opus-4-7"
+    apiKey = "$ANTHROPIC_API_KEY"
+    maxInputTokens = 1000000
+    maxOutputTokens = 4096
+  }
+  ["haiku"] = new LlmConfig {
+    model = "anthropic/claude-haiku-4-5"
+    apiKey = "$ANTHROPIC_API_KEY"
+    temperature = 0.2
+  }
+}

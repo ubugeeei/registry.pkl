@@ -1,0 +1,154 @@
+/// A typed authoring surface for Aider's `.aider.conf.yml`.
+///
+/// Reference: https://aider.chat/docs/config/aider_conf.html
+module target.agent.aider.Aider
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias EditFormat =
+  "diff"|"diff-fenced"|"udiff"|"udiff-simple"|"editor-diff"|"editor-whole"|"whole"
+
+class Lint {
+  command: String? = null
+  lint_cmds: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+model: String? = null
+weakModel: String? = null
+editorModel: String? = null
+editorEditFormat: EditFormat? = null
+openaiApiBase: String? = null
+openaiApiKey: String? = null
+anthropicApiKey: String? = null
+modelMetadataFile: String? = null
+modelSettingsFile: String? = null
+editFormat: EditFormat? = null
+darkMode: Boolean? = null
+lightMode: Boolean? = null
+codeTheme: String? = null
+showDiffs: Boolean? = null
+streamMode: Boolean? = null
+gitignore: Boolean? = null
+aidergnore: String? = null
+showReleaseNotes: Boolean? = null
+voiceFormat: ("wav"|"mp3"|"webm")? = null
+voiceLanguage: String? = null
+voiceInputDevice: String? = null
+encoding: String? = null
+mapTokens: Int? = null
+mapRefresh: ("auto"|"always"|"files"|"manual")? = null
+mapMultiplierNoFiles: Float? = null
+autoCommits: Boolean? = null
+dirtyCommits: Boolean? = null
+attributeAuthor: Boolean? = null
+attributeCommitter: Boolean? = null
+attributeCommitMessageAuthor: Boolean? = null
+attributeCommitMessageCommitter: Boolean? = null
+gitCommitVerify: Boolean? = null
+commitPrompt: String? = null
+`read`: Listing<String> = new Listing {}
+files: Listing<String> = new Listing {}
+test: Boolean? = null
+testCmd: String? = null
+autoTest: Boolean? = null
+lint: Lint? = null
+yes: Boolean? = null
+verbose: Boolean? = null
+checkUpdate: Boolean? = null
+suggestShellCommands: Boolean? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderLint(value: Lint) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.command != null) { ["command"] = value.command }
+      when (!value.lint_cmds.toMap().isEmpty) {
+        ["lint-cmds"] = value.lint_cmds.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (model != null) { ["model"] = model }
+      when (weakModel != null) { ["weak-model"] = weakModel }
+      when (editorModel != null) { ["editor-model"] = editorModel }
+      when (editorEditFormat != null) {
+        ["editor-edit-format"] = editorEditFormat
+      }
+      when (openaiApiBase != null) {
+        ["openai-api-base"] = openaiApiBase
+      }
+      when (openaiApiKey != null) { ["openai-api-key"] = openaiApiKey }
+      when (anthropicApiKey != null) {
+        ["anthropic-api-key"] = anthropicApiKey
+      }
+      when (modelMetadataFile != null) {
+        ["model-metadata-file"] = modelMetadataFile
+      }
+      when (modelSettingsFile != null) {
+        ["model-settings-file"] = modelSettingsFile
+      }
+      when (editFormat != null) { ["edit-format"] = editFormat }
+      when (darkMode != null) { ["dark-mode"] = darkMode }
+      when (lightMode != null) { ["light-mode"] = lightMode }
+      when (codeTheme != null) { ["code-theme"] = codeTheme }
+      when (showDiffs != null) { ["show-diffs"] = showDiffs }
+      when (streamMode != null) { ["stream"] = streamMode }
+      when (gitignore != null) { ["gitignore"] = gitignore }
+      when (aidergnore != null) { ["aiderignore"] = aidergnore }
+      when (showReleaseNotes != null) {
+        ["show-release-notes"] = showReleaseNotes
+      }
+      when (voiceFormat != null) { ["voice-format"] = voiceFormat }
+      when (voiceLanguage != null) { ["voice-language"] = voiceLanguage }
+      when (voiceInputDevice != null) {
+        ["voice-input-device"] = voiceInputDevice
+      }
+      when (encoding != null) { ["encoding"] = encoding }
+      when (mapTokens != null) { ["map-tokens"] = mapTokens }
+      when (mapRefresh != null) { ["map-refresh"] = mapRefresh }
+      when (mapMultiplierNoFiles != null) {
+        ["map-multiplier-no-files"] = mapMultiplierNoFiles
+      }
+      when (autoCommits != null) { ["auto-commits"] = autoCommits }
+      when (dirtyCommits != null) { ["dirty-commits"] = dirtyCommits }
+      when (attributeAuthor != null) {
+        ["attribute-author"] = attributeAuthor
+      }
+      when (attributeCommitter != null) {
+        ["attribute-committer"] = attributeCommitter
+      }
+      when (attributeCommitMessageAuthor != null) {
+        ["attribute-commit-message-author"] = attributeCommitMessageAuthor
+      }
+      when (attributeCommitMessageCommitter != null) {
+        ["attribute-commit-message-committer"] = attributeCommitMessageCommitter
+      }
+      when (gitCommitVerify != null) {
+        ["git-commit-verify"] = gitCommitVerify
+      }
+      when (commitPrompt != null) { ["commit-prompt"] = commitPrompt }
+      when (!`read`.toList().isEmpty) { ["read"] = `read`.toList() }
+      when (!files.toList().isEmpty) { ["file"] = files.toList() }
+      when (test != null) { ["test"] = test }
+      when (testCmd != null) { ["test-cmd"] = testCmd }
+      when (autoTest != null) { ["auto-test"] = autoTest }
+      when (lint != null) { ["lint"] = renderLint(lint) }
+      when (yes != null) { ["yes-always"] = yes }
+      when (verbose != null) { ["verbose"] = verbose }
+      when (checkUpdate != null) { ["check-update"] = checkUpdate }
+      when (suggestShellCommands != null) {
+        ["suggest-shell-commands"] = suggestShellCommands
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

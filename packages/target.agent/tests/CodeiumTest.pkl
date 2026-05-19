@@ -1,0 +1,49 @@
+/// Tests for `target.agent.codeium.Codeium` rendering.
+amends "pkl:test"
+
+import "../codeium/Codeium.pkl"
+
+local config = (Codeium) {
+  enabled = true
+  apiKey = "$CODEIUM_KEY"
+  manager = "internal"
+  maxFileSize = 1048576
+  modelName = "windsurf-chat"
+  telemetry = new Codeium.Telemetry {
+    enabled = false
+    shareCode = false
+  }
+  enterprise = new Codeium.Enterprise {
+    portalUrl = "https://codeium.acme.com"
+    apiUrl = "https://api.codeium.acme.com"
+  }
+  disabledLanguages {
+    "plaintext"
+  }
+  keymap {
+    ["accept"] = "tab"
+    ["dismiss"] = "escape"
+  }
+}
+
+facts {
+  ["scalars pass through"] {
+    config.rendered["enabled"] == true
+    config.rendered["manager"] == "internal"
+    config.rendered["modelName"] == "windsurf-chat"
+  }
+  ["telemetry nests under telemetry block"] {
+    config.rendered["telemetry"]["enabled"] == false
+    config.rendered["telemetry"]["shareCode"] == false
+  }
+  ["enterprise nests portal + api"] {
+    config.rendered["enterprise"]["portalUrl"] == "https://codeium.acme.com"
+    config.rendered["enterprise"]["apiUrl"] == "https://api.codeium.acme.com"
+  }
+  ["disabledLanguages list emits"] {
+    config.rendered["disabledLanguages"] == List("plaintext")
+  }
+  ["keymap map passes through"] {
+    config.rendered["keymap"] == Map("accept", "tab", "dismiss", "escape")
+  }
+}

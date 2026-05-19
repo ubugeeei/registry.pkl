@@ -1,0 +1,41 @@
+amends "@target.agent/geminiCli/GeminiCli.pkl"
+
+import "@target.agent/mcp/Core.pkl" as mcp
+
+theme = "GitHub"
+model = "gemini-2.0-flash"
+selectedAuthType = "use-gemini"
+sandbox = "docker"
+checkpointing = true
+showMemoryUsage = false
+autoAccept = false
+preferredEditor = "vscode"
+hideTips = false
+hideBanner = true
+contextFileName = new Listing<String> { "GEMINI.md"; "AGENTS.md" }
+
+mcpServers {
+  ["filesystem"] = new mcp.StdioServer {
+    command = "npx"
+    args { "-y"; "@modelcontextprotocol/server-filesystem"; "/workspace" }
+  }
+  ["github"] = new mcp.RemoteServer {
+    type = "http"
+    url = "https://mcp.github.com"
+    headers {
+      ["Authorization"] = "Bearer $GH_TOKEN"
+    }
+  }
+}
+
+excludeTools {
+  "WebFetchTool"
+}
+
+telemetry = new Telemetry {
+  enabled = false
+  target = "local"
+  logPrompts = false
+}
+
+usageStatisticsEnabled = false

@@ -1,0 +1,50 @@
+/// Tests for `target.agent.cody.Cody` rendering.
+amends "pkl:test"
+
+import "../cody/Cody.pkl"
+
+local config = (Cody) {
+  serverEndpoint = "https://sourcegraph.com"
+  accessToken = "sgp_xxx"
+  autocompleteEnabled = true
+  autocompleteProvider = "anthropic"
+  autocompleteModel = "claude-3-5-sonnet-20241022"
+  codebase = "github.com/ubugeeei/registry.pkl"
+  chatPreInstruction = "Always use TypeScript-strict syntax"
+  experimental {
+    ["foldingRanges"] = "lsp"
+    ["tracing"] = true
+  }
+  commands {
+    ["explain"] = new Cody.Command {
+      description = "Explain the selected code"
+      prompt = "Explain the following code: {{selection}}"
+      mode = "ask"
+    }
+  }
+}
+
+facts {
+  ["serverEndpoint uses dotted key"] {
+    config.rendered["cody.serverEndpoint"] == "https://sourcegraph.com"
+  }
+  ["autocomplete settings emit on separate dotted keys"] {
+    config.rendered["cody.autocomplete.enabled"] == true
+    config.rendered["cody.autocomplete.provider"] == "anthropic"
+    config.rendered["cody.autocomplete.advanced.model"]
+      == "claude-3-5-sonnet-20241022"
+  }
+  ["codebase passes through"] {
+    config.rendered["cody.codebase"] == "github.com/ubugeeei/registry.pkl"
+  }
+  ["experimental keys flatten to cody.experimental.<name>"] {
+    config.rendered["cody.experimental.foldingRanges"] == "lsp"
+    config.rendered["cody.experimental.tracing"] == true
+  }
+  ["commands map nests under cody.commands"] {
+    local cmd = config.rendered["cody.commands"]["explain"]
+    cmd["description"] == "Explain the selected code"
+    cmd["prompt"] == "Explain the following code: {{selection}}"
+    cmd["mode"] == "ask"
+  }
+}

@@ -1,0 +1,105 @@
+/// A typed authoring surface for Codeium's `~/.codeium/config.json`.
+///
+/// Codeium reads its CLI / VSCode settings either from environment
+/// variables or from a JSON config file. This module models the
+/// commonly tuned subset.
+///
+/// Reference: https://codeium.com/extensions
+module target.agent.codeium.Codeium
+
+import "@target.core/Maps.pkl" as Maps
+
+class Telemetry {
+  enabled: Boolean? = null
+  shareCode: Boolean? = null
+  shareIde: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Enterprise {
+  portalUrl: String? = null
+  apiUrl: String? = null
+  apiToken: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+enabled: Boolean? = null
+apiKey: String? = null
+apiServerUrl: String? = null
+manager: ("internal"|"system")? = null
+maxFileSize: Int? = null
+disableSuggestionsInCommentsAndStrings: Boolean? = null
+disableInTerminal: Boolean? = null
+modelName: String? = null
+contextWindow: Int? = null
+telemetry: Telemetry? = null
+enterprise: Enterprise? = null
+allowedRepositories: Listing<String> = new Listing {}
+disabledLanguages: Listing<String> = new Listing {}
+keymap: Mapping<String, String> = new Mapping {}
+chat: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderTelemetry(value: Telemetry) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (value.shareCode != null) { ["shareCode"] = value.shareCode }
+      when (value.shareIde != null) { ["shareIde"] = value.shareIde }
+    },
+    value.extra,
+  )
+
+local function renderEnterprise(value: Enterprise) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.portalUrl != null) { ["portalUrl"] = value.portalUrl }
+      when (value.apiUrl != null) { ["apiUrl"] = value.apiUrl }
+      when (value.apiToken != null) { ["apiToken"] = value.apiToken }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (enabled != null) { ["enabled"] = enabled }
+      when (apiKey != null) { ["apiKey"] = apiKey }
+      when (apiServerUrl != null) { ["apiServerUrl"] = apiServerUrl }
+      when (manager != null) { ["manager"] = manager }
+      when (maxFileSize != null) { ["maxFileSize"] = maxFileSize }
+      when (disableSuggestionsInCommentsAndStrings != null) {
+        ["disableSuggestionsInCommentsAndStrings"] =
+          disableSuggestionsInCommentsAndStrings
+      }
+      when (disableInTerminal != null) {
+        ["disableInTerminal"] = disableInTerminal
+      }
+      when (modelName != null) { ["modelName"] = modelName }
+      when (contextWindow != null) { ["contextWindow"] = contextWindow }
+      when (telemetry != null) {
+        ["telemetry"] = renderTelemetry(telemetry)
+      }
+      when (enterprise != null) {
+        ["enterprise"] = renderEnterprise(enterprise)
+      }
+      when (!allowedRepositories.toList().isEmpty) {
+        ["allowedRepositories"] = allowedRepositories.toList()
+      }
+      when (!disabledLanguages.toList().isEmpty) {
+        ["disabledLanguages"] = disabledLanguages.toList()
+      }
+      when (!keymap.toMap().isEmpty) {
+        ["keymap"] = keymap.toMap()
+      }
+      when (!chat.toMap().isEmpty) {
+        ["chat"] = chat.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

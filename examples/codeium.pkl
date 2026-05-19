@@ -1,0 +1,35 @@
+amends "@target.agent/codeium/Codeium.pkl"
+
+enabled = true
+manager = "internal"
+maxFileSize = 1048576
+disableSuggestionsInCommentsAndStrings = false
+disableInTerminal = false
+
+telemetry = new Telemetry {
+  enabled = false
+  shareCode = false
+  shareIde = false
+}
+
+enterprise = new Enterprise {
+  portalUrl = "https://codeium.acme.com"
+  apiUrl = "https://api.codeium.acme.com"
+}
+
+allowedRepositories {
+  "github.com/ubugeeei/.*"
+}
+
+disabledLanguages {
+  "plaintext"
+  "git-commit"
+  "git-rebase"
+}
+
+keymap {
+  ["accept"] = "tab"
+  ["dismiss"] = "escape"
+  ["next"] = "alt+]"
+  ["prev"] = "alt+["
+}
