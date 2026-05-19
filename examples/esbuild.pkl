@@ -1,0 +1,52 @@
+amends "@target.js/esbuild/Esbuild.pkl"
+
+entryPoints = new Listing<String> {
+  "src/index.ts"
+  "src/cli.ts"
+}
+
+bundle = true
+splitting = true
+outdir = "dist"
+outExtension = new Mapping<String, String> {
+  [".js"] = ".mjs"
+}
+
+platform = "node"
+format = "esm"
+target = "node22"
+
+`external` = new Listing<String> {
+  "fs"
+  "path"
+  "url"
+  "node:*"
+}
+
+loader = new Mapping<String, "base64"|"binary"|"copy"|"css"|"dataurl"|"default"|"empty"|"file"|"global-css"|"js"|"json"|"jsx"|"local-css"|"text"|"ts"|"tsx"> {
+  [".png"] = "file"
+  [".svg"] = "text"
+  [".md"] = "text"
+}
+
+sourcemap = "external"
+sourcesContent = false
+
+minify = true
+treeShaking = true
+keepNames = true
+legalComments = "linked"
+
+define = new Mapping<String, String> {
+  ["process.env.NODE_ENV"] = "\"production\""
+  ["__APP_VERSION__"] = "\"0.1.0\""
+}
+
+metafile = true
+logLevel = "info"
+
+jsx = "automatic"
+jsxOptions = new JsxOptions {
+  importSource = "react"
+  development = false
+}

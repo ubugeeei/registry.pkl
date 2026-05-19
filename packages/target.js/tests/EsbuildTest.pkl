@@ -1,0 +1,57 @@
+/// Tests for `target.js.esbuild.Esbuild` rendering.
+amends "pkl:test"
+
+import "../esbuild/Esbuild.pkl"
+
+local cfg = (Esbuild) {
+  entryPoints = new Listing<String> { "src/index.ts"; "src/cli.ts" }
+  bundle = true
+  splitting = true
+  outdir = "dist"
+  platform = "node"
+  format = "esm"
+  target = "node22"
+  `external` = new Listing<String> { "fs"; "path" }
+  loader = new Mapping<String, "base64"|"binary"|"copy"|"css"|"dataurl"|"default"|"empty"|"file"|"global-css"|"js"|"json"|"jsx"|"local-css"|"text"|"ts"|"tsx"> {
+    [".png"] = "file"
+    [".svg"] = "text"
+  }
+  sourcemap = "external"
+  minify = true
+  treeShaking = true
+  legalComments = "linked"
+  define = new Mapping<String, String> {
+    ["process.env.NODE_ENV"] = "\"production\""
+  }
+  jsx = "automatic"
+  jsxOptions = new Esbuild.JsxOptions {
+    importSource = "react"
+    development = false
+  }
+}
+
+facts {
+  ["entryPoints list passes through"] {
+    cfg.rendered["entryPoints"] == List("src/index.ts", "src/cli.ts")
+  }
+  ["scalars pass through"] {
+    cfg.rendered["bundle"] == true
+    cfg.rendered["platform"] == "node"
+    cfg.rendered["format"] == "esm"
+    cfg.rendered["target"] == "node22"
+    cfg.rendered["sourcemap"] == "external"
+    cfg.rendered["minify"] == true
+  }
+  ["loader map and external list"] {
+    cfg.rendered["loader"][".png"] == "file"
+    cfg.rendered["external"] == List("fs", "path")
+  }
+  ["define passes through verbatim"] {
+    cfg.rendered["define"]["process.env.NODE_ENV"] == "\"production\""
+  }
+  ["jsxOptions flatten into top-level jsx* keys"] {
+    cfg.rendered["jsx"] == "automatic"
+    cfg.rendered["jsxImportSource"] == "react"
+    cfg.rendered["jsxDev"] == false
+  }
+}

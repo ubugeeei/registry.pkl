@@ -29,7 +29,10 @@
     ".husky/pre-commit",
     "nx.json",
     "lerna.json",
-    "knip.json"
+    "knip.json",
+    "vite.config.json",
+    "rollup.config.json",
+    "esbuild.config.json"
   ],
   "formats": [
     "json",

@@ -1,0 +1,38 @@
+amends "@target.js/rollup/Rollup.pkl"
+
+input = new Mapping<String, String> {
+  ["main"] = "src/index.ts"
+  ["cli"] = "src/cli.ts"
+  ["worker"] = "src/worker.ts"
+}
+
+outputs = new Listing<OutputOptions> {
+  new OutputOptions {
+    dir = "dist/es"
+    format = "es"
+    entryFileNames = "[name].mjs"
+    chunkFileNames = "chunks/[name]-[hash].mjs"
+    sourcemap = true
+    preserveModules = false
+  }
+  new OutputOptions {
+    dir = "dist/cjs"
+    format = "cjs"
+    entryFileNames = "[name].cjs"
+    chunkFileNames = "chunks/[name]-[hash].cjs"
+    sourcemap = true
+    exports = "named"
+  }
+}
+
+`external` = new Listing<String> {
+  "react"
+  "react-dom"
+  "node:fs"
+  "node:path"
+  "node:url"
+}
+
+treeshake = "smallest"
+strictDeprecations = true
+logLevel = "info"

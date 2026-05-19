@@ -1,0 +1,229 @@
+/// A typed authoring surface for an `esbuild.config.json`.
+///
+/// esbuild doesn't ship a built-in config-file mode — it ingests options
+/// as CLI flags or JS API arguments. This module models the JSON-shaped
+/// argument the JS API accepts, so authors can render an esbuild build
+/// options object and pass it via a tiny wrapper script.
+///
+/// Reference: https://esbuild.github.io/api/
+module target.js.esbuild.Esbuild
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias Platform = "browser"|"node"|"neutral"
+typealias Format = "iife"|"cjs"|"esm"
+typealias Target = String|Listing<String>
+typealias Loader =
+  "base64"|"binary"|"copy"|"css"|"dataurl"|"default"|"empty"|"file"
+  |"global-css"|"js"|"json"|"jsx"|"local-css"|"text"|"ts"|"tsx"
+
+class JsxOptions {
+  factory: String? = null
+  fragment: String? = null
+  importSource: String? = null
+  development: Boolean? = null
+  sideEffects: Boolean? = null
+}
+
+entryPoints: (Listing<String>|Mapping<String, String>) = new Listing {}
+bundle: Boolean? = null
+write: Boolean? = null
+splitting: Boolean? = null
+outfile: String? = null
+outdir: String? = null
+outbase: String? = null
+outExtension: Mapping<String, String> = new Mapping {}
+platform: Platform? = null
+format: Format? = null
+target: Target? = null
+`external`: Listing<String> = new Listing {}
+loader: Mapping<String, Loader> = new Mapping {}
+sourcemap: (Boolean|"external"|"inline"|"both"|"linked")? = null
+sourcesContent: Boolean? = null
+sourceRoot: String? = null
+sourcefile: String? = null
+minify: Boolean? = null
+minifyWhitespace: Boolean? = null
+minifyIdentifiers: Boolean? = null
+minifySyntax: Boolean? = null
+lineLimit: Int? = null
+treeShaking: Boolean? = null
+ignoreAnnotations: Boolean? = null
+legalComments: ("none"|"inline"|"eof"|"linked"|"external")? = null
+banner: Mapping<String, String> = new Mapping {}
+footer: Mapping<String, String> = new Mapping {}
+charset: ("ascii"|"utf8")? = null
+keepNames: Boolean? = null
+mangleProps: String? = null
+reserveProps: String? = null
+mangleQuoted: Boolean? = null
+mangleCache: Mapping<String, Any>? = null
+drop: Listing<"console"|"debugger"> = new Listing {}
+dropLabels: Listing<String> = new Listing {}
+pure: Listing<String> = new Listing {}
+globalName: String? = null
+inject: Listing<String> = new Listing {}
+alias: Mapping<String, String> = new Mapping {}
+define: Mapping<String, String> = new Mapping {}
+resolveExtensions: Listing<String> = new Listing {}
+mainFields: Listing<String> = new Listing {}
+conditions: Listing<String> = new Listing {}
+publicPath: String? = null
+chunkNames: String? = null
+entryNames: String? = null
+assetNames: String? = null
+tsconfig: String? = null
+tsconfigRaw: (String|Mapping<String, Any>)? = null
+nodePaths: Listing<String> = new Listing {}
+absWorkingDir: String? = null
+preserveSymlinks: Boolean? = null
+logLevel: ("silent"|"error"|"warning"|"info"|"debug"|"verbose")? = null
+logLimit: Int? = null
+logOverride: Mapping<String, String> = new Mapping {}
+color: Boolean? = null
+metafile: Boolean? = null
+allowOverwrite: Boolean? = null
+plugins: Listing<Mapping<String, Any>> = new Listing {}
+supported: Mapping<String, Boolean> = new Mapping {}
+jsx: ("transform"|"preserve"|"automatic")? = null
+jsxOptions: JsxOptions? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderJsx(value: JsxOptions) =
+  new Mapping<String, Any> {
+    when (value.factory != null) { ["jsxFactory"] = value.factory }
+    when (value.fragment != null) { ["jsxFragment"] = value.fragment }
+    when (value.importSource != null) {
+      ["jsxImportSource"] = value.importSource
+    }
+    when (value.development != null) {
+      ["jsxDev"] = value.development
+    }
+    when (value.sideEffects != null) {
+      ["jsxSideEffects"] = value.sideEffects
+    }
+  }.toMap()
+
+local function renderEntryPoints(value: Listing<String>|Mapping<String, String>) =
+  if (value is Listing) value.toList() else value.toMap()
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (entryPoints is Listing && !entryPoints.toList().isEmpty
+        || entryPoints is Mapping && !entryPoints.toMap().isEmpty) {
+        ["entryPoints"] = renderEntryPoints(entryPoints)
+      }
+      when (bundle != null) { ["bundle"] = bundle }
+      when (write != null) { ["write"] = write }
+      when (splitting != null) { ["splitting"] = splitting }
+      when (outfile != null) { ["outfile"] = outfile }
+      when (outdir != null) { ["outdir"] = outdir }
+      when (outbase != null) { ["outbase"] = outbase }
+      when (!outExtension.toMap().isEmpty) {
+        ["outExtension"] = outExtension.toMap()
+      }
+      when (platform != null) { ["platform"] = platform }
+      when (format != null) { ["format"] = format }
+      when (target != null) {
+        ["target"] = if (target is Listing) target.toList() else target
+      }
+      when (!`external`.toList().isEmpty) {
+        ["external"] = `external`.toList()
+      }
+      when (!loader.toMap().isEmpty) { ["loader"] = loader.toMap() }
+      when (sourcemap != null) { ["sourcemap"] = sourcemap }
+      when (sourcesContent != null) {
+        ["sourcesContent"] = sourcesContent
+      }
+      when (sourceRoot != null) { ["sourceRoot"] = sourceRoot }
+      when (sourcefile != null) { ["sourcefile"] = sourcefile }
+      when (minify != null) { ["minify"] = minify }
+      when (minifyWhitespace != null) {
+        ["minifyWhitespace"] = minifyWhitespace
+      }
+      when (minifyIdentifiers != null) {
+        ["minifyIdentifiers"] = minifyIdentifiers
+      }
+      when (minifySyntax != null) { ["minifySyntax"] = minifySyntax }
+      when (lineLimit != null) { ["lineLimit"] = lineLimit }
+      when (treeShaking != null) { ["treeShaking"] = treeShaking }
+      when (ignoreAnnotations != null) {
+        ["ignoreAnnotations"] = ignoreAnnotations
+      }
+      when (legalComments != null) {
+        ["legalComments"] = legalComments
+      }
+      when (!banner.toMap().isEmpty) { ["banner"] = banner.toMap() }
+      when (!footer.toMap().isEmpty) { ["footer"] = footer.toMap() }
+      when (charset != null) { ["charset"] = charset }
+      when (keepNames != null) { ["keepNames"] = keepNames }
+      when (mangleProps != null) { ["mangleProps"] = mangleProps }
+      when (reserveProps != null) { ["reserveProps"] = reserveProps }
+      when (mangleQuoted != null) { ["mangleQuoted"] = mangleQuoted }
+      when (mangleCache != null) {
+        ["mangleCache"] = mangleCache.toMap()
+      }
+      when (!drop.toList().isEmpty) { ["drop"] = drop.toList() }
+      when (!dropLabels.toList().isEmpty) {
+        ["dropLabels"] = dropLabels.toList()
+      }
+      when (!pure.toList().isEmpty) { ["pure"] = pure.toList() }
+      when (globalName != null) { ["globalName"] = globalName }
+      when (!inject.toList().isEmpty) { ["inject"] = inject.toList() }
+      when (!alias.toMap().isEmpty) { ["alias"] = alias.toMap() }
+      when (!define.toMap().isEmpty) { ["define"] = define.toMap() }
+      when (!resolveExtensions.toList().isEmpty) {
+        ["resolveExtensions"] = resolveExtensions.toList()
+      }
+      when (!mainFields.toList().isEmpty) {
+        ["mainFields"] = mainFields.toList()
+      }
+      when (!conditions.toList().isEmpty) {
+        ["conditions"] = conditions.toList()
+      }
+      when (publicPath != null) { ["publicPath"] = publicPath }
+      when (chunkNames != null) { ["chunkNames"] = chunkNames }
+      when (entryNames != null) { ["entryNames"] = entryNames }
+      when (assetNames != null) { ["assetNames"] = assetNames }
+      when (tsconfig != null) { ["tsconfig"] = tsconfig }
+      when (tsconfigRaw != null) {
+        ["tsconfigRaw"] = if (tsconfigRaw is Mapping) tsconfigRaw.toMap() else tsconfigRaw
+      }
+      when (!nodePaths.toList().isEmpty) {
+        ["nodePaths"] = nodePaths.toList()
+      }
+      when (absWorkingDir != null) {
+        ["absWorkingDir"] = absWorkingDir
+      }
+      when (preserveSymlinks != null) {
+        ["preserveSymlinks"] = preserveSymlinks
+      }
+      when (logLevel != null) { ["logLevel"] = logLevel }
+      when (logLimit != null) { ["logLimit"] = logLimit }
+      when (!logOverride.toMap().isEmpty) {
+        ["logOverride"] = logOverride.toMap()
+      }
+      when (color != null) { ["color"] = color }
+      when (metafile != null) { ["metafile"] = metafile }
+      when (allowOverwrite != null) {
+        ["allowOverwrite"] = allowOverwrite
+      }
+      when (!plugins.toList().isEmpty) {
+        ["plugins"] = plugins.toList().map((p) -> p.toMap())
+      }
+      when (!supported.toMap().isEmpty) {
+        ["supported"] = supported.toMap()
+      }
+      when (jsx != null) { ["jsx"] = jsx }
+      when (jsxOptions != null) {
+        for (k, v in renderJsx(jsxOptions)) { [k] = v }
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}
