@@ -1,0 +1,495 @@
+/// A typed authoring surface for `docker-compose.yml` (Compose Spec).
+///
+/// Covers the most-used keys for `services`, `networks`, `volumes`,
+/// `configs`, and `secrets`. Every nested class carries an `extra`
+/// escape hatch but the public surface is wide enough that
+/// `amends "@target.container/docker-compose/Compose.pkl"` covers a
+/// real stack without dropping to raw maps.
+module target.container.docker_compose.Compose
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias RestartPolicy = "no"|"always"|"on-failure"|"unless-stopped"
+typealias EnvValue = String|Int|Float|Boolean
+
+class BuildConfig {
+  context: String? = null
+  dockerfile: String? = null
+  args: Mapping<String, EnvValue> = new Mapping {}
+  target: String? = null
+  cacheFrom: Listing<String> = new Listing {}
+  cacheTo: Listing<String> = new Listing {}
+  network: String? = null
+  shmSize: (String|Int)? = null
+  noCache: Boolean? = null
+  pull: Boolean? = null
+  platforms: Listing<String> = new Listing {}
+  labels: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Healthcheck {
+  test: (String|Listing<String>)? = null
+  interval: String? = null
+  timeout: String? = null
+  retries: Int? = null
+  startPeriod: String? = null
+  disable: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Deploy {
+  mode: ("global"|"replicated")? = null
+  replicas: Int? = null
+  resources: Mapping<String, Any> = new Mapping {}
+  restartPolicy: Mapping<String, Any> = new Mapping {}
+  updateConfig: Mapping<String, Any> = new Mapping {}
+  rollbackConfig: Mapping<String, Any> = new Mapping {}
+  placement: Mapping<String, Any> = new Mapping {}
+  labels: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Logging {
+  driver: String? = null
+  options: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class NetworkSpec {
+  driver: String? = null
+  driverOpts: Mapping<String, String> = new Mapping {}
+  attachable: Boolean? = null
+  `external`: (Boolean|Mapping<String, Any>)? = null
+  internal: Boolean? = null
+  labels: Mapping<String, String> = new Mapping {}
+  name: String? = null
+  ipam: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class VolumeSpec {
+  driver: String? = null
+  driverOpts: Mapping<String, String> = new Mapping {}
+  `external`: (Boolean|Mapping<String, Any>)? = null
+  labels: Mapping<String, String> = new Mapping {}
+  name: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ConfigSpec {
+  file: String? = null
+  `external`: (Boolean|Mapping<String, Any>)? = null
+  content: String? = null
+  name: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class SecretSpec {
+  file: String? = null
+  `external`: (Boolean|Mapping<String, Any>)? = null
+  environment: String? = null
+  name: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class DependsOn {
+  condition: ("service_started"|"service_healthy"|"service_completed_successfully")? = null
+  required: Boolean? = null
+  restart: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Service {
+  image: String? = null
+  build: (String|BuildConfig)? = null
+  containerName: String? = null
+  hostname: String? = null
+  command: (String|Listing<String>)? = null
+  entrypoint: (String|Listing<String>)? = null
+  user: String? = null
+  workingDir: String? = null
+  ports: Listing<String|Int|Mapping<String, Any>> = new Listing {}
+  expose: Listing<String|Int> = new Listing {}
+  volumes: Listing<String|Mapping<String, Any>> = new Listing {}
+  volumesFrom: Listing<String> = new Listing {}
+  environment: (Mapping<String, EnvValue>|Listing<String>)? = null
+  envFile: (String|Listing<String>)? = null
+  dependsOn: (Listing<String>|Mapping<String, DependsOn>)? = null
+  networks: (Listing<String>|Mapping<String, Any>)? = null
+  links: Listing<String> = new Listing {}
+  restart: RestartPolicy? = null
+  init: Boolean? = null
+  privileged: Boolean? = null
+  readOnly: Boolean? = null
+  tty: Boolean? = null
+  stdinOpen: Boolean? = null
+  healthcheck: Healthcheck? = null
+  deploy: Deploy? = null
+  logging: Logging? = null
+  labels: Mapping<String, String> = new Mapping {}
+  capAdd: Listing<String> = new Listing {}
+  capDrop: Listing<String> = new Listing {}
+  securityOpt: Listing<String> = new Listing {}
+  sysctls: Mapping<String, String> = new Mapping {}
+  ulimits: Mapping<String, Any> = new Mapping {}
+  pidMode: String? = null
+  shmSize: (String|Int)? = null
+  stopSignal: String? = null
+  stopGracePeriod: String? = null
+  tmpfs: (String|Listing<String>)? = null
+  extraHosts: Listing<String> = new Listing {}
+  dns: (String|Listing<String>)? = null
+  configs: Listing<String|Mapping<String, Any>> = new Listing {}
+  secrets: Listing<String|Mapping<String, Any>> = new Listing {}
+  profiles: Listing<String> = new Listing {}
+  scale: Int? = null
+  pullPolicy: ("always"|"never"|"missing"|"build")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+name: String? = null
+services: Mapping<String, Service> = new Mapping {}
+networks: Mapping<String, NetworkSpec> = new Mapping {}
+volumes: Mapping<String, VolumeSpec> = new Mapping {}
+configs: Mapping<String, ConfigSpec> = new Mapping {}
+secrets: Mapping<String, SecretSpec> = new Mapping {}
+xExtensions: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderBuild(value: String|BuildConfig) =
+  if (value is String)
+    value
+  else
+    Maps.withExtra(
+      new Dynamic {
+        when (value.context != null) { ["context"] = value.context }
+        when (value.dockerfile != null) { ["dockerfile"] = value.dockerfile }
+        when (!value.args.toMap().isEmpty) { ["args"] = value.args.toMap() }
+        when (value.target != null) { ["target"] = value.target }
+        when (!value.cacheFrom.toList().isEmpty) {
+          ["cache_from"] = value.cacheFrom.toList()
+        }
+        when (!value.cacheTo.toList().isEmpty) {
+          ["cache_to"] = value.cacheTo.toList()
+        }
+        when (value.network != null) { ["network"] = value.network }
+        when (value.shmSize != null) { ["shm_size"] = value.shmSize }
+        when (value.noCache != null) { ["no_cache"] = value.noCache }
+        when (value.pull != null) { ["pull"] = value.pull }
+        when (!value.platforms.toList().isEmpty) {
+          ["platforms"] = value.platforms.toList()
+        }
+        when (!value.labels.toMap().isEmpty) {
+          ["labels"] = value.labels.toMap()
+        }
+      },
+      value.extra,
+    )
+
+local function renderHealthcheck(value: Healthcheck) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.test != null) {
+        ["test"] =
+          if (value.test is Listing) value.test.toList() else value.test
+      }
+      when (value.interval != null) { ["interval"] = value.interval }
+      when (value.timeout != null) { ["timeout"] = value.timeout }
+      when (value.retries != null) { ["retries"] = value.retries }
+      when (value.startPeriod != null) {
+        ["start_period"] = value.startPeriod
+      }
+      when (value.disable != null) { ["disable"] = value.disable }
+    },
+    value.extra,
+  )
+
+local function renderDeploy(value: Deploy) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.mode != null) { ["mode"] = value.mode }
+      when (value.replicas != null) { ["replicas"] = value.replicas }
+      when (!value.resources.toMap().isEmpty) {
+        ["resources"] = value.resources.toMap()
+      }
+      when (!value.restartPolicy.toMap().isEmpty) {
+        ["restart_policy"] = value.restartPolicy.toMap()
+      }
+      when (!value.updateConfig.toMap().isEmpty) {
+        ["update_config"] = value.updateConfig.toMap()
+      }
+      when (!value.rollbackConfig.toMap().isEmpty) {
+        ["rollback_config"] = value.rollbackConfig.toMap()
+      }
+      when (!value.placement.toMap().isEmpty) {
+        ["placement"] = value.placement.toMap()
+      }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderLogging(value: Logging) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.driver != null) { ["driver"] = value.driver }
+      when (!value.options.toMap().isEmpty) {
+        ["options"] = value.options.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderDependsOn(value: Listing<String>|Mapping<String, DependsOn>) =
+  if (value is Listing)
+    value.toList()
+  else
+    value.toMap().mapValues(
+      (_, dep) ->
+        Maps.withExtra(
+          new Dynamic {
+            when (dep.condition != null) { ["condition"] = dep.condition }
+            when (dep.required != null) { ["required"] = dep.required }
+            when (dep.restart != null) { ["restart"] = dep.restart }
+          },
+          dep.extra,
+        ),
+    )
+
+local function renderService(value: Service) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.image != null) { ["image"] = value.image }
+      when (value.build != null) { ["build"] = renderBuild(value.build) }
+      when (value.containerName != null) {
+        ["container_name"] = value.containerName
+      }
+      when (value.hostname != null) { ["hostname"] = value.hostname }
+      when (value.command != null) {
+        ["command"] =
+          if (value.command is Listing) value.command.toList() else value.command
+      }
+      when (value.entrypoint != null) {
+        ["entrypoint"] =
+          if (value.entrypoint is Listing) value.entrypoint.toList() else value.entrypoint
+      }
+      when (value.user != null) { ["user"] = value.user }
+      when (value.workingDir != null) {
+        ["working_dir"] = value.workingDir
+      }
+      when (!value.ports.toList().isEmpty) {
+        ["ports"] =
+          value.ports.toList().map(
+            (p) -> if (p is Mapping) p.toMap() else p,
+          )
+      }
+      when (!value.expose.toList().isEmpty) {
+        ["expose"] = value.expose.toList()
+      }
+      when (!value.volumes.toList().isEmpty) {
+        ["volumes"] =
+          value.volumes.toList().map(
+            (v) -> if (v is Mapping) v.toMap() else v,
+          )
+      }
+      when (!value.volumesFrom.toList().isEmpty) {
+        ["volumes_from"] = value.volumesFrom.toList()
+      }
+      when (value.environment != null) {
+        ["environment"] =
+          if (value.environment is Listing)
+            value.environment.toList()
+          else
+            value.environment.toMap()
+      }
+      when (value.envFile != null) {
+        ["env_file"] =
+          if (value.envFile is Listing) value.envFile.toList() else value.envFile
+      }
+      when (value.dependsOn != null) {
+        ["depends_on"] = renderDependsOn(value.dependsOn)
+      }
+      when (value.networks != null) {
+        ["networks"] =
+          if (value.networks is Listing)
+            value.networks.toList()
+          else
+            value.networks.toMap()
+      }
+      when (!value.links.toList().isEmpty) {
+        ["links"] = value.links.toList()
+      }
+      when (value.restart != null) { ["restart"] = value.restart }
+      when (value.init != null) { ["init"] = value.init }
+      when (value.privileged != null) { ["privileged"] = value.privileged }
+      when (value.readOnly != null) { ["read_only"] = value.readOnly }
+      when (value.tty != null) { ["tty"] = value.tty }
+      when (value.stdinOpen != null) { ["stdin_open"] = value.stdinOpen }
+      when (value.healthcheck != null) {
+        ["healthcheck"] = renderHealthcheck(value.healthcheck)
+      }
+      when (value.deploy != null) { ["deploy"] = renderDeploy(value.deploy) }
+      when (value.logging != null) {
+        ["logging"] = renderLogging(value.logging)
+      }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.capAdd.toList().isEmpty) {
+        ["cap_add"] = value.capAdd.toList()
+      }
+      when (!value.capDrop.toList().isEmpty) {
+        ["cap_drop"] = value.capDrop.toList()
+      }
+      when (!value.securityOpt.toList().isEmpty) {
+        ["security_opt"] = value.securityOpt.toList()
+      }
+      when (!value.sysctls.toMap().isEmpty) {
+        ["sysctls"] = value.sysctls.toMap()
+      }
+      when (!value.ulimits.toMap().isEmpty) {
+        ["ulimits"] = value.ulimits.toMap()
+      }
+      when (value.pidMode != null) { ["pid"] = value.pidMode }
+      when (value.shmSize != null) { ["shm_size"] = value.shmSize }
+      when (value.stopSignal != null) { ["stop_signal"] = value.stopSignal }
+      when (value.stopGracePeriod != null) {
+        ["stop_grace_period"] = value.stopGracePeriod
+      }
+      when (value.tmpfs != null) {
+        ["tmpfs"] =
+          if (value.tmpfs is Listing) value.tmpfs.toList() else value.tmpfs
+      }
+      when (!value.extraHosts.toList().isEmpty) {
+        ["extra_hosts"] = value.extraHosts.toList()
+      }
+      when (value.dns != null) {
+        ["dns"] =
+          if (value.dns is Listing) value.dns.toList() else value.dns
+      }
+      when (!value.configs.toList().isEmpty) {
+        ["configs"] =
+          value.configs.toList().map((c) -> if (c is Mapping) c.toMap() else c)
+      }
+      when (!value.secrets.toList().isEmpty) {
+        ["secrets"] =
+          value.secrets.toList().map((s) -> if (s is Mapping) s.toMap() else s)
+      }
+      when (!value.profiles.toList().isEmpty) {
+        ["profiles"] = value.profiles.toList()
+      }
+      when (value.scale != null) { ["scale"] = value.scale }
+      when (value.pullPolicy != null) {
+        ["pull_policy"] = value.pullPolicy
+      }
+    },
+    value.extra,
+  )
+
+local function renderExternal(value: Boolean|Mapping<String, Any>) =
+  if (value is Boolean) value else value.toMap()
+
+local function renderNetwork(value: NetworkSpec) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.driver != null) { ["driver"] = value.driver }
+      when (!value.driverOpts.toMap().isEmpty) {
+        ["driver_opts"] = value.driverOpts.toMap()
+      }
+      when (value.attachable != null) {
+        ["attachable"] = value.attachable
+      }
+      when (value.`external` != null) {
+        ["external"] = renderExternal(value.`external`)
+      }
+      when (value.internal != null) { ["internal"] = value.internal }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (value.name != null) { ["name"] = value.name }
+      when (!value.ipam.toMap().isEmpty) {
+        ["ipam"] = value.ipam.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderVolume(value: VolumeSpec) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.driver != null) { ["driver"] = value.driver }
+      when (!value.driverOpts.toMap().isEmpty) {
+        ["driver_opts"] = value.driverOpts.toMap()
+      }
+      when (value.`external` != null) {
+        ["external"] = renderExternal(value.`external`)
+      }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (value.name != null) { ["name"] = value.name }
+    },
+    value.extra,
+  )
+
+local function renderConfigSpec(value: ConfigSpec) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.file != null) { ["file"] = value.file }
+      when (value.`external` != null) {
+        ["external"] = renderExternal(value.`external`)
+      }
+      when (value.content != null) { ["content"] = value.content }
+      when (value.name != null) { ["name"] = value.name }
+    },
+    value.extra,
+  )
+
+local function renderSecretSpec(value: SecretSpec) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.file != null) { ["file"] = value.file }
+      when (value.`external` != null) {
+        ["external"] = renderExternal(value.`external`)
+      }
+      when (value.environment != null) {
+        ["environment"] = value.environment
+      }
+      when (value.name != null) { ["name"] = value.name }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (name != null) { ["name"] = name }
+      when (!services.toMap().isEmpty) {
+        ["services"] = services.toMap().mapValues((_, v) -> renderService(v))
+      }
+      when (!networks.toMap().isEmpty) {
+        ["networks"] = networks.toMap().mapValues((_, v) -> renderNetwork(v))
+      }
+      when (!volumes.toMap().isEmpty) {
+        ["volumes"] = volumes.toMap().mapValues((_, v) -> renderVolume(v))
+      }
+      when (!configs.toMap().isEmpty) {
+        ["configs"] = configs.toMap().mapValues((_, v) -> renderConfigSpec(v))
+      }
+      when (!secrets.toMap().isEmpty) {
+        ["secrets"] = secrets.toMap().mapValues((_, v) -> renderSecretSpec(v))
+      }
+      for (key, value in xExtensions) {
+        ["x-\(key)"] = value
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

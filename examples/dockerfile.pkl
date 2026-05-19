@@ -1,0 +1,36 @@
+amends "@target.container/dockerfile/Dockerfile.pkl"
+
+syntax = "docker/dockerfile:1.6"
+
+stages {
+  new Stage {
+    asName = "builder"
+    from = "node:24-alpine"
+    comment = "Build the production bundle"
+    instructions {
+      new Instruction { directive = "WORKDIR"; arg = "/app" }
+      new Instruction { directive = "COPY"; arg = "package.json pnpm-lock.yaml ./" }
+      new Instruction { directive = "RUN"; arg = "corepack enable && pnpm install --frozen-lockfile" }
+      new Instruction { directive = "COPY"; arg = ". ." }
+      new Instruction { directive = "RUN"; arg = "pnpm build" }
+    }
+  }
+  new Stage {
+    asName = "runner"
+    from = "node:24-alpine"
+    comment = "Serve the bundle as a non-root user"
+    instructions {
+      new Instruction { directive = "WORKDIR"; arg = "/app" }
+      new Instruction {
+        directive = "COPY"
+        arg = "--from=builder /app/dist ./dist"
+      }
+      new Instruction { directive = "EXPOSE"; arg = "3000" }
+      new Instruction { directive = "USER"; arg = "node" }
+      new Instruction {
+        directive = "CMD"
+        arg = "[\"node\", \"dist/server.js\"]"
+      }
+    }
+  }
+}

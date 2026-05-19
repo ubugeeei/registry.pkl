@@ -1,0 +1,10 @@
+/// Typed modules for the container ecosystem (Docker Compose, Dockerfile, Devbox).
+amends "../basePklProject.pkl"
+
+dependencies {
+  ["target.core"] = import("../target.core/PklProject")
+}
+
+package {
+  version = "0.1.0"
+}

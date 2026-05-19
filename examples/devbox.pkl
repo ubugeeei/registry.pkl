@@ -1,0 +1,31 @@
+amends "@target.container/devbox/Devbox.pkl"
+
+`$schema` = "https://raw.githubusercontent.com/jetify-com/devbox/main/.schema/devbox.schema.json"
+
+packages {
+  "nodejs@24"
+  "pnpm@10"
+  "pkl@0.31"
+  "go@1.23"
+}
+
+env {
+  ["NODE_OPTIONS"] = "--max-old-space-size=4096"
+}
+
+shell = new ShellHooks {
+  initHook = new Listing<String> {
+    "corepack enable"
+    "echo \"registry.pkl dev shell loaded\""
+  }
+}
+
+scripts {
+  ["build"] = "pnpm build"
+  ["lint"] = new ScriptEntry {
+    steps = new Listing<String> {
+      "pkl eval -m . root-files.pkl"
+      "pnpm check"
+    }
+  }
+}
