@@ -29,6 +29,10 @@ features:
     title: By Target
     details: Auto-generated reverse index — every shipped config file mapped back to the registry record that emits it.
     link: ./by-target/index.html
+  - icon: "mdi:api"
+    title: API Reference
+    details: Auto-generated module-by-module reference for every typed Pkl module under packages/target.*.
+    link: ./api/index.html
 ---
 
 ## When To Use Reference
@@ -36,4 +40,5 @@ features:
 - Open [Tool Matrix](./tool-matrix/index.html) when you want to know which package should own a file.
 - Open [By Target](./by-target/index.html) when you have a concrete file in mind and want the matching registry record.
 - Open [Registry Record](./registry-record/index.html) when you want the current metadata shape for indexing and review.
+- Open [API Reference](./api/index.html) when you need the exact field names and types of a Pkl module.
 - Use [Packages](../packages/index.html) or [Guides](../guide/index.html) if you need narrative context instead of lookup tables.

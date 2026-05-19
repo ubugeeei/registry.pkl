@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "crates/pkl-reference",
     "crates/registry-validator",
     "crates/release-cut",
     "crates/search-index",
