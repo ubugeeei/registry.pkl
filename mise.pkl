@@ -3,6 +3,7 @@ amends "@target.env/mise/Mise.pkl"
 tools {
   ["node"] = "24"
   ["pnpm"] = "10"
+  ["rust"] = "1.85"
 }
 
 tasks {
@@ -27,7 +28,11 @@ tasks {
     run = "pnpm check"
   }
   ["test"] = new Task {
-    description = "Run tests"
+    description = "Run all pkl tests across every family"
+    run = "bash scripts/test.sh"
+  }
+  ["test:docs"] = new Task {
+    description = "Run the docs site vitest suite"
     run = "pnpm test"
   }
   ["gen"] = new Task {
@@ -37,5 +42,72 @@ tasks {
   ["resolve"] = new Task {
     description = "Resolve local and remote Pkl package dependencies"
     run = "pkl project resolve . packages/target.*"
+  }
+  ["render:examples"] = new Task {
+    description = "Render every examples/*.pkl to confirm no regression"
+    run = "bash scripts/render-examples.sh"
+  }
+  ["render:registry"] = new Task {
+    description = "Render registry-records/*.pkl to registry/*.json"
+    run = "bash scripts/render-registry.sh"
+  }
+  ["validate:registry"] = new Task {
+    description = "Validate every JSON record under registry/"
+    run = "cargo run -q --release -p registry-validator -- registry"
+  }
+  ["index:search"] = new Task {
+    description = "Build registry-search.json + the by-target docs page"
+    run = #"""
+      cargo run -q --release -p search-index -- \
+        --registry registry \
+        --output dist/docs/registry-search.json \
+        --emit-markdown packages/docs/content/reference/by-target.md
+      """#
+  }
+  ["index:api"] = new Task {
+    description = "Regenerate the per-module API reference pages"
+    run = #"""
+      cargo run -q --release -p pkl-reference -- \
+        --packages-root packages \
+        --output packages/docs/content/reference/api \
+        --source-url-template "https://github.com/ubugeeei/registry.pkl/blob/main/packages/%path#L%line-L%endLine"
+      """#
+  }
+  ["index:api:check"] = new Task {
+    description = "Fail if the api/ tree drifts from the Pkl sources"
+    run = #"""
+      cargo run -q --release -p pkl-reference -- \
+        --packages-root packages \
+        --output packages/docs/content/reference/api \
+        --source-url-template "https://github.com/ubugeeei/registry.pkl/blob/main/packages/%path#L%line-L%endLine" \
+        --check
+      """#
+  }
+  ["rust:fmt"] = new Task {
+    description = "Format the Rust workspace"
+    run = "cargo fmt --all"
+  }
+  ["rust:check"] = new Task {
+    description = "cargo fmt --check + cargo clippy"
+    run = "cargo fmt --all -- --check && cargo clippy --release --all-targets -- -D warnings"
+  }
+  ["rust:test"] = new Task {
+    description = "Run the Rust workspace test suite"
+    run = "cargo test --release --workspace"
+  }
+  ["all"] = new Task {
+    description = "The full local CI loop"
+    depends {
+      "gen"
+      "resolve"
+      "test"
+      "render:registry"
+      "render:examples"
+      "index:api:check"
+      "rust:check"
+      "rust:test"
+      "check"
+      "build"
+    }
   }
 }
