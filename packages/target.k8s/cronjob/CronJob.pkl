@@ -1,0 +1,98 @@
+/// A typed authoring surface for `batch/v1.CronJob`.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#cronjob-v1-batch
+module target.k8s.cronjob.CronJob
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../job/Job.pkl"
+
+class JobTemplate {
+  metadata: Pod.ObjectMeta? = null
+  spec: Job.Spec
+}
+
+class Spec {
+  schedule: String
+  timeZone: String? = null
+  startingDeadlineSeconds: Int? = null
+  concurrencyPolicy: ("Allow"|"Forbid"|"Replace")? = null
+  suspend: Boolean? = null
+  jobTemplate: JobTemplate
+  successfulJobsHistoryLimit: Int? = null
+  failedJobsHistoryLimit: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: String = "batch/v1"
+kind: String = "CronJob"
+metadata: Pod.ObjectMeta
+spec: Spec
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderObjectMeta(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderJobTemplate(value: JobTemplate) =
+  new Mapping<String, Any> {
+    when (value.metadata != null) {
+      ["metadata"] = renderObjectMeta(value.metadata)
+    }
+    ["spec"] = (Job) {
+      metadata = new Pod.ObjectMeta {}
+      spec = value.spec
+    }.rendered["spec"]
+  }.toMap()
+
+local function renderSpec(value: Spec) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["schedule"] = value.schedule
+      when (value.timeZone != null) { ["timeZone"] = value.timeZone }
+      when (value.startingDeadlineSeconds != null) {
+        ["startingDeadlineSeconds"] = value.startingDeadlineSeconds
+      }
+      when (value.concurrencyPolicy != null) {
+        ["concurrencyPolicy"] = value.concurrencyPolicy
+      }
+      when (value.suspend != null) {
+        ["suspend"] = value.suspend
+      }
+      ["jobTemplate"] = renderJobTemplate(value.jobTemplate)
+      when (value.successfulJobsHistoryLimit != null) {
+        ["successfulJobsHistoryLimit"] = value.successfulJobsHistoryLimit
+      }
+      when (value.failedJobsHistoryLimit != null) {
+        ["failedJobsHistoryLimit"] = value.failedJobsHistoryLimit
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderObjectMeta(metadata)
+      ["spec"] = renderSpec(spec)
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

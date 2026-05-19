@@ -1,0 +1,37 @@
+amends "@target.k8s/cronjob/CronJob.pkl"
+
+import "@target.k8s/job/Job.pkl"
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+import "@target.k8s/deployment/Deployment.pkl" as Dep
+
+metadata = new Pod.ObjectMeta {
+  name = "nightly-reindex"
+  namespace = "registry"
+}
+
+spec = new Spec {
+  schedule = "0 3 * * *"
+  timeZone = "Etc/UTC"
+  concurrencyPolicy = "Forbid"
+  startingDeadlineSeconds = 600
+  successfulJobsHistoryLimit = 3
+  failedJobsHistoryLimit = 1
+  jobTemplate = new JobTemplate {
+    spec = new Job.Spec {
+      backoffLimit = 2
+      ttlSecondsAfterFinished = 86400
+      template = new Dep.Template {
+        spec = new Pod.PodTemplateSpec {
+          restartPolicy = "OnFailure"
+          containers {
+            new Pod.Container {
+              name = "reindex"
+              image = "ghcr.io/ubugeeei/registry-reindex:0.1.0"
+              command { "reindex" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

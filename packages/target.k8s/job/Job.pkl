@@ -1,0 +1,137 @@
+/// A typed authoring surface for `batch/v1.Job`.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#job-v1-batch
+module target.k8s.job.Job
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../deployment/Deployment.pkl" as Dep
+
+class Spec {
+  template: Dep.Template
+  parallelism: Int? = null
+  completions: Int? = null
+  backoffLimit: Int? = null
+  backoffLimitPerIndex: Int? = null
+  activeDeadlineSeconds: Int? = null
+  ttlSecondsAfterFinished: Int? = null
+  selector: Dep.LabelSelector? = null
+  manualSelector: Boolean? = null
+  completionMode: ("NonIndexed"|"Indexed")? = null
+  suspend: Boolean? = null
+  podFailurePolicy: Mapping<String, Any>? = null
+  successPolicy: Mapping<String, Any>? = null
+  maxFailedIndexes: Int? = null
+  podReplacementPolicy: ("TerminatingOrFailed"|"Failed")? = null
+  managedBy: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: String = "batch/v1"
+kind: String = "Job"
+metadata: Pod.ObjectMeta
+spec: Spec
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderObjectMeta(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSelector(value: Dep.LabelSelector) =
+  new Mapping<String, Any> {
+    when (!value.matchLabels.toMap().isEmpty) {
+      ["matchLabels"] = value.matchLabels.toMap()
+    }
+    when (!value.matchExpressions.toList().isEmpty) {
+      ["matchExpressions"] = value.matchExpressions.toList()
+        .map((m) -> m.toMap())
+    }
+  }.toMap()
+
+local function renderTemplate(value: Dep.Template) =
+  new Mapping<String, Any> {
+    when (value.metadata != null) {
+      ["metadata"] = renderObjectMeta(value.metadata)
+    }
+    ["spec"] = (Pod) { spec = value.spec }.rendered["spec"]
+  }.toMap()
+
+local function renderSpec(value: Spec) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["template"] = renderTemplate(value.template)
+      when (value.parallelism != null) {
+        ["parallelism"] = value.parallelism
+      }
+      when (value.completions != null) {
+        ["completions"] = value.completions
+      }
+      when (value.backoffLimit != null) {
+        ["backoffLimit"] = value.backoffLimit
+      }
+      when (value.backoffLimitPerIndex != null) {
+        ["backoffLimitPerIndex"] = value.backoffLimitPerIndex
+      }
+      when (value.activeDeadlineSeconds != null) {
+        ["activeDeadlineSeconds"] = value.activeDeadlineSeconds
+      }
+      when (value.ttlSecondsAfterFinished != null) {
+        ["ttlSecondsAfterFinished"] = value.ttlSecondsAfterFinished
+      }
+      when (value.selector != null) {
+        ["selector"] = renderSelector(value.selector)
+      }
+      when (value.manualSelector != null) {
+        ["manualSelector"] = value.manualSelector
+      }
+      when (value.completionMode != null) {
+        ["completionMode"] = value.completionMode
+      }
+      when (value.suspend != null) {
+        ["suspend"] = value.suspend
+      }
+      when (value.podFailurePolicy != null) {
+        ["podFailurePolicy"] = value.podFailurePolicy.toMap()
+      }
+      when (value.successPolicy != null) {
+        ["successPolicy"] = value.successPolicy.toMap()
+      }
+      when (value.maxFailedIndexes != null) {
+        ["maxFailedIndexes"] = value.maxFailedIndexes
+      }
+      when (value.podReplacementPolicy != null) {
+        ["podReplacementPolicy"] = value.podReplacementPolicy
+      }
+      when (value.managedBy != null) {
+        ["managedBy"] = value.managedBy
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderObjectMeta(metadata)
+      ["spec"] = renderSpec(spec)
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

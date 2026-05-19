@@ -1,0 +1,62 @@
+/// Tests for `target.k8s.statefulset.StatefulSet` rendering.
+amends "pkl:test"
+
+import "../statefulset/StatefulSet.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../deployment/Deployment.pkl" as Dep
+
+local sts = (StatefulSet) {
+  metadata = new Pod.ObjectMeta {
+    name = "db"
+    namespace = "data"
+  }
+  spec = new StatefulSet.Spec {
+    serviceName = "db"
+    replicas = 3
+    selector = new Dep.LabelSelector {
+      matchLabels { ["app"] = "db" }
+    }
+    template = new Dep.Template {
+      metadata = new Pod.ObjectMeta {
+        labels { ["app"] = "db" }
+      }
+      spec = new Pod.PodTemplateSpec {
+        containers {
+          new Pod.Container {
+            name = "db"
+            image = "postgres:16"
+          }
+        }
+      }
+    }
+    podManagementPolicy = "OrderedReady"
+    volumeClaimTemplates {
+      new StatefulSet.VolumeClaimTemplate {
+        metadata = new Pod.ObjectMeta { name = "data" }
+        spec = new StatefulSet.PvcSpec {
+          accessModes { "ReadWriteOnce" }
+          storageClassName = "fast"
+        }
+      }
+    }
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    sts.rendered["apiVersion"] == "apps/v1"
+    sts.rendered["kind"] == "StatefulSet"
+  }
+  ["serviceName is required"] {
+    sts.rendered["spec"]["serviceName"] == "db"
+  }
+  ["podManagementPolicy enum"] {
+    sts.rendered["spec"]["podManagementPolicy"] == "OrderedReady"
+  }
+  ["volumeClaimTemplates carry pvc spec"] {
+    local pvc = sts.rendered["spec"]["volumeClaimTemplates"][0]
+    pvc["metadata"]["name"] == "data"
+    pvc["spec"]["accessModes"] == List("ReadWriteOnce")
+    pvc["spec"]["storageClassName"] == "fast"
+  }
+}

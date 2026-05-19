@@ -1,0 +1,51 @@
+/// Tests for `target.k8s.daemonset.DaemonSet` rendering.
+amends "pkl:test"
+
+import "../daemonset/DaemonSet.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../deployment/Deployment.pkl" as Dep
+
+local ds = (DaemonSet) {
+  metadata = new Pod.ObjectMeta {
+    name = "node-exporter"
+    namespace = "monitoring"
+  }
+  spec = new DaemonSet.Spec {
+    selector = new Dep.LabelSelector {
+      matchLabels { ["app"] = "node-exporter" }
+    }
+    template = new Dep.Template {
+      metadata = new Pod.ObjectMeta {
+        labels { ["app"] = "node-exporter" }
+      }
+      spec = new Pod.PodTemplateSpec {
+        hostNetwork = true
+        hostPID = true
+        containers {
+          new Pod.Container {
+            name = "exporter"
+            image = "prom/node-exporter:1.7.0"
+          }
+        }
+      }
+    }
+    updateStrategy = new DaemonSet.UpdateStrategy {
+      type = "RollingUpdate"
+    }
+    minReadySeconds = 30
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    ds.rendered["apiVersion"] == "apps/v1"
+    ds.rendered["kind"] == "DaemonSet"
+  }
+  ["updateStrategy.type passes through"] {
+    ds.rendered["spec"]["updateStrategy"]["type"] == "RollingUpdate"
+  }
+  ["template forwards hostNetwork + hostPID"] {
+    ds.rendered["spec"]["template"]["spec"]["hostNetwork"] == true
+    ds.rendered["spec"]["template"]["spec"]["hostPID"] == true
+  }
+}

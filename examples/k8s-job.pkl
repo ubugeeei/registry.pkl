@@ -1,0 +1,42 @@
+amends "@target.k8s/job/Job.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+import "@target.k8s/deployment/Deployment.pkl" as Dep
+
+metadata = new Pod.ObjectMeta {
+  name = "migrate"
+  namespace = "registry"
+}
+
+spec = new Spec {
+  parallelism = 1
+  completions = 1
+  backoffLimit = 3
+  activeDeadlineSeconds = 600
+  ttlSecondsAfterFinished = 86400
+  completionMode = "NonIndexed"
+  template = new Dep.Template {
+    spec = new Pod.PodTemplateSpec {
+      restartPolicy = "Never"
+      serviceAccountName = "migrate"
+      containers {
+        new Pod.Container {
+          name = "migrate"
+          image = "ghcr.io/ubugeeei/registry-migrate:0.1.0"
+          command { "migrate"; "up" }
+          env {
+            new Pod.EnvVar {
+              name = "DATABASE_URL"
+              valueFrom = new Mapping<String, Any> {
+                ["secretKeyRef"] = new Mapping<String, String> {
+                  ["name"] = "registry-api-secrets"
+                  ["key"] = "DATABASE_URL"
+                }.toMap()
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -15,7 +15,11 @@
     "deployment.yaml",
     "service.yaml",
     "configmap.yaml",
-    "pod.yaml"
+    "pod.yaml",
+    "statefulset.yaml",
+    "daemonset.yaml",
+    "job.yaml",
+    "cronjob.yaml"
   ],
   "formats": [
     "yaml"

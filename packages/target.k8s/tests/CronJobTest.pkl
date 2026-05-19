@@ -1,0 +1,59 @@
+/// Tests for `target.k8s.cronjob.CronJob` rendering.
+amends "pkl:test"
+
+import "../cronjob/CronJob.pkl"
+import "../job/Job.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../deployment/Deployment.pkl" as Dep
+
+local cron = (CronJob) {
+  metadata = new Pod.ObjectMeta {
+    name = "nightly"
+    namespace = "default"
+  }
+  spec = new CronJob.Spec {
+    schedule = "0 0 * * *"
+    timeZone = "Etc/UTC"
+    concurrencyPolicy = "Forbid"
+    successfulJobsHistoryLimit = 3
+    failedJobsHistoryLimit = 1
+    jobTemplate = new CronJob.JobTemplate {
+      spec = new Job.Spec {
+        template = new Dep.Template {
+          spec = new Pod.PodTemplateSpec {
+            restartPolicy = "OnFailure"
+            containers {
+              new Pod.Container {
+                name = "task"
+                image = "busybox"
+                command { "echo"; "hello" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    cron.rendered["apiVersion"] == "batch/v1"
+    cron.rendered["kind"] == "CronJob"
+  }
+  ["schedule + timezone"] {
+    cron.rendered["spec"]["schedule"] == "0 0 * * *"
+    cron.rendered["spec"]["timeZone"] == "Etc/UTC"
+  }
+  ["concurrencyPolicy enum"] {
+    cron.rendered["spec"]["concurrencyPolicy"] == "Forbid"
+  }
+  ["history limits"] {
+    cron.rendered["spec"]["successfulJobsHistoryLimit"] == 3
+    cron.rendered["spec"]["failedJobsHistoryLimit"] == 1
+  }
+  ["jobTemplate.spec.template forwards container"] {
+    local pod = cron.rendered["spec"]["jobTemplate"]["spec"]["template"]["spec"]
+    pod["containers"][0]["image"] == "busybox"
+  }
+}
