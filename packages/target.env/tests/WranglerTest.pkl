@@ -1,0 +1,73 @@
+/// Tests for `target.env.wrangler.Wrangler` rendering.
+amends "pkl:test"
+
+import "../wrangler/Wrangler.pkl"
+
+local config = (Wrangler) {
+  name = "my-worker"
+  main = "src/index.ts"
+  compatibility_date = "2024-05-01"
+  compatibility_flags { "nodejs_compat" }
+  workers_dev = true
+  vars {
+    ["LOG_LEVEL"] = "info"
+  }
+  kv_namespaces {
+    new Wrangler.KvNamespace {
+      binding = "CACHE"
+      id = "abc123"
+    }
+  }
+  r2_buckets {
+    new Wrangler.R2Bucket {
+      binding = "ASSETS"
+      bucket_name = "my-assets"
+    }
+  }
+  d1_databases {
+    new Wrangler.D1Database {
+      binding = "DB"
+      database_name = "production"
+      database_id = "d1-id-123"
+    }
+  }
+  triggers = new Wrangler.Triggers {
+    crons { "0 */6 * * *" }
+  }
+  env {
+    ["staging"] = new Wrangler.Env {
+      name = "my-worker-staging"
+      vars {
+        ["LOG_LEVEL"] = "debug"
+      }
+    }
+  }
+}
+
+facts {
+  ["scalars pass through"] {
+    config.rendered["name"] == "my-worker"
+    config.rendered["main"] == "src/index.ts"
+    config.rendered["compatibility_date"] == "2024-05-01"
+  }
+  ["compatibility_flags list emits"] {
+    config.rendered["compatibility_flags"] == List("nodejs_compat")
+  }
+  ["kv binding emits with id"] {
+    local kv = config.rendered["kv_namespaces"][0]
+    kv["binding"] == "CACHE"
+    kv["id"] == "abc123"
+  }
+  ["r2 bucket emits required fields"] {
+    config.rendered["r2_buckets"][0]["bucket_name"] == "my-assets"
+  }
+  ["d1 database emits required fields"] {
+    config.rendered["d1_databases"][0]["database_name"] == "production"
+  }
+  ["triggers.crons forwards list"] {
+    config.rendered["triggers"]["crons"] == List("0 */6 * * *")
+  }
+  ["env table nests per-environment vars"] {
+    config.rendered["env"]["staging"]["vars"] == Map("LOG_LEVEL", "debug")
+  }
+}

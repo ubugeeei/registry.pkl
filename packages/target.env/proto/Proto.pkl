@@ -1,0 +1,103 @@
+/// A typed authoring surface for `.prototools`.
+///
+/// Proto (https://moonrepo.dev/proto) stores per-project tool pins and
+/// plugin definitions in `.prototools` (TOML). Tools are simple
+/// "name = version" assignments at the top level; plugins live under
+/// `[plugins]`; tool-specific settings under `[tools.<name>]`; settings
+/// under `[settings]`.
+module target.env.proto.Proto
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class ToolSettings {
+  /// Aliases for this tool version.
+  aliases: Mapping<String, String> = new Mapping {}
+  /// Per-tool default version override.
+  default_version: String? = null
+  /// Free-form passthrough for tool-specific config.
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Settings {
+  autoCleanInstall: Boolean? = null
+  autoInstall: Boolean? = null
+  detectStrategy: ("first-available"|"prefer-prototools"|"only-prototools")? = null
+  pinLatest: ("global"|"local"|"user")? = null
+  telemetry: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+/// Top-level "tool = version" pins.
+tools: Mapping<String, String> = new Mapping {}
+
+/// Plugin name → install location (URL or `source:` URI).
+plugins: Mapping<String, String> = new Mapping {}
+
+/// Per-tool settings ([tools.<name>] tables).
+toolSettings: Mapping<String, ToolSettings> = new Mapping {}
+
+/// Global settings table.
+settings: Settings? = null
+
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderToolSettings(value: ToolSettings) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.aliases.toMap().isEmpty) {
+        ["aliases"] = value.aliases.toMap()
+      }
+      when (value.default_version != null) {
+        ["default-version"] = value.default_version
+      }
+    },
+    value.extra,
+  )
+
+local function renderSettings(value: Settings) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.autoCleanInstall != null) {
+        ["auto-clean-install"] = value.autoCleanInstall
+      }
+      when (value.autoInstall != null) {
+        ["auto-install"] = value.autoInstall
+      }
+      when (value.detectStrategy != null) {
+        ["detect-strategy"] = value.detectStrategy
+      }
+      when (value.pinLatest != null) {
+        ["pin-latest"] = value.pinLatest
+      }
+      when (value.telemetry != null) {
+        ["telemetry"] = value.telemetry
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      for (name, version in tools) {
+        [name] = version
+      }
+      when (!plugins.toMap().isEmpty) {
+        ["plugins"] = plugins.toMap()
+      }
+      when (!toolSettings.toMap().isEmpty) {
+        ["tools"] = toolSettings.toMap()
+          .mapValues((_, t) -> renderToolSettings(t))
+      }
+      when (settings != null) {
+        ["settings"] = renderSettings(settings)
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

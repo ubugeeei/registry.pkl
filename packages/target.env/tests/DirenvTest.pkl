@@ -1,0 +1,55 @@
+/// Tests for `target.env.direnv.Direnv` rendering.
+amends "pkl:test"
+
+import "../direnv/Direnv.pkl"
+
+local config = (Direnv) {
+  layouts {
+    "python3"
+  }
+  env {
+    ["DATABASE_URL"] = "postgres://localhost/dev"
+    ["DEBUG"] = "1"
+  }
+  pathAdd {
+    "./node_modules/.bin"
+    "./bin"
+  }
+  watch {
+    ".tool-versions"
+    "package.json"
+  }
+  useFlake = false
+  sourceUp = true
+  dotenv = ".env.local"
+  body {
+    "# project-specific shell hooks"
+  }
+}
+
+facts {
+  ["layout directive emits first"] {
+    config.rendered.contains("layout python3\n")
+  }
+  ["source_up emits when enabled"] {
+    config.rendered.contains("source_up\n")
+  }
+  ["dotenv with path renders path"] {
+    config.rendered.contains("dotenv .env.local\n")
+  }
+  ["PATH_add per entry"] {
+    config.rendered.contains("PATH_add ./node_modules/.bin\n")
+    config.rendered.contains("PATH_add ./bin\n")
+  }
+  ["env vars render as export lines"] {
+    config.rendered.contains("export DATABASE_URL=postgres://localhost/dev\n")
+    config.rendered.contains("export DEBUG=1\n")
+  }
+  ["watch_file per entry"] {
+    config.rendered.contains("watch_file .tool-versions\n")
+    config.rendered.contains("watch_file package.json\n")
+  }
+  ["body lines preserved"] {
+    config.rendered.contains("# project-specific shell hooks\n")
+  }
+}

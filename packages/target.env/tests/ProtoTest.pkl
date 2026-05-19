@@ -1,0 +1,46 @@
+/// Tests for `target.env.proto.Proto` rendering.
+amends "pkl:test"
+
+import "../proto/Proto.pkl"
+
+local config = (Proto) {
+  tools {
+    ["node"] = "20.10.0"
+    ["rust"] = "1.78.0"
+  }
+  plugins {
+    ["zig"] = "github:moonrepo/proto-zig"
+  }
+  toolSettings {
+    ["node"] = new Proto.ToolSettings {
+      aliases {
+        ["lts"] = "20"
+      }
+      default_version = "20.10.0"
+    }
+  }
+  settings = new Proto.Settings {
+    autoCleanInstall = true
+    detectStrategy = "prefer-prototools"
+    telemetry = false
+  }
+}
+
+facts {
+  ["tools land at top level"] {
+    config.rendered["node"] == "20.10.0"
+    config.rendered["rust"] == "1.78.0"
+  }
+  ["plugins nest under plugins table"] {
+    config.rendered["plugins"]["zig"] == "github:moonrepo/proto-zig"
+  }
+  ["toolSettings nest under tools.<name>"] {
+    config.rendered["tools"]["node"]["aliases"] == Map("lts", "20")
+    config.rendered["tools"]["node"]["default-version"] == "20.10.0"
+  }
+  ["settings use kebab-case keys"] {
+    config.rendered["settings"]["auto-clean-install"] == true
+    config.rendered["settings"]["detect-strategy"] == "prefer-prototools"
+    config.rendered["settings"]["telemetry"] == false
+  }
+}

@@ -1,0 +1,33 @@
+amends "@target.env/direnv/Direnv.pkl"
+
+layouts {
+  "python3"
+}
+
+env {
+  ["DATABASE_URL"] = "postgres://localhost:5432/dev"
+  ["DEBUG"] = "1"
+  ["NODE_ENV"] = "development"
+}
+
+pathAdd {
+  "./node_modules/.bin"
+  "./bin"
+}
+
+watch {
+  ".tool-versions"
+  "package.json"
+  "PklProject"
+}
+
+useFlake = false
+sourceUp = true
+dotenv = ".env.local"
+
+body {
+  "# project-specific shell hooks"
+  "if has rustup; then"
+  "  PATH_add \"$(rustc --print sysroot)/bin\""
+  "fi"
+}
