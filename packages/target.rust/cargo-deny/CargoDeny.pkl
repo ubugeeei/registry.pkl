@@ -1,0 +1,255 @@
+/// A typed authoring surface for `deny.toml`.
+///
+/// cargo-deny groups its rules into five sections: `graph`, `advisories`,
+/// `licenses`, `bans`, and `sources`. Each section configures a separate
+/// check; this module models them all and forwards extra fields via `extra`.
+///
+/// Reference: https://embarkstudios.github.io/cargo-deny/checks/cfg.html
+module target.rust.cargo_deny.CargoDeny
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+typealias Severity = "deny"|"warn"|"allow"
+
+class Graph {
+  targets: Listing<String|Mapping<String, Any>> = new Listing {}
+  excludeDev: Boolean? = null
+  excludeWorkspaceMembers: Listing<String> = new Listing {}
+  all_features: Boolean? = null
+  no_default_features: Boolean? = null
+  features: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Advisories {
+  db_path: String? = null
+  db_urls: Listing<String> = new Listing {}
+  vulnerability: Severity? = null
+  unmaintained: ("workspace"|"transitive"|"all"|"none")? = null
+  unsound: Severity? = null
+  yanked: Severity? = null
+  notice: Severity? = null
+  ignore: Listing<String|Mapping<String, Any>> = new Listing {}
+  severity_threshold: ("none"|"low"|"medium"|"high"|"critical")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Licenses {
+  allow: Listing<String> = new Listing {}
+  deny: Listing<String> = new Listing {}
+  exceptions: Listing<Mapping<String, Any>> = new Listing {}
+  confidence_threshold: Float? = null
+  copyleft: Severity? = null
+  allow_osi_fsf_free: ("both"|"either"|"neither")? = null
+  unlicensed: Severity? = null
+  default: Severity? = null
+  private: Mapping<String, Any>? = null
+  clarify: Listing<Mapping<String, Any>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Bans {
+  multiple_versions: Severity? = null
+  wildcards: Severity? = null
+  highlight: ("all"|"lowest-version"|"simplest-path")? = null
+  workspace_default_features: Severity? = null
+  external_default_features: Severity? = null
+  allow: Listing<Mapping<String, Any>> = new Listing {}
+  deny: Listing<Mapping<String, Any>> = new Listing {}
+  skip: Listing<Mapping<String, Any>> = new Listing {}
+  skip_tree: Listing<Mapping<String, Any>> = new Listing {}
+  features: Listing<Mapping<String, Any>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Sources {
+  unknown_registry: Severity? = null
+  unknown_git: Severity? = null
+  allow_registry: Listing<String> = new Listing {}
+  allow_git: Listing<String> = new Listing {}
+  allow_org: Mapping<String, Listing<String>> = new Mapping {}
+  private: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+graph: Graph? = null
+advisories: Advisories? = null
+licenses: Licenses? = null
+bans: Bans? = null
+sources: Sources? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderListOfStringOrMap(items: Listing<String|Mapping<String, Any>>) =
+  items.toList().map((it) -> if (it is Mapping) it.toMap() else it)
+
+local function renderListOfMap(items: Listing<Mapping<String, Any>>) =
+  items.toList().map((it) -> it.toMap())
+
+local function renderGraph(value: Graph) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.targets.toList().isEmpty) {
+        ["targets"] = renderListOfStringOrMap(value.targets)
+      }
+      when (value.excludeDev != null) {
+        ["exclude-dev"] = value.excludeDev
+      }
+      when (!value.excludeWorkspaceMembers.toList().isEmpty) {
+        ["exclude-workspace-members"] = value.excludeWorkspaceMembers.toList()
+      }
+      when (value.all_features != null) {
+        ["all-features"] = value.all_features
+      }
+      when (value.no_default_features != null) {
+        ["no-default-features"] = value.no_default_features
+      }
+      when (!value.features.toList().isEmpty) {
+        ["features"] = value.features.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderAdvisories(value: Advisories) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.db_path != null) { ["db-path"] = value.db_path }
+      when (!value.db_urls.toList().isEmpty) {
+        ["db-urls"] = value.db_urls.toList()
+      }
+      when (value.vulnerability != null) {
+        ["vulnerability"] = value.vulnerability
+      }
+      when (value.unmaintained != null) {
+        ["unmaintained"] = value.unmaintained
+      }
+      when (value.unsound != null) { ["unsound"] = value.unsound }
+      when (value.yanked != null) { ["yanked"] = value.yanked }
+      when (value.notice != null) { ["notice"] = value.notice }
+      when (!value.ignore.toList().isEmpty) {
+        ["ignore"] = renderListOfStringOrMap(value.ignore)
+      }
+      when (value.severity_threshold != null) {
+        ["severity-threshold"] = value.severity_threshold
+      }
+    },
+    value.extra,
+  )
+
+local function renderLicenses(value: Licenses) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.allow.toList().isEmpty) {
+        ["allow"] = value.allow.toList()
+      }
+      when (!value.deny.toList().isEmpty) {
+        ["deny"] = value.deny.toList()
+      }
+      when (!value.exceptions.toList().isEmpty) {
+        ["exceptions"] = renderListOfMap(value.exceptions)
+      }
+      when (value.confidence_threshold != null) {
+        ["confidence-threshold"] = value.confidence_threshold
+      }
+      when (value.copyleft != null) { ["copyleft"] = value.copyleft }
+      when (value.allow_osi_fsf_free != null) {
+        ["allow-osi-fsf-free"] = value.allow_osi_fsf_free
+      }
+      when (value.unlicensed != null) {
+        ["unlicensed"] = value.unlicensed
+      }
+      when (value.default != null) { ["default"] = value.default }
+      when (value.private != null) {
+        ["private"] = value.private.toMap()
+      }
+      when (!value.clarify.toList().isEmpty) {
+        ["clarify"] = renderListOfMap(value.clarify)
+      }
+    },
+    value.extra,
+  )
+
+local function renderBans(value: Bans) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.multiple_versions != null) {
+        ["multiple-versions"] = value.multiple_versions
+      }
+      when (value.wildcards != null) {
+        ["wildcards"] = value.wildcards
+      }
+      when (value.highlight != null) {
+        ["highlight"] = value.highlight
+      }
+      when (value.workspace_default_features != null) {
+        ["workspace-default-features"] = value.workspace_default_features
+      }
+      when (value.external_default_features != null) {
+        ["external-default-features"] = value.external_default_features
+      }
+      when (!value.allow.toList().isEmpty) {
+        ["allow"] = renderListOfMap(value.allow)
+      }
+      when (!value.deny.toList().isEmpty) {
+        ["deny"] = renderListOfMap(value.deny)
+      }
+      when (!value.skip.toList().isEmpty) {
+        ["skip"] = renderListOfMap(value.skip)
+      }
+      when (!value.skip_tree.toList().isEmpty) {
+        ["skip-tree"] = renderListOfMap(value.skip_tree)
+      }
+      when (!value.features.toList().isEmpty) {
+        ["features"] = renderListOfMap(value.features)
+      }
+    },
+    value.extra,
+  )
+
+local function renderSources(value: Sources) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.unknown_registry != null) {
+        ["unknown-registry"] = value.unknown_registry
+      }
+      when (value.unknown_git != null) {
+        ["unknown-git"] = value.unknown_git
+      }
+      when (!value.allow_registry.toList().isEmpty) {
+        ["allow-registry"] = value.allow_registry.toList()
+      }
+      when (!value.allow_git.toList().isEmpty) {
+        ["allow-git"] = value.allow_git.toList()
+      }
+      when (!value.allow_org.toMap().isEmpty) {
+        ["allow-org"] = value.allow_org.toMap()
+          .mapValues((_, l) -> l.toList())
+      }
+      when (!value.private.toList().isEmpty) {
+        ["private"] = value.private.toList()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (graph != null) { ["graph"] = renderGraph(graph) }
+      when (advisories != null) {
+        ["advisories"] = renderAdvisories(advisories)
+      }
+      when (licenses != null) {
+        ["licenses"] = renderLicenses(licenses)
+      }
+      when (bans != null) { ["bans"] = renderBans(bans) }
+      when (sources != null) { ["sources"] = renderSources(sources) }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

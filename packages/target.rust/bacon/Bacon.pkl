@@ -1,0 +1,125 @@
+/// A typed authoring surface for `bacon.toml`.
+///
+/// Bacon (https://dystroy.org/bacon) is a background Cargo job runner.
+/// Its config defines named "jobs" mapped to cargo subcommands, plus
+/// keybindings, defaults, and exports.
+///
+/// Reference: https://dystroy.org/bacon/config/
+module target.rust.bacon.Bacon
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class Job {
+  command: Listing<String>
+  needBacktrace: Boolean? = null
+  watch: Listing<String> = new Listing {}
+  ignore: Listing<String> = new Listing {}
+  default_watch: Boolean? = null
+  background: Boolean? = null
+  onChangeStrategy: ("kill-then-restart"|"wait-then-restart"|"none")? = null
+  killCommand: Listing<String> = new Listing {}
+  analyzer: String? = null
+  expectFailure: Boolean? = null
+  env: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Export {
+  enabled: Boolean? = null
+  path: String? = null
+  line_format: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+defaultJob: String? = null
+envInheritance: Mapping<String, Boolean> = new Mapping {}
+keybindings: Mapping<String, String> = new Mapping {}
+jobs: Mapping<String, Job> = new Mapping {}
+exports: Mapping<String, Export> = new Mapping {}
+showChanges: Boolean? = null
+summary: Boolean? = null
+wrap: Boolean? = null
+reverse: Boolean? = null
+helpLine: Boolean? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderJob(value: Job) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["command"] = value.command.toList()
+      when (value.needBacktrace != null) {
+        ["need_stdout"] = value.needBacktrace
+      }
+      when (!value.watch.toList().isEmpty) {
+        ["watch"] = value.watch.toList()
+      }
+      when (!value.ignore.toList().isEmpty) {
+        ["ignore"] = value.ignore.toList()
+      }
+      when (value.default_watch != null) {
+        ["default_watch"] = value.default_watch
+      }
+      when (value.background != null) {
+        ["background"] = value.background
+      }
+      when (value.onChangeStrategy != null) {
+        ["on_change_strategy"] = value.onChangeStrategy
+      }
+      when (!value.killCommand.toList().isEmpty) {
+        ["kill"] = value.killCommand.toList()
+      }
+      when (value.analyzer != null) {
+        ["analyzer"] = value.analyzer
+      }
+      when (value.expectFailure != null) {
+        ["expect_failure"] = value.expectFailure
+      }
+      when (!value.env.toMap().isEmpty) {
+        ["env"] = value.env.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderExport(value: Export) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (value.path != null) { ["path"] = value.path }
+      when (value.line_format != null) {
+        ["line_format"] = value.line_format
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (defaultJob != null) { ["default_job"] = defaultJob }
+      when (!envInheritance.toMap().isEmpty) {
+        ["env"] = envInheritance.toMap()
+      }
+      when (!keybindings.toMap().isEmpty) {
+        ["keybindings"] = keybindings.toMap()
+      }
+      when (!jobs.toMap().isEmpty) {
+        ["jobs"] = jobs.toMap().mapValues((_, j) -> renderJob(j))
+      }
+      when (!exports.toMap().isEmpty) {
+        ["exports"] = exports.toMap().mapValues((_, e) -> renderExport(e))
+      }
+      when (showChanges != null) { ["show_changes"] = showChanges }
+      when (summary != null) { ["summary"] = summary }
+      when (wrap != null) { ["wrap"] = wrap }
+      when (reverse != null) { ["reverse"] = reverse }
+      when (helpLine != null) { ["help_line"] = helpLine }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}
