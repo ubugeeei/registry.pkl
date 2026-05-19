@@ -1,0 +1,66 @@
+amends "@target.go/golangci-lint/Golangci.pkl"
+
+run = new Run {
+  timeout = "5m"
+  tests = true
+  go = "1.23"
+  buildTags {
+    "integration"
+  }
+}
+
+linters = new Linters {
+  enableAll = false
+  enable {
+    "govet"
+    "errcheck"
+    "ineffassign"
+    "staticcheck"
+    "gosimple"
+    "unused"
+    "gofmt"
+    "goimports"
+    "revive"
+    "gocritic"
+  }
+  disable {
+    "exhaustivestruct"
+  }
+}
+
+linterSettings {
+  ["revive"] = new Mapping<String, Any> {
+    ["rules"] = new Listing {
+      new Mapping<String, Any> {
+        ["name"] = "exported"
+        ["severity"] = "warning"
+        ["disabled"] = false
+      }
+    }.toList()
+  }
+}
+
+issues = new IssuesSection {
+  excludeRules {
+    new IssueRule {
+      path = "_test\\.go"
+      linters {
+        "errcheck"
+      }
+    }
+  }
+  excludeDirs {
+    "vendor"
+  }
+  maxIssuesPerLinter = 0
+  maxSameIssues = 0
+}
+
+reportOutput = new Output {
+  formats = new Listing<Mapping<String, Any>> {
+    new Mapping {
+      ["format"] = "colored-line-number"
+    }
+  }
+  sortResults = true
+}

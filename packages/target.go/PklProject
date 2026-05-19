@@ -1,0 +1,10 @@
+/// Typed modules for the Go ecosystem (golangci-lint, goreleaser).
+amends "../basePklProject.pkl"
+
+dependencies {
+  ["target.core"] = import("../target.core/PklProject")
+}
+
+package {
+  version = "0.1.0"
+}

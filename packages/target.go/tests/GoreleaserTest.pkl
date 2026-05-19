@@ -1,0 +1,62 @@
+/// Tests for `target.go.goreleaser.Goreleaser` rendering.
+amends "pkl:test"
+
+import "../goreleaser/Goreleaser.pkl"
+
+local cfg = (Goreleaser) {
+  projectName = "demo"
+  version = 2
+  builds {
+    new Goreleaser.Build {
+      id = "main"
+      binary = "demo"
+      goos {
+        "linux"
+        "darwin"
+      }
+      goarch {
+        "amd64"
+      }
+      ldflags = new Listing<String> {
+        "-s"
+        "-w"
+      }
+    }
+  }
+  archives {
+    new Goreleaser.Archive {
+      id = "default"
+      formats {
+        "tar.gz"
+      }
+      nameTemplate = "{{ .ProjectName }}_{{ .Version }}"
+    }
+  }
+  snapshot = new Goreleaser.Snapshot {
+    nameTemplate = "{{ incpatch .Version }}-snapshot"
+  }
+}
+
+facts {
+  ["project_name renames"] {
+    cfg.rendered["project_name"] == "demo"
+  }
+  ["version passes through as int"] {
+    cfg.rendered["version"] == 2
+  }
+  ["builds carry id and goos list"] {
+    local build = cfg.rendered["builds"][0]
+    build["id"] == "main"
+    build["binary"] == "demo"
+    build["goos"] == List("linux", "darwin")
+    build["ldflags"] == List("-s", "-w")
+  }
+  ["archives carry name_template"] {
+    local archive = cfg.rendered["archives"][0]
+    archive["name_template"] == "{{ .ProjectName }}_{{ .Version }}"
+    archive["formats"] == List("tar.gz")
+  }
+  ["snapshot name_template renames"] {
+    cfg.rendered["snapshot"]["name_template"] == "{{ incpatch .Version }}-snapshot"
+  }
+}

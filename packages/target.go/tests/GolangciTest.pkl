@@ -1,0 +1,67 @@
+/// Tests for `target.go.golangci_lint.Golangci` rendering.
+amends "pkl:test"
+
+import "../golangci-lint/Golangci.pkl"
+
+local config = (Golangci) {
+  run = new Golangci.Run {
+    timeout = "5m"
+    tests = true
+    go = "1.23"
+    buildTags {
+      "integration"
+    }
+  }
+  linters = new Golangci.Linters {
+    enable {
+      "govet"
+      "errcheck"
+    }
+    disable {
+      "exhaustivestruct"
+    }
+  }
+  issues = new Golangci.IssuesSection {
+    excludeRules {
+      new Golangci.IssueRule {
+        path = "_test\\.go"
+        linters {
+          "errcheck"
+        }
+      }
+    }
+    excludeDirs {
+      "vendor"
+    }
+    `new` = true
+  }
+  reportOutput = new Golangci.Output {
+    sortResults = true
+  }
+}
+
+facts {
+  ["run timeout and tests pass through"] {
+    config.rendered["run"]["timeout"] == "5m"
+    config.rendered["run"]["tests"] == true
+    config.rendered["run"]["go"] == "1.23"
+  }
+  ["build-tags renames to kebab"] {
+    config.rendered["run"]["build-tags"] == List("integration")
+  }
+  ["linters enable and disable lists"] {
+    config.rendered["linters"]["enable"] == List("govet", "errcheck")
+    config.rendered["linters"]["disable"] == List("exhaustivestruct")
+  }
+  ["issues exclude rules carry path and linters"] {
+    local rule = config.rendered["issues"]["exclude-rules"][0]
+    rule["path"] == "_test\\.go"
+    rule["linters"] == List("errcheck")
+  }
+  ["issues new flag passes through"] {
+    config.rendered["issues"]["new"] == true
+  }
+  ["output section renames to sort-results"] {
+    config.rendered["output"]["sort-results"] == true
+  }
+}

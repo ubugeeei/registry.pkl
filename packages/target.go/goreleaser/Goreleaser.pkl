@@ -1,0 +1,274 @@
+/// A typed authoring surface for `.goreleaser.yml`.
+module target.go.goreleaser.Goreleaser
+
+import "@target.core/Maps.pkl" as Maps
+
+class Build {
+  id: String? = null
+  main: String? = null
+  binary: String? = null
+  dir: String? = null
+  goos: Listing<String> = new Listing {}
+  goarch: Listing<String> = new Listing {}
+  goarm: Listing<String> = new Listing {}
+  gomips: Listing<String> = new Listing {}
+  ignore: Listing<Mapping<String, String>> = new Listing {}
+  env: Listing<String> = new Listing {}
+  flags: Listing<String> = new Listing {}
+  ldflags: (String|Listing<String>)? = null
+  tags: Listing<String> = new Listing {}
+  hooks: Mapping<String, Any> = new Mapping {}
+  buildmode: String? = null
+  noUniqueDistDir: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Archive {
+  id: String? = null
+  ids: Listing<String> = new Listing {}
+  formats: Listing<String> = new Listing {}
+  nameTemplate: String? = null
+  wrapInDirectory: (Boolean|String)? = null
+  files: Listing<String|Mapping<String, Any>> = new Listing {}
+  formatOverrides: Listing<Mapping<String, Any>> = new Listing {}
+  builds: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Snapshot {
+  nameTemplate: String? = null
+  versionTemplate: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Changelog {
+  use: ("git"|"github"|"gitlab")? = null
+  sort: ("asc"|"desc"|"")? = null
+  skip: Boolean? = null
+  groups: Listing<Mapping<String, Any>> = new Listing {}
+  filters: Mapping<String, Listing<String>> = new Mapping {}
+  abbrev: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Brew {
+  name: String? = null
+  ids: Listing<String> = new Listing {}
+  goarm: String? = null
+  goamd64: String? = null
+  description: String? = null
+  homepage: String? = null
+  license: String? = null
+  install: String? = null
+  test: String? = null
+  caveats: String? = null
+  commitAuthor: Mapping<String, String> = new Mapping {}
+  commitMsgTemplate: String? = null
+  repository: Mapping<String, Any> = new Mapping {}
+  dependencies: Listing<Mapping<String, Any>> = new Listing {}
+  conflicts: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+projectName: String? = null
+version: Int? = null
+`before`: Mapping<String, Any> = new Mapping {}
+builds: Listing<Build> = new Listing {}
+archives: Listing<Archive> = new Listing {}
+checksum: Mapping<String, Any> = new Mapping {}
+snapshot: Snapshot? = null
+changelog: Changelog? = null
+release: Mapping<String, Any> = new Mapping {}
+brews: Listing<Brew> = new Listing {}
+nfpms: Listing<Mapping<String, Any>> = new Listing {}
+dockers: Listing<Mapping<String, Any>> = new Listing {}
+sboms: Listing<Mapping<String, Any>> = new Listing {}
+signs: Listing<Mapping<String, Any>> = new Listing {}
+universalBinaries: Listing<Mapping<String, Any>> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderBuild(value: Build) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.id != null) { ["id"] = value.id }
+      when (value.main != null) { ["main"] = value.main }
+      when (value.binary != null) { ["binary"] = value.binary }
+      when (value.dir != null) { ["dir"] = value.dir }
+      when (!value.goos.toList().isEmpty) { ["goos"] = value.goos.toList() }
+      when (!value.goarch.toList().isEmpty) {
+        ["goarch"] = value.goarch.toList()
+      }
+      when (!value.goarm.toList().isEmpty) {
+        ["goarm"] = value.goarm.toList()
+      }
+      when (!value.gomips.toList().isEmpty) {
+        ["gomips"] = value.gomips.toList()
+      }
+      when (!value.ignore.toList().isEmpty) {
+        ["ignore"] = value.ignore.toList().map((m) -> m.toMap())
+      }
+      when (!value.env.toList().isEmpty) { ["env"] = value.env.toList() }
+      when (!value.flags.toList().isEmpty) {
+        ["flags"] = value.flags.toList()
+      }
+      when (value.ldflags != null) {
+        ["ldflags"] =
+          if (value.ldflags is Listing) value.ldflags.toList() else value.ldflags
+      }
+      when (!value.tags.toList().isEmpty) { ["tags"] = value.tags.toList() }
+      when (!value.hooks.toMap().isEmpty) {
+        ["hooks"] = value.hooks.toMap()
+      }
+      when (value.buildmode != null) { ["buildmode"] = value.buildmode }
+      when (value.noUniqueDistDir != null) {
+        ["no_unique_dist_dir"] = value.noUniqueDistDir
+      }
+    },
+    value.extra,
+  )
+
+local function renderArchive(value: Archive) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.id != null) { ["id"] = value.id }
+      when (!value.ids.toList().isEmpty) { ["ids"] = value.ids.toList() }
+      when (!value.formats.toList().isEmpty) {
+        ["formats"] = value.formats.toList()
+      }
+      when (value.nameTemplate != null) {
+        ["name_template"] = value.nameTemplate
+      }
+      when (value.wrapInDirectory != null) {
+        ["wrap_in_directory"] = value.wrapInDirectory
+      }
+      when (!value.files.toList().isEmpty) {
+        ["files"] = value.files.toList().map(
+          (f) -> if (f is Mapping) f.toMap() else f,
+        )
+      }
+      when (!value.formatOverrides.toList().isEmpty) {
+        ["format_overrides"] = value.formatOverrides.toList().map((m) -> m.toMap())
+      }
+      when (!value.builds.toList().isEmpty) {
+        ["builds"] = value.builds.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSnapshot(value: Snapshot) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.nameTemplate != null) {
+        ["name_template"] = value.nameTemplate
+      }
+      when (value.versionTemplate != null) {
+        ["version_template"] = value.versionTemplate
+      }
+    },
+    value.extra,
+  )
+
+local function renderChangelog(value: Changelog) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.use != null) { ["use"] = value.use }
+      when (value.sort != null) { ["sort"] = value.sort }
+      when (value.skip != null) { ["skip"] = value.skip }
+      when (!value.groups.toList().isEmpty) {
+        ["groups"] = value.groups.toList().map((m) -> m.toMap())
+      }
+      when (!value.filters.toMap().isEmpty) {
+        ["filters"] = value.filters.toMap().mapValues((_, v) -> v.toList())
+      }
+      when (value.abbrev != null) { ["abbrev"] = value.abbrev }
+    },
+    value.extra,
+  )
+
+local function renderBrew(value: Brew) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.name != null) { ["name"] = value.name }
+      when (!value.ids.toList().isEmpty) { ["ids"] = value.ids.toList() }
+      when (value.goarm != null) { ["goarm"] = value.goarm }
+      when (value.goamd64 != null) { ["goamd64"] = value.goamd64 }
+      when (value.description != null) {
+        ["description"] = value.description
+      }
+      when (value.homepage != null) { ["homepage"] = value.homepage }
+      when (value.license != null) { ["license"] = value.license }
+      when (value.install != null) { ["install"] = value.install }
+      when (value.test != null) { ["test"] = value.test }
+      when (value.caveats != null) { ["caveats"] = value.caveats }
+      when (!value.commitAuthor.toMap().isEmpty) {
+        ["commit_author"] = value.commitAuthor.toMap()
+      }
+      when (value.commitMsgTemplate != null) {
+        ["commit_msg_template"] = value.commitMsgTemplate
+      }
+      when (!value.repository.toMap().isEmpty) {
+        ["repository"] = value.repository.toMap()
+      }
+      when (!value.dependencies.toList().isEmpty) {
+        ["dependencies"] = value.dependencies.toList().map((m) -> m.toMap())
+      }
+      when (!value.conflicts.toList().isEmpty) {
+        ["conflicts"] = value.conflicts.toList()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (projectName != null) { ["project_name"] = projectName }
+      when (version != null) { ["version"] = version }
+      when (!`before`.toMap().isEmpty) {
+        ["before"] = `before`.toMap()
+      }
+      when (!builds.toList().isEmpty) {
+        ["builds"] = builds.toList().map((b) -> renderBuild(b))
+      }
+      when (!archives.toList().isEmpty) {
+        ["archives"] = archives.toList().map((a) -> renderArchive(a))
+      }
+      when (!checksum.toMap().isEmpty) {
+        ["checksum"] = checksum.toMap()
+      }
+      when (snapshot != null) {
+        ["snapshot"] = renderSnapshot(snapshot)
+      }
+      when (changelog != null) {
+        ["changelog"] = renderChangelog(changelog)
+      }
+      when (!release.toMap().isEmpty) {
+        ["release"] = release.toMap()
+      }
+      when (!brews.toList().isEmpty) {
+        ["brews"] = brews.toList().map((b) -> renderBrew(b))
+      }
+      when (!nfpms.toList().isEmpty) {
+        ["nfpms"] = nfpms.toList().map((m) -> m.toMap())
+      }
+      when (!dockers.toList().isEmpty) {
+        ["dockers"] = dockers.toList().map((m) -> m.toMap())
+      }
+      when (!sboms.toList().isEmpty) {
+        ["sboms"] = sboms.toList().map((m) -> m.toMap())
+      }
+      when (!signs.toList().isEmpty) {
+        ["signs"] = signs.toList().map((m) -> m.toMap())
+      }
+      when (!universalBinaries.toList().isEmpty) {
+        ["universal_binaries"] = universalBinaries.toList().map((m) -> m.toMap())
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}
