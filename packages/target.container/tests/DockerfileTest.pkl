@@ -17,6 +17,18 @@ local file = (Df) {
   }
 }
 
+local platform = (Df) {
+  stages {
+    new Df.Stage {
+      from = "alpine:3.20"
+      platform = "linux/amd64"
+      instructions {
+        new Df.Instruction { directive = "CMD"; arg = "[\"sh\"]" }
+      }
+    }
+  }
+}
+
 facts {
   ["syntax directive emitted first"] {
     file.rendered.startsWith("# syntax=docker/dockerfile:1.6\n")
@@ -31,21 +43,6 @@ facts {
   ["file ends with newline"] {
     file.rendered.endsWith("\n")
   }
-}
-
-local platform = (Df) {
-  stages {
-    new Df.Stage {
-      from = "alpine:3.20"
-      platform = "linux/amd64"
-      instructions {
-        new Df.Instruction { directive = "CMD"; arg = "[\"sh\"]" }
-      }
-    }
-  }
-}
-
-facts {
   ["platform flag goes on the FROM line"] {
     platform.rendered.contains("FROM --platform=linux/amd64 alpine:3.20")
   }
