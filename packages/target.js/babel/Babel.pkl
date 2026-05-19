@@ -1,0 +1,140 @@
+/// A typed authoring surface for `babel.config.json` / `.babelrc.json`.
+///
+/// Babel's plugins and presets accept either a string (just the name) or a
+/// `[name, options]` pair. This module models both forms, plus the most
+/// commonly tuned top-level options.
+module target.js.babel.Babel
+
+import "@target.core/Maps.pkl" as Maps
+
+/// A plugin or preset reference with optional options and dir name.
+class PluginEntry {
+  /// Plugin/preset name or package specifier.
+  name: String
+  /// Plugin options. Renders as the second tuple element.
+  options: Mapping<String, Any> = new Mapping {}
+  /// Optional third tuple element — Babel uses this for unique plugin keys.
+  key: String? = null
+}
+
+typealias Reference = String|PluginEntry
+typealias TargetsValue = String|Listing<String>|Mapping<String, String|Listing<String>>
+
+class EnvEntry {
+  presets: Listing<Reference> = new Listing {}
+  plugins: Listing<Reference> = new Listing {}
+  sourceType: ("script"|"module"|"unambiguous")? = null
+  targets: TargetsValue? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class OverrideEntry {
+  test: (String|Listing<String>)? = null
+  include: (String|Listing<String>)? = null
+  exclude: (String|Listing<String>)? = null
+  presets: Listing<Reference> = new Listing {}
+  plugins: Listing<Reference> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+presets: Listing<Reference> = new Listing {}
+plugins: Listing<Reference> = new Listing {}
+targets: TargetsValue? = null
+sourceType: ("script"|"module"|"unambiguous")? = null
+sourceMaps: (Boolean|"inline"|"both")? = null
+assumptions: Mapping<String, Boolean> = new Mapping {}
+ignore: Listing<String> = new Listing {}
+only: Listing<String> = new Listing {}
+env: Mapping<String, EnvEntry> = new Mapping {}
+overrides: Listing<OverrideEntry> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderReference(value: Reference) =
+  if (value is String) value
+  else if (value.key != null)
+    List(value.name, value.options.toMap(), value.key)
+  else if (!value.options.toMap().isEmpty)
+    List(value.name, value.options.toMap())
+  else
+    value.name
+
+local function renderRefList(items: Listing<Reference>) =
+  items.toList().map((it) -> renderReference(it))
+
+local function renderStringOrList(value: String|Listing<String>) =
+  if (value is Listing) value.toList() else value
+
+local function renderTargets(value: TargetsValue) =
+  if (value is Listing) value.toList()
+  else if (value is Mapping)
+    value.toMap().mapValues((_, v) ->
+      if (v is Listing) v.toList() else v
+    )
+  else value
+
+local function renderEnv(value: EnvEntry) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.presets.toList().isEmpty) {
+        ["presets"] = renderRefList(value.presets)
+      }
+      when (!value.plugins.toList().isEmpty) {
+        ["plugins"] = renderRefList(value.plugins)
+      }
+      when (value.sourceType != null) {
+        ["sourceType"] = value.sourceType
+      }
+      when (value.targets != null) {
+        ["targets"] = renderTargets(value.targets)
+      }
+    },
+    value.extra,
+  )
+
+local function renderOverride(value: OverrideEntry) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.test != null) { ["test"] = renderStringOrList(value.test) }
+      when (value.include != null) {
+        ["include"] = renderStringOrList(value.include)
+      }
+      when (value.exclude != null) {
+        ["exclude"] = renderStringOrList(value.exclude)
+      }
+      when (!value.presets.toList().isEmpty) {
+        ["presets"] = renderRefList(value.presets)
+      }
+      when (!value.plugins.toList().isEmpty) {
+        ["plugins"] = renderRefList(value.plugins)
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!presets.toList().isEmpty) { ["presets"] = renderRefList(presets) }
+      when (!plugins.toList().isEmpty) { ["plugins"] = renderRefList(plugins) }
+      when (targets != null) { ["targets"] = renderTargets(targets) }
+      when (sourceType != null) { ["sourceType"] = sourceType }
+      when (sourceMaps != null) { ["sourceMaps"] = sourceMaps }
+      when (!assumptions.toMap().isEmpty) {
+        ["assumptions"] = assumptions.toMap()
+      }
+      when (!ignore.toList().isEmpty) { ["ignore"] = ignore.toList() }
+      when (!only.toList().isEmpty) { ["only"] = only.toList() }
+      when (!env.toMap().isEmpty) {
+        ["env"] = env.toMap().mapValues((_, e) -> renderEnv(e))
+      }
+      when (!overrides.toList().isEmpty) {
+        ["overrides"] = overrides.toList().map((o) -> renderOverride(o))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

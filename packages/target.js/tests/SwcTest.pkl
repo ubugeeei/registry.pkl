@@ -1,0 +1,52 @@
+/// Tests for `target.js.swc.Swc` rendering.
+amends "pkl:test"
+
+import "../swc/Swc.pkl"
+
+local config = (Swc) {
+  jsc = new Swc.JscConfig {
+    parser = new Swc.ParserConfig {
+      syntax = "typescript"
+      tsx = true
+      decorators = true
+    }
+    target = "es2022"
+    loose = false
+    paths {
+      ["@/*"] = new Listing<String> { "./src/*" }
+    }
+    baseUrl = "."
+  }
+  `module` = new Swc.ModuleConfig {
+    type = "es6"
+    strict = true
+    lazy = true
+  }
+  minify = true
+  sourceMaps = true
+  exclude = new Listing<String> { "node_modules" }
+}
+
+facts {
+  ["jsc.parser keeps syntax + flags"] {
+    config.rendered["jsc"]["parser"]["syntax"] == "typescript"
+    config.rendered["jsc"]["parser"]["tsx"] == true
+    config.rendered["jsc"]["parser"]["decorators"] == true
+  }
+  ["jsc.paths flattens listings to arrays"] {
+    config.rendered["jsc"]["paths"]["@/*"] == List("./src/*")
+  }
+  ["module.type is required and emits"] {
+    config.rendered["module"]["type"] == "es6"
+  }
+  ["module.lazy boolean passes through"] {
+    config.rendered["module"]["lazy"] == true
+  }
+  ["scalar top-levels pass through"] {
+    config.rendered["minify"] == true
+    config.rendered["sourceMaps"] == true
+  }
+  ["exclude listing flattens"] {
+    config.rendered["exclude"] == List("node_modules")
+  }
+}

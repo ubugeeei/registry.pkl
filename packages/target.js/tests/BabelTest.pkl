@@ -1,0 +1,56 @@
+/// Tests for `target.js.babel.Babel` rendering.
+amends "pkl:test"
+
+import "../babel/Babel.pkl"
+
+local config = (Babel) {
+  presets {
+    "@babel/preset-env"
+    new Babel.PluginEntry {
+      name = "@babel/preset-typescript"
+      options {
+        ["isTSX"] = true
+      }
+    }
+  }
+  plugins {
+    "@babel/plugin-transform-runtime"
+  }
+  targets = new Mapping<String, String> {
+    ["esmodules"] = "true"
+  }
+  sourceMaps = "inline"
+  env {
+    ["test"] = new Babel.EnvEntry {
+      presets {
+        new Babel.PluginEntry {
+          name = "@babel/preset-env"
+          options {
+            ["targets"] = new Mapping<String, String> {
+              ["node"] = "current"
+            }.toMap()
+          }
+        }
+      }
+    }
+  }
+}
+
+facts {
+  ["string preset renders as plain string"] {
+    config.rendered["presets"][0] == "@babel/preset-env"
+  }
+  ["preset with options renders as [name, options] tuple"] {
+    config.rendered["presets"][1] == List("@babel/preset-typescript", Map("isTSX", true))
+  }
+  ["plugin without options stays as string"] {
+    config.rendered["plugins"] == List("@babel/plugin-transform-runtime")
+  }
+  ["sourceMaps passes through"] {
+    config.rendered["sourceMaps"] == "inline"
+  }
+  ["env.test nests preset entries"] {
+    config.rendered["env"]["test"]["presets"][0]
+      == List("@babel/preset-env", Map("targets", Map("node", "current")))
+  }
+}

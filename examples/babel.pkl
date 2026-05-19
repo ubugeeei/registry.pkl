@@ -1,0 +1,48 @@
+amends "@target.js/babel/Babel.pkl"
+
+presets {
+  new PluginEntry {
+    name = "@babel/preset-env"
+    options {
+      ["targets"] = new Mapping<String, String> {
+        ["esmodules"] = "true"
+      }.toMap()
+      ["bugfixes"] = true
+    }
+  }
+  new PluginEntry {
+    name = "@babel/preset-typescript"
+    options {
+      ["isTSX"] = true
+      ["allExtensions"] = true
+    }
+  }
+  "@babel/preset-react"
+}
+
+plugins {
+  "@babel/plugin-transform-runtime"
+  new PluginEntry {
+    name = "@babel/plugin-proposal-decorators"
+    options {
+      ["version"] = "2023-11"
+    }
+  }
+}
+
+sourceMaps = "inline"
+
+env {
+  ["test"] = new EnvEntry {
+    presets {
+      new PluginEntry {
+        name = "@babel/preset-env"
+        options {
+          ["targets"] = new Mapping<String, String> {
+            ["node"] = "current"
+          }.toMap()
+        }
+      }
+    }
+  }
+}

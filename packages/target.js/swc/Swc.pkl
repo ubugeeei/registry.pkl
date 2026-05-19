@@ -1,0 +1,193 @@
+/// A typed authoring surface for `.swcrc`.
+///
+/// SWC's config is structured in two nested groups: `jsc` (parser, transform,
+/// target) and `module` (output module format). This module models the most
+/// frequently tuned knobs and forwards the rest via `extra`.
+module target.js.swc.Swc
+
+import "@target.core/Maps.pkl" as Maps
+
+class ParserConfig {
+  syntax: ("ecmascript"|"typescript")
+  jsx: Boolean? = null
+  tsx: Boolean? = null
+  decorators: Boolean? = null
+  decoratorsBeforeExport: Boolean? = null
+  dynamicImport: Boolean? = null
+  privateMethod: Boolean? = null
+  functionBind: Boolean? = null
+  exportDefaultFrom: Boolean? = null
+  exportNamespaceFrom: Boolean? = null
+  importAssertions: Boolean? = null
+  topLevelAwait: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class TransformConfig {
+  legacyDecorator: Boolean? = null
+  decoratorMetadata: Boolean? = null
+  react: Mapping<String, Any>? = null
+  optimizer: Mapping<String, Any>? = null
+  treatConstEnumAsEnum: Boolean? = null
+  useDefineForClassFields: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class JscConfig {
+  parser: ParserConfig? = null
+  target: String? = null
+  loose: Boolean? = null
+  keepClassNames: Boolean? = null
+  externalHelpers: Boolean? = null
+  minify: Mapping<String, Any>? = null
+  transform: TransformConfig? = null
+  paths: Mapping<String, Listing<String>> = new Mapping {}
+  baseUrl: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ModuleConfig {
+  type: ("commonjs"|"amd"|"umd"|"es6"|"nodenext"|"systemjs")
+  strict: Boolean? = null
+  strictMode: Boolean? = null
+  lazy: (Boolean|Listing<String>)? = null
+  noInterop: Boolean? = null
+  importInterop: ("swc"|"babel"|"node"|"none")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+jsc: JscConfig? = null
+`module`: ModuleConfig? = null
+minify: Boolean? = null
+sourceMaps: (Boolean|"inline")? = null
+inlineSourcesContent: Boolean? = null
+env: Mapping<String, Any>? = null
+test: (String|Listing<String>)? = null
+exclude: (String|Listing<String>)? = null
+isModule: (Boolean|"unknown")? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderParser(value: ParserConfig) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["syntax"] = value.syntax
+      when (value.jsx != null) { ["jsx"] = value.jsx }
+      when (value.tsx != null) { ["tsx"] = value.tsx }
+      when (value.decorators != null) { ["decorators"] = value.decorators }
+      when (value.decoratorsBeforeExport != null) {
+        ["decoratorsBeforeExport"] = value.decoratorsBeforeExport
+      }
+      when (value.dynamicImport != null) {
+        ["dynamicImport"] = value.dynamicImport
+      }
+      when (value.privateMethod != null) {
+        ["privateMethod"] = value.privateMethod
+      }
+      when (value.functionBind != null) {
+        ["functionBind"] = value.functionBind
+      }
+      when (value.exportDefaultFrom != null) {
+        ["exportDefaultFrom"] = value.exportDefaultFrom
+      }
+      when (value.exportNamespaceFrom != null) {
+        ["exportNamespaceFrom"] = value.exportNamespaceFrom
+      }
+      when (value.importAssertions != null) {
+        ["importAssertions"] = value.importAssertions
+      }
+      when (value.topLevelAwait != null) {
+        ["topLevelAwait"] = value.topLevelAwait
+      }
+    },
+    value.extra,
+  )
+
+local function renderTransform(value: TransformConfig) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.legacyDecorator != null) {
+        ["legacyDecorator"] = value.legacyDecorator
+      }
+      when (value.decoratorMetadata != null) {
+        ["decoratorMetadata"] = value.decoratorMetadata
+      }
+      when (value.react != null) { ["react"] = value.react.toMap() }
+      when (value.optimizer != null) {
+        ["optimizer"] = value.optimizer.toMap()
+      }
+      when (value.treatConstEnumAsEnum != null) {
+        ["treatConstEnumAsEnum"] = value.treatConstEnumAsEnum
+      }
+      when (value.useDefineForClassFields != null) {
+        ["useDefineForClassFields"] = value.useDefineForClassFields
+      }
+    },
+    value.extra,
+  )
+
+local function renderJsc(value: JscConfig) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.parser != null) { ["parser"] = renderParser(value.parser) }
+      when (value.target != null) { ["target"] = value.target }
+      when (value.loose != null) { ["loose"] = value.loose }
+      when (value.keepClassNames != null) {
+        ["keepClassNames"] = value.keepClassNames
+      }
+      when (value.externalHelpers != null) {
+        ["externalHelpers"] = value.externalHelpers
+      }
+      when (value.minify != null) { ["minify"] = value.minify.toMap() }
+      when (value.transform != null) {
+        ["transform"] = renderTransform(value.transform)
+      }
+      when (!value.paths.toMap().isEmpty) {
+        ["paths"] = value.paths.toMap().mapValues((_, v) -> v.toList())
+      }
+      when (value.baseUrl != null) { ["baseUrl"] = value.baseUrl }
+    },
+    value.extra,
+  )
+
+local function renderModule(value: ModuleConfig) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["type"] = value.type
+      when (value.strict != null) { ["strict"] = value.strict }
+      when (value.strictMode != null) { ["strictMode"] = value.strictMode }
+      when (value.lazy != null) {
+        ["lazy"] = if (value.lazy is Listing) value.lazy.toList() else value.lazy
+      }
+      when (value.noInterop != null) { ["noInterop"] = value.noInterop }
+      when (value.importInterop != null) {
+        ["importInterop"] = value.importInterop
+      }
+    },
+    value.extra,
+  )
+
+local function renderStringOrList(value: String|Listing<String>) =
+  if (value is Listing) value.toList() else value
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (jsc != null) { ["jsc"] = renderJsc(jsc) }
+      when (`module` != null) { ["module"] = renderModule(`module`) }
+      when (minify != null) { ["minify"] = minify }
+      when (sourceMaps != null) { ["sourceMaps"] = sourceMaps }
+      when (inlineSourcesContent != null) {
+        ["inlineSourcesContent"] = inlineSourcesContent
+      }
+      when (env != null) { ["env"] = env.toMap() }
+      when (test != null) { ["test"] = renderStringOrList(test) }
+      when (exclude != null) { ["exclude"] = renderStringOrList(exclude) }
+      when (isModule != null) { ["isModule"] = isModule }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}
