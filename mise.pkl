@@ -55,6 +55,10 @@ tasks {
     description = "Validate every JSON record under registry/"
     run = "cargo run -q --release -p registry-validator -- registry"
   }
+  ["validate:license"] = new Task {
+    description = "Verify Apache-2.0 license declarations across the workspace"
+    run = "cargo run -q --release -p license-check -- ."
+  }
   ["index:search"] = new Task {
     description = "Build registry-search.json + the by-target docs page"
     run = #"""
@@ -106,6 +110,8 @@ tasks {
       "index:api:check"
       "rust:check"
       "rust:test"
+      "validate:registry"
+      "validate:license"
       "check"
       "build"
     }
