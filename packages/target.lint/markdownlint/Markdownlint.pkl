@@ -1,0 +1,71 @@
+/// A typed authoring surface for `.markdownlint.json` / `.markdownlint.jsonc`.
+///
+/// Rules are addressed by their canonical identifier (`MD001`..`MD059`).
+/// Value `true` enables a rule with its defaults, `false` disables it, and
+/// an object passes options through. The `extra` map remains available
+/// for rules that have not been promoted to first-class fields yet.
+module target.lint.markdownlint.Markdownlint
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias RuleValue = Boolean|Mapping<String, Any>
+
+`$schema`: String? = null
+default: Boolean? = null
+`extends`: String? = null
+
+/// Rule overrides, keyed by `MD001` etc. or by rule alias.
+rules: Mapping<String, RuleValue> = new Mapping {}
+
+/// Convenience knobs for the most-tuned rules. Setting these populates
+/// the corresponding rule entries in `rules` automatically.
+lineLength: Int? = null
+headingStyle: "consistent"|"atx"|"atx_closed"|"setext"|"setext_with_atx"|"setext_with_atx_closed"? = null
+ulStyle: "consistent"|"asterisk"|"plus"|"dash"|"sublist"? = null
+emphasisStyle: "consistent"|"asterisk"|"underscore"? = null
+strongStyle: "consistent"|"asterisk"|"underscore"? = null
+codeBlockStyle: "consistent"|"fenced"|"indented"? = null
+codeFenceStyle: "consistent"|"backtick"|"tilde"? = null
+
+ignore: Listing<String> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (default != null) { ["default"] = default }
+      when (`extends` != null) { ["extends"] = `extends` }
+      when (lineLength != null) {
+        ["MD013"] = new Mapping<String, Any> { ["line_length"] = lineLength }.toMap()
+      }
+      when (headingStyle != null) {
+        ["MD003"] = new Mapping<String, Any> { ["style"] = headingStyle }.toMap()
+      }
+      when (ulStyle != null) {
+        ["MD004"] = new Mapping<String, Any> { ["style"] = ulStyle }.toMap()
+      }
+      when (emphasisStyle != null) {
+        ["MD049"] = new Mapping<String, Any> { ["style"] = emphasisStyle }.toMap()
+      }
+      when (strongStyle != null) {
+        ["MD050"] = new Mapping<String, Any> { ["style"] = strongStyle }.toMap()
+      }
+      when (codeBlockStyle != null) {
+        ["MD046"] = new Mapping<String, Any> { ["style"] = codeBlockStyle }.toMap()
+      }
+      when (codeFenceStyle != null) {
+        ["MD048"] = new Mapping<String, Any> { ["style"] = codeFenceStyle }.toMap()
+      }
+      for (id, value in rules) {
+        [id] =
+          if (value is Mapping) value.toMap() else value
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

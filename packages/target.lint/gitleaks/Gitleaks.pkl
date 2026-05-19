@@ -1,0 +1,101 @@
+/// A typed authoring surface for `.gitleaks.toml`.
+module target.lint.gitleaks.Gitleaks
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class Allowlist {
+  description: String? = null
+  paths: Listing<String> = new Listing {}
+  regexes: Listing<String> = new Listing {}
+  commits: Listing<String> = new Listing {}
+  stopwords: Listing<String> = new Listing {}
+  regexTarget: ("match"|"line"|"secret")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Rule {
+  id: String
+  description: String? = null
+  regex: String? = null
+  path: String? = null
+  secretGroup: Int? = null
+  entropy: Float? = null
+  keywords: Listing<String> = new Listing {}
+  tags: Listing<String> = new Listing {}
+  allowlist: Allowlist? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+title: String? = null
+`extends`: Mapping<String, Any> = new Mapping {}
+rules: Listing<Rule> = new Listing {}
+allowlist: Allowlist? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderAllowlist(value: Allowlist) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.description != null) { ["description"] = value.description }
+      when (!value.paths.toList().isEmpty) { ["paths"] = value.paths.toList() }
+      when (!value.regexes.toList().isEmpty) {
+        ["regexes"] = value.regexes.toList()
+      }
+      when (!value.commits.toList().isEmpty) {
+        ["commits"] = value.commits.toList()
+      }
+      when (!value.stopwords.toList().isEmpty) {
+        ["stopwords"] = value.stopwords.toList()
+      }
+      when (value.regexTarget != null) {
+        ["regexTarget"] = value.regexTarget
+      }
+    },
+    value.extra,
+  )
+
+local function renderRule(value: Rule) =
+  Maps.withExtra(
+    new Dynamic {
+      ["id"] = value.id
+      when (value.description != null) { ["description"] = value.description }
+      when (value.regex != null) { ["regex"] = value.regex }
+      when (value.path != null) { ["path"] = value.path }
+      when (value.secretGroup != null) {
+        ["secretGroup"] = value.secretGroup
+      }
+      when (value.entropy != null) { ["entropy"] = value.entropy }
+      when (!value.keywords.toList().isEmpty) {
+        ["keywords"] = value.keywords.toList()
+      }
+      when (!value.tags.toList().isEmpty) {
+        ["tags"] = value.tags.toList()
+      }
+      when (value.allowlist != null) {
+        ["allowlist"] = renderAllowlist(value.allowlist)
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (title != null) { ["title"] = title }
+      when (!`extends`.toMap().isEmpty) {
+        ["extends"] = `extends`.toMap()
+      }
+      when (!rules.toList().isEmpty) {
+        ["rules"] = rules.toList().map((r) -> renderRule(r))
+      }
+      when (allowlist != null) {
+        ["allowlist"] = renderAllowlist(allowlist)
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

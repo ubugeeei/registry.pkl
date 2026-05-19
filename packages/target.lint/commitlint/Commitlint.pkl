@@ -1,0 +1,62 @@
+/// A typed authoring surface for `commitlint.config.json`.
+module target.lint.commitlint.Commitlint
+
+import "@target.core/Maps.pkl" as Maps
+
+/// commitlint severity. Allowed values are `0` (off), `1` (warn), or `2` (error).
+typealias Severity = Int
+typealias Applicable = "always"|"never"
+
+/// commitlint rule entry — the canonical `[severity, applicable, value]` triple.
+typealias RuleConfig = Listing<Any>
+
+class Plugin {
+  name: String
+  options: Mapping<String, Any> = new Mapping {}
+}
+
+`extends`: Listing<String> = new Listing {}
+plugins: Listing<String|Plugin> = new Listing {}
+parserPreset: String? = null
+formatter: String? = null
+defaultIgnores: Boolean? = null
+
+/// Each entry is the canonical [severity, applicable, value] triple
+/// rendered as a JSON array. Use `new Listing { 2; "always"; 100 }`.
+rules: Mapping<String, RuleConfig> = new Mapping {}
+
+ignores: Listing<String> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderPlugin(value: String|Plugin) =
+  if (value is String)
+    value
+  else if (!value.options.toMap().isEmpty)
+    List(value.name, value.options.toMap())
+  else
+    value.name
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!`extends`.toList().isEmpty) { ["extends"] = `extends`.toList() }
+      when (!plugins.toList().isEmpty) {
+        ["plugins"] = plugins.toList().map((p) -> renderPlugin(p))
+      }
+      when (parserPreset != null) { ["parserPreset"] = parserPreset }
+      when (formatter != null) { ["formatter"] = formatter }
+      when (defaultIgnores != null) { ["defaultIgnores"] = defaultIgnores }
+      when (!rules.toMap().isEmpty) {
+        ["rules"] = rules.toMap().mapValues((_, v) -> v.toList())
+      }
+      when (!ignores.toList().isEmpty) {
+        ["ignores"] = ignores.toList()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

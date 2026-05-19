@@ -1,0 +1,37 @@
+/// Tests for `target.lint.commitlint.Commitlint` rendering.
+amends "pkl:test"
+
+import "../commitlint/Commitlint.pkl"
+
+local config = (Commitlint) {
+  `extends` {
+    "@commitlint/config-conventional"
+  }
+  rules {
+    ["type-enum"] = new Listing {
+      2
+      "always"
+      new Listing { "feat"; "fix" }.toList()
+    }
+    ["subject-case"] = new Listing {
+      2
+      "never"
+    }
+  }
+  ignores {
+    "Merge"
+  }
+}
+
+facts {
+  ["extends list emits"] {
+    config.rendered["extends"] == List("@commitlint/config-conventional")
+  }
+  ["rule triples flatten to JSON arrays"] {
+    config.rendered["rules"]["type-enum"] == List(2, "always", List("feat", "fix"))
+    config.rendered["rules"]["subject-case"] == List(2, "never")
+  }
+  ["ignores list emits"] {
+    config.rendered["ignores"] == List("Merge")
+  }
+}

@@ -1,0 +1,62 @@
+amends "@target.lint/commitlint/Commitlint.pkl"
+
+`extends` {
+  "@commitlint/config-conventional"
+}
+
+rules {
+  ["type-enum"] = new Listing {
+    2
+    "always"
+    new Listing {
+      "feat"
+      "fix"
+      "chore"
+      "docs"
+      "test"
+      "refactor"
+      "ci"
+      "build"
+      "perf"
+      "revert"
+    }.toList()
+  }
+  ["scope-enum"] = new Listing {
+    1
+    "always"
+    new Listing {
+      "target.core"
+      "target.js"
+      "target.env"
+      "target.rust"
+      "target.editor"
+      "target.agent"
+      "target.ci"
+      "target.python"
+      "target.lint"
+      "design"
+      "release"
+      "versioning"
+    }.toList()
+  }
+  ["subject-case"] = new Listing {
+    2
+    "never"
+    new Listing {
+      "sentence-case"
+      "start-case"
+      "pascal-case"
+      "upper-case"
+    }.toList()
+  }
+  ["body-max-line-length"] = new Listing {
+    1
+    "always"
+    100
+  }
+}
+
+ignores {
+  "Merge"
+  "Revert"
+}

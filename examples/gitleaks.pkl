@@ -1,0 +1,44 @@
+amends "@target.lint/gitleaks/Gitleaks.pkl"
+
+title = "registry.pkl gitleaks config"
+
+allowlist = new Allowlist {
+  description = "Skip generated fixtures and lockfiles"
+  paths {
+    ".*\\.lock"
+    "pnpm-lock\\.yaml"
+    "examples/.*"
+  }
+}
+
+rules {
+  new Rule {
+    id = "github-pat"
+    description = "GitHub personal access token"
+    regex = "ghp_[A-Za-z0-9]{36,}"
+    tags {
+      "key"
+      "github"
+    }
+    keywords {
+      "ghp_"
+    }
+  }
+  new Rule {
+    id = "anthropic-key"
+    description = "Anthropic API key"
+    regex = "sk-ant-[A-Za-z0-9_-]{32,}"
+    keywords {
+      "sk-ant-"
+    }
+    tags {
+      "key"
+      "anthropic"
+    }
+    allowlist = new Allowlist {
+      paths {
+        "tests/fixtures/.*"
+      }
+    }
+  }
+}

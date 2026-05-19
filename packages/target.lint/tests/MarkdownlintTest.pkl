@@ -1,0 +1,33 @@
+/// Tests for `target.lint.markdownlint.Markdownlint` rendering.
+amends "pkl:test"
+
+import "../markdownlint/Markdownlint.pkl"
+
+local config = (Markdownlint) {
+  default = true
+  lineLength = 100
+  headingStyle = "atx"
+  ulStyle = "dash"
+  rules {
+    ["MD041"] = false
+  }
+}
+
+facts {
+  ["default flag passes through"] {
+    config.rendered["default"] == true
+  }
+  ["lineLength convenience creates MD013 table"] {
+    config.rendered["MD013"]["line_length"] == 100
+  }
+  ["headingStyle convenience creates MD003"] {
+    config.rendered["MD003"]["style"] == "atx"
+  }
+  ["explicit rule overrides emit"] {
+    config.rendered["MD041"] == false
+  }
+  ["unused conveniences stay out"] {
+    !config.rendered.containsKey("MD046")
+    !config.rendered.containsKey("MD048")
+  }
+}
