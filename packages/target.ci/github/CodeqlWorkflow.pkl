@@ -1,0 +1,107 @@
+/// A typed GitHub Actions preset for CodeQL code scanning.
+///
+/// `amends "@target.ci/github/CodeqlWorkflow.pkl"` declares a recurring
+/// CodeQL analysis run that triggers on push, pull_request, and a weekly
+/// schedule. Defaults to the languages CodeQL auto-detects; override
+/// `languages` to pin a matrix.
+module target.ci.github.CodeqlWorkflow
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias Language = "actions"|"c-cpp"|"csharp"|"go"|"java-kotlin"|"javascript-typescript"|"python"|"ruby"|"rust"|"swift"
+
+name: String = "CodeQL"
+branches: Listing<String> = new Listing { "main" }
+languages: Listing<Language> = new Listing {
+  "javascript-typescript"
+}
+schedule: String = "30 4 * * 1"
+runsOn: String = "ubuntu-latest"
+queries: String? = null
+configFile: String? = null
+buildMode: "none"|"autobuild"|"manual" = "none"
+buildSteps: Listing<Mapping<String, Any>> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local checkoutStep =
+  new Dynamic {
+    ["name"] = "Checkout"
+    ["uses"] = "actions/checkout@v4"
+  }.toMap()
+
+local initStep =
+  new Dynamic {
+    ["name"] = "Initialize CodeQL"
+    ["uses"] = "github/codeql-action/init@v3"
+    ["with"] =
+      Maps.withExtra(
+        new Dynamic {
+          ["languages"] = "${{ matrix.language }}"
+          ["build-mode"] = buildMode
+          when (queries != null) { ["queries"] = queries }
+          when (configFile != null) { ["config-file"] = configFile }
+        },
+        new Mapping<String, Any> {},
+      )
+  }.toMap()
+
+local analyzeStep =
+  new Dynamic {
+    ["name"] = "Perform CodeQL analysis"
+    ["uses"] = "github/codeql-action/analyze@v3"
+    ["with"] = new Dynamic {
+      ["category"] = "/language:${{ matrix.language }}"
+    }.toMap()
+  }.toMap()
+
+local manualBuildSteps =
+  if (buildMode == "manual")
+    buildSteps.toList().map((m) -> m.toMap())
+  else if (buildMode == "autobuild")
+    List(
+      new Dynamic {
+        ["name"] = "Autobuild"
+        ["uses"] = "github/codeql-action/autobuild@v3"
+      }.toMap(),
+    )
+  else
+    List()
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = name
+      ["on"] = new Dynamic {
+        ["push"] = new Dynamic { ["branches"] = branches.toList() }.toMap()
+        ["pull_request"] = new Dynamic { ["branches"] = branches.toList() }.toMap()
+        ["schedule"] = new Listing {
+          new Dynamic { ["cron"] = schedule }.toMap()
+        }.toList()
+      }.toMap()
+      ["permissions"] = new Dynamic {
+        ["security-events"] = "write"
+        ["packages"] = "read"
+        ["actions"] = "read"
+        ["contents"] = "read"
+      }.toMap()
+      ["jobs"] = new Dynamic {
+        ["analyze"] = new Dynamic {
+          ["name"] = "Analyze (${{ matrix.language }})"
+          ["runs-on"] = runsOn
+          ["strategy"] = new Dynamic {
+            ["fail-fast"] = false
+            ["matrix"] = new Dynamic {
+              ["language"] = languages.toList()
+            }.toMap()
+          }.toMap()
+          ["steps"] = (List(checkoutStep, initStep) + manualBuildSteps + List(analyzeStep))
+        }.toMap()
+      }.toMap()
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

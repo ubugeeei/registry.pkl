@@ -1,0 +1,251 @@
+/// A typed authoring surface for Vitest configuration emitted as JSON.
+///
+/// The canonical Vitest config lives in `vite.config.ts` (a TypeScript
+/// module). This schema models the `test` block as a JSON document
+/// suitable for the `vitest` key inside `package.json` or for tooling
+/// that consumes a generated JSON sidecar. It is also the right place
+/// to declare a fully-typed authoring surface that a `vite.config.ts`
+/// hand-written wrapper can import via JSON.
+module target.js.vitest.Vitest
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias Environment = "node"|"jsdom"|"happy-dom"|"edge-runtime"
+typealias Pool = "threads"|"forks"|"vmThreads"|"vmForks"
+
+class Coverage {
+  provider: "v8"|"istanbul"|"custom"? = null
+  reporter: (String|Listing<String>)? = null
+  reportsDirectory: String? = null
+  enabled: Boolean? = null
+  include: Listing<String> = new Listing {}
+  exclude: Listing<String> = new Listing {}
+  all: Boolean? = null
+  clean: Boolean? = null
+  cleanOnRerun: Boolean? = null
+  thresholds: Mapping<String, Any> = new Mapping {}
+  skipFull: Boolean? = null
+  reportOnFailure: Boolean? = null
+  watermarks: Mapping<String, Listing<Int>> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class PoolOptions {
+  threads: Mapping<String, Any> = new Mapping {}
+  forks: Mapping<String, Any> = new Mapping {}
+  vmThreads: Mapping<String, Any> = new Mapping {}
+  vmForks: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Server {
+  sourcemap: ("inline"|Boolean)? = null
+  debug: Mapping<String, Any> = new Mapping {}
+  deps: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Reporter {
+  name: String
+  options: Mapping<String, Any> = new Mapping {}
+}
+
+include: Listing<String> = new Listing {}
+exclude: Listing<String> = new Listing {}
+includeSource: Listing<String> = new Listing {}
+globals: Boolean? = null
+environment: Environment? = null
+pool: Pool? = null
+poolOptions: PoolOptions? = null
+setupFiles: (String|Listing<String>)? = null
+globalSetup: (String|Listing<String>)? = null
+watch: Boolean? = null
+update: Boolean? = null
+silent: Boolean? = null
+hideSkippedTests: Boolean? = null
+reporters: (String|Listing<String|Reporter>)? = null
+outputFile: (String|Mapping<String, String>)? = null
+coverage: Coverage? = null
+testTimeout: Int? = null
+hookTimeout: Int? = null
+teardownTimeout: Int? = null
+retry: Int? = null
+bail: Int? = null
+isolate: Boolean? = null
+sequence: Mapping<String, Any> = new Mapping {}
+typecheck: Mapping<String, Any> = new Mapping {}
+benchmark: Mapping<String, Any> = new Mapping {}
+server: Server? = null
+deps: Mapping<String, Any> = new Mapping {}
+maxConcurrency: Int? = null
+slowTestThreshold: Int? = null
+allowOnly: Boolean? = null
+dangerouslyIgnoreUnhandledErrors: Boolean? = null
+diff: String? = null
+cache: (Boolean|Mapping<String, String>)? = null
+mockReset: Boolean? = null
+clearMocks: Boolean? = null
+restoreMocks: Boolean? = null
+unstubGlobals: Boolean? = null
+unstubEnvs: Boolean? = null
+testNamePattern: String? = null
+chaiConfig: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderReporter(value: String|Reporter) =
+  if (value is String)
+    value
+  else
+    List(value.name, value.options.toMap())
+
+local function renderCoverage(value: Coverage) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.provider != null) { ["provider"] = value.provider }
+      when (value.reporter != null) {
+        ["reporter"] =
+          if (value.reporter is Listing) value.reporter.toList() else value.reporter
+      }
+      when (value.reportsDirectory != null) {
+        ["reportsDirectory"] = value.reportsDirectory
+      }
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (!value.include.toList().isEmpty) {
+        ["include"] = value.include.toList()
+      }
+      when (!value.exclude.toList().isEmpty) {
+        ["exclude"] = value.exclude.toList()
+      }
+      when (value.all != null) { ["all"] = value.all }
+      when (value.clean != null) { ["clean"] = value.clean }
+      when (value.cleanOnRerun != null) {
+        ["cleanOnRerun"] = value.cleanOnRerun
+      }
+      when (!value.thresholds.toMap().isEmpty) {
+        ["thresholds"] = value.thresholds.toMap()
+      }
+      when (value.skipFull != null) { ["skipFull"] = value.skipFull }
+      when (value.reportOnFailure != null) {
+        ["reportOnFailure"] = value.reportOnFailure
+      }
+      when (!value.watermarks.toMap().isEmpty) {
+        ["watermarks"] = value.watermarks.toMap().mapValues((_, v) -> v.toList())
+      }
+    },
+    value.extra,
+  )
+
+local function renderPoolOptions(value: PoolOptions) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.threads.toMap().isEmpty) {
+        ["threads"] = value.threads.toMap()
+      }
+      when (!value.forks.toMap().isEmpty) { ["forks"] = value.forks.toMap() }
+      when (!value.vmThreads.toMap().isEmpty) {
+        ["vmThreads"] = value.vmThreads.toMap()
+      }
+      when (!value.vmForks.toMap().isEmpty) {
+        ["vmForks"] = value.vmForks.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderServer(value: Server) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.sourcemap != null) { ["sourcemap"] = value.sourcemap }
+      when (!value.debug.toMap().isEmpty) { ["debug"] = value.debug.toMap() }
+      when (!value.deps.toMap().isEmpty) { ["deps"] = value.deps.toMap() }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!include.toList().isEmpty) { ["include"] = include.toList() }
+      when (!exclude.toList().isEmpty) { ["exclude"] = exclude.toList() }
+      when (!includeSource.toList().isEmpty) {
+        ["includeSource"] = includeSource.toList()
+      }
+      when (globals != null) { ["globals"] = globals }
+      when (environment != null) { ["environment"] = environment }
+      when (pool != null) { ["pool"] = pool }
+      when (poolOptions != null) {
+        ["poolOptions"] = renderPoolOptions(poolOptions)
+      }
+      when (setupFiles != null) {
+        ["setupFiles"] =
+          if (setupFiles is Listing) setupFiles.toList() else setupFiles
+      }
+      when (globalSetup != null) {
+        ["globalSetup"] =
+          if (globalSetup is Listing) globalSetup.toList() else globalSetup
+      }
+      when (watch != null) { ["watch"] = watch }
+      when (update != null) { ["update"] = update }
+      when (silent != null) { ["silent"] = silent }
+      when (hideSkippedTests != null) {
+        ["hideSkippedTests"] = hideSkippedTests
+      }
+      when (reporters != null) {
+        ["reporters"] =
+          if (reporters is Listing)
+            reporters.toList().map((r) -> renderReporter(r))
+          else
+            reporters
+      }
+      when (outputFile != null) {
+        ["outputFile"] =
+          if (outputFile is Mapping) outputFile.toMap() else outputFile
+      }
+      when (coverage != null) { ["coverage"] = renderCoverage(coverage) }
+      when (testTimeout != null) { ["testTimeout"] = testTimeout }
+      when (hookTimeout != null) { ["hookTimeout"] = hookTimeout }
+      when (teardownTimeout != null) {
+        ["teardownTimeout"] = teardownTimeout
+      }
+      when (retry != null) { ["retry"] = retry }
+      when (bail != null) { ["bail"] = bail }
+      when (isolate != null) { ["isolate"] = isolate }
+      when (!sequence.toMap().isEmpty) { ["sequence"] = sequence.toMap() }
+      when (!typecheck.toMap().isEmpty) { ["typecheck"] = typecheck.toMap() }
+      when (!benchmark.toMap().isEmpty) { ["benchmark"] = benchmark.toMap() }
+      when (server != null) { ["server"] = renderServer(server) }
+      when (!deps.toMap().isEmpty) { ["deps"] = deps.toMap() }
+      when (maxConcurrency != null) {
+        ["maxConcurrency"] = maxConcurrency
+      }
+      when (slowTestThreshold != null) {
+        ["slowTestThreshold"] = slowTestThreshold
+      }
+      when (allowOnly != null) { ["allowOnly"] = allowOnly }
+      when (dangerouslyIgnoreUnhandledErrors != null) {
+        ["dangerouslyIgnoreUnhandledErrors"] = dangerouslyIgnoreUnhandledErrors
+      }
+      when (diff != null) { ["diff"] = diff }
+      when (cache != null) {
+        ["cache"] =
+          if (cache is Mapping) cache.toMap() else cache
+      }
+      when (mockReset != null) { ["mockReset"] = mockReset }
+      when (clearMocks != null) { ["clearMocks"] = clearMocks }
+      when (restoreMocks != null) { ["restoreMocks"] = restoreMocks }
+      when (unstubGlobals != null) { ["unstubGlobals"] = unstubGlobals }
+      when (unstubEnvs != null) { ["unstubEnvs"] = unstubEnvs }
+      when (testNamePattern != null) {
+        ["testNamePattern"] = testNamePattern
+      }
+      when (!chaiConfig.toMap().isEmpty) {
+        ["chaiConfig"] = chaiConfig.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

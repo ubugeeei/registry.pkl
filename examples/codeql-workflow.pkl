@@ -1,0 +1,9 @@
+amends "@target.ci/github/CodeqlWorkflow.pkl"
+
+languages {
+  "javascript-typescript"
+  "rust"
+}
+
+buildMode = "none"
+schedule = "30 4 * * 1"

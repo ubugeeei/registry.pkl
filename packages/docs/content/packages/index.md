@@ -45,6 +45,10 @@ features:
     title: target.agent
     details: Shared MCP server types and thin wrappers for fast-moving agent clients such as VS Code, Cursor, Claude, and Windsurf.
     link: ./target-agent/index.html
+  - icon: "mdi:language-python"
+    title: target.python
+    details: Typed authoring for pyproject.toml, ruff, and pytest. TOML output via the shared pkl.toml renderer.
+    link: ./target-python/index.html
 ---
 
 ## How To Use This Section
@@ -64,6 +68,7 @@ features:
 | [target.editor](./target-editor.md) | First wave | Editor defaults and recommendations | 2 | `#/vscode/Settings.pkl` |
 | [target.ci](./target-ci.md) | Second wave | Repository automation and workflows | 4 | `#/github/NodeCiWorkflow.pkl` |
 | [target.agent](./target-agent.md) | Second wave | MCP wrappers for agent clients | 6 | `#/vscode/Mcp.pkl` |
+| [target.python](./target-python.md) | First wave | Python project metadata, linting, testing | 3 | `#/pyproject/PyProject.pkl` |
 
 ## Catalog Rules
 

@@ -1,0 +1,42 @@
+amends "@target.python/pyproject/PyProject.pkl"
+
+buildSystem = new BuildSystem {
+  requires {
+    "hatchling"
+  }
+  buildBackend = "hatchling.build"
+}
+
+project = new Project {
+  name = "registry-pkl-py"
+  version = "0.1.0"
+  description = "Python helpers for registry.pkl tooling"
+  requiresPython = ">=3.11"
+  license = "Apache-2.0"
+  authors {
+    new Author {
+      name = "Ubugeeei"
+      email = "ubugeeei@gmail.com"
+    }
+  }
+  dependencies {
+    "click>=8.1"
+    "httpx>=0.27"
+  }
+  optionalDependencies {
+    ["dev"] = new Listing {
+      "ruff>=0.4"
+      "pytest>=8"
+    }
+  }
+  scripts {
+    ["registry-pkl-py"] = "registry_pkl_py.cli:main"
+  }
+}
+
+tool {
+  ["ruff"] = new Mapping<String, Any> {
+    ["line-length"] = 100
+    ["target-version"] = "py311"
+  }
+}

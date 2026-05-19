@@ -1,0 +1,47 @@
+/// Tests for `target.ci.github.ReleaseWorkflow` rendering.
+amends "pkl:test"
+
+import "../github/ReleaseWorkflow.pkl"
+
+local wf = (ReleaseWorkflow) {
+  name = "Release"
+  tagPattern = "v*.*.*"
+  buildSteps {
+    new ReleaseWorkflow.BuildStep {
+      name = "Install"
+      run = "pnpm install --frozen-lockfile"
+    }
+    new ReleaseWorkflow.BuildStep {
+      name = "Build"
+      run = "pnpm build"
+    }
+  }
+  artifacts {
+    "dist/**"
+  }
+}
+
+facts {
+  ["triggers on tag pattern and manual dispatch"] {
+    local triggers = wf.rendered["on"]
+    triggers["push"]["tags"] == List("v*.*.*")
+    triggers.containsKey("workflow_dispatch")
+  }
+  ["release-scoped permissions"] {
+    local perms = wf.rendered["permissions"]
+    perms["contents"] == "write"
+    perms["id-token"] == "write"
+  }
+  ["concurrency group is set"] {
+    wf.rendered["concurrency"]["group"] == "release-${{ github.ref_name }}"
+  }
+  ["release job has checkout, build steps, and create release"] {
+    local steps = wf.rendered["jobs"]["release"]["steps"]
+    steps[0]["uses"] == "actions/checkout@v4"
+    steps[1]["name"] == "Install"
+    steps[2]["name"] == "Build"
+    steps[3]["uses"] == "softprops/action-gh-release@v2"
+    steps[3]["with"]["draft"] == true
+    steps[3]["with"]["files"] == "dist/**"
+  }
+}

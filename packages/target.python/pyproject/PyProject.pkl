@@ -1,0 +1,144 @@
+/// A typed authoring surface for `pyproject.toml` (PEP 621).
+module target.python.pyproject.PyProject
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class Author {
+  name: String? = null
+  email: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class BuildSystem {
+  requires: Listing<String> = new Listing {}
+  buildBackend: String? = null
+  backendPath: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Project {
+  name: String? = null
+  version: String? = null
+  description: String? = null
+  readme: (String|Mapping<String, Any>)? = null
+  requiresPython: String? = null
+  license: (String|Mapping<String, Any>)? = null
+  authors: Listing<Author> = new Listing {}
+  maintainers: Listing<Author> = new Listing {}
+  keywords: Listing<String> = new Listing {}
+  classifiers: Listing<String> = new Listing {}
+  dependencies: Listing<String> = new Listing {}
+  optionalDependencies: Mapping<String, Listing<String>> = new Mapping {}
+  scripts: Mapping<String, String> = new Mapping {}
+  guiScripts: Mapping<String, String> = new Mapping {}
+  entryPoints: Mapping<String, Mapping<String, String>> = new Mapping {}
+  urls: Mapping<String, String> = new Mapping {}
+  dynamic: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+buildSystem: BuildSystem? = null
+project: Project? = null
+tool: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderAuthor(value: Author) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.email != null) { ["email"] = value.email }
+    },
+    value.extra,
+  )
+
+local function renderBuildSystem(value: BuildSystem) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.requires.toList().isEmpty) {
+        ["requires"] = value.requires.toList()
+      }
+      when (value.buildBackend != null) {
+        ["build-backend"] = value.buildBackend
+      }
+      when (!value.backendPath.toList().isEmpty) {
+        ["backend-path"] = value.backendPath.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderProject(value: Project) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.version != null) { ["version"] = value.version }
+      when (value.description != null) { ["description"] = value.description }
+      when (value.readme != null) {
+        ["readme"] =
+          if (value.readme is Mapping) value.readme.toMap() else value.readme
+      }
+      when (value.requiresPython != null) {
+        ["requires-python"] = value.requiresPython
+      }
+      when (value.license != null) {
+        ["license"] =
+          if (value.license is Mapping) value.license.toMap() else value.license
+      }
+      when (!value.authors.toList().isEmpty) {
+        ["authors"] = value.authors.toList().map((a) -> renderAuthor(a))
+      }
+      when (!value.maintainers.toList().isEmpty) {
+        ["maintainers"] = value.maintainers.toList().map((a) -> renderAuthor(a))
+      }
+      when (!value.keywords.toList().isEmpty) {
+        ["keywords"] = value.keywords.toList()
+      }
+      when (!value.classifiers.toList().isEmpty) {
+        ["classifiers"] = value.classifiers.toList()
+      }
+      when (!value.dependencies.toList().isEmpty) {
+        ["dependencies"] = value.dependencies.toList()
+      }
+      when (!value.optionalDependencies.toMap().isEmpty) {
+        ["optional-dependencies"] =
+          value.optionalDependencies.toMap().mapValues((_, v) -> v.toList())
+      }
+      when (!value.scripts.toMap().isEmpty) {
+        ["scripts"] = value.scripts.toMap()
+      }
+      when (!value.guiScripts.toMap().isEmpty) {
+        ["gui-scripts"] = value.guiScripts.toMap()
+      }
+      when (!value.entryPoints.toMap().isEmpty) {
+        ["entry-points"] =
+          value.entryPoints.toMap().mapValues((_, v) -> v.toMap())
+      }
+      when (!value.urls.toMap().isEmpty) {
+        ["urls"] = value.urls.toMap()
+      }
+      when (!value.dynamic.toList().isEmpty) {
+        ["dynamic"] = value.dynamic.toList()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (buildSystem != null) {
+        ["build-system"] = renderBuildSystem(buildSystem)
+      }
+      when (project != null) {
+        ["project"] = renderProject(project)
+      }
+      when (!tool.toMap().isEmpty) { ["tool"] = tool.toMap() }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

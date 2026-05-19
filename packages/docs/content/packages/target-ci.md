@@ -28,7 +28,19 @@ features:
     details: Thin preset over the official Dependabot package.
   - icon: "mdi:gitlab"
     title: gitlab/GitLabCi.pkl
-    details: Typed GitLab CI jobs, rules, cache, artifacts, defaults, and workflow config.
+    details: Typed GitLab CI jobs, rules, cache, artifacts, defaults, and workflow config — full pipeline surface, not a thin preset.
+  - icon: "mdi:rocket-launch"
+    title: github/ReleaseWorkflow.pkl
+    details: Tag-driven release preset that scopes contents write to the publish job and uploads artifacts via softprops/action-gh-release.
+  - icon: "mdi:web"
+    title: github/DeployPagesWorkflow.pkl
+    details: GitHub Pages deploy preset with the canonical configure-pages / upload-pages-artifact / deploy-pages chain and a separately-permissioned deploy job.
+  - icon: "mdi:shield-search"
+    title: github/CodeqlWorkflow.pkl
+    details: CodeQL scan preset for push, pull_request, and a weekly cron with a per-language matrix and manual build hooks.
+  - icon: "mdi:archive-clock"
+    title: github/StaleWorkflow.pkl
+    details: Stale issue and PR sweep preset with exempt labels, daily cron, and reasonable defaults.
 ---
 
 ## Install
@@ -39,9 +51,13 @@ amends "package://pkg.example.invalid/target.ci@0.1.0#/github/NodeCiWorkflow.pkl
 
 ## What This Package Emits
 
-- `.github/workflows/*.yml`
+- `.github/workflows/ci.yml` (NodeCiWorkflow)
+- `.github/workflows/release.yml` (ReleaseWorkflow)
+- `.github/workflows/deploy-pages.yml` (DeployPagesWorkflow)
+- `.github/workflows/codeql.yml` (CodeqlWorkflow)
+- `.github/workflows/stale.yml` (StaleWorkflow)
 - `.github/dependabot.yml`
-- `.gitlab-ci.yml`
+- `.gitlab-ci.yml` — full Job / Defaults / Workflow surface
 
 ## Why This Package Exists
 

@@ -1,0 +1,34 @@
+amends "@target.ci/github/ReleaseWorkflow.pkl"
+
+name = "Release"
+tagPattern = "v*.*.*"
+
+buildSteps {
+  new BuildStep {
+    name = "Setup pnpm"
+    uses = "pnpm/action-setup@v4"
+    `with` {
+      ["version"] = "10.31.0"
+    }
+  }
+  new BuildStep {
+    name = "Setup Node.js"
+    uses = "actions/setup-node@v4"
+    `with` {
+      ["node-version"] = "24"
+      ["cache"] = "pnpm"
+    }
+  }
+  new BuildStep {
+    name = "Install"
+    run = "pnpm install --frozen-lockfile"
+  }
+  new BuildStep {
+    name = "Build"
+    run = "pnpm build"
+  }
+}
+
+artifacts {
+  "dist/**"
+}

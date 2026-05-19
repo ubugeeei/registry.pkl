@@ -1,0 +1,6 @@
+amends "@target.ci/github/StaleWorkflow.pkl"
+
+daysBeforeStale = 90
+daysBeforeClose = 21
+exemptIssueLabels = "pinned,security,roadmap,schema-add,family-add"
+exemptPrLabels = "pinned,security,production-readiness"

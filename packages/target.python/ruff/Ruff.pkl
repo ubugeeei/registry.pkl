@@ -1,0 +1,129 @@
+/// A typed authoring surface for `ruff.toml` (or `[tool.ruff]` fragment).
+module target.python.ruff.Ruff
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class FormatOptions {
+  quoteStyle: "double"|"single"|"preserve"? = null
+  indentStyle: "space"|"tab"? = null
+  skipMagicTrailingComma: Boolean? = null
+  lineEnding: "auto"|"lf"|"crlf"|"native"? = null
+  docstringCodeFormat: Boolean? = null
+  docstringCodeLineLength: (Int|"dynamic")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class LintOptions {
+  select: Listing<String> = new Listing {}
+  ignore: Listing<String> = new Listing {}
+  extendSelect: Listing<String> = new Listing {}
+  extendIgnore: Listing<String> = new Listing {}
+  fixable: Listing<String> = new Listing {}
+  unfixable: Listing<String> = new Listing {}
+  perFileIgnores: Mapping<String, Listing<String>> = new Mapping {}
+  dummyVariableRgx: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+lineLength: Int? = null
+indentWidth: Int? = null
+targetVersion: String? = null
+src: Listing<String> = new Listing {}
+exclude: Listing<String> = new Listing {}
+extend: String? = null
+respectGitignore: Boolean? = null
+fix: Boolean? = null
+unsafeFixes: Boolean? = null
+showFixes: Boolean? = null
+preview: Boolean? = null
+lint: LintOptions? = null
+format: FormatOptions? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderListingOption(name: String, values: List<String>) =
+  if (values.isEmpty) null else values
+
+local function renderLint(value: LintOptions) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.select.toList().isEmpty) {
+        ["select"] = value.select.toList()
+      }
+      when (!value.ignore.toList().isEmpty) {
+        ["ignore"] = value.ignore.toList()
+      }
+      when (!value.extendSelect.toList().isEmpty) {
+        ["extend-select"] = value.extendSelect.toList()
+      }
+      when (!value.extendIgnore.toList().isEmpty) {
+        ["extend-ignore"] = value.extendIgnore.toList()
+      }
+      when (!value.fixable.toList().isEmpty) {
+        ["fixable"] = value.fixable.toList()
+      }
+      when (!value.unfixable.toList().isEmpty) {
+        ["unfixable"] = value.unfixable.toList()
+      }
+      when (!value.perFileIgnores.toMap().isEmpty) {
+        ["per-file-ignores"] =
+          value.perFileIgnores.toMap().mapValues((_, v) -> v.toList())
+      }
+      when (value.dummyVariableRgx != null) {
+        ["dummy-variable-rgx"] = value.dummyVariableRgx
+      }
+    },
+    value.extra,
+  )
+
+local function renderFormat(value: FormatOptions) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.quoteStyle != null) {
+        ["quote-style"] = value.quoteStyle
+      }
+      when (value.indentStyle != null) {
+        ["indent-style"] = value.indentStyle
+      }
+      when (value.skipMagicTrailingComma != null) {
+        ["skip-magic-trailing-comma"] = value.skipMagicTrailingComma
+      }
+      when (value.lineEnding != null) {
+        ["line-ending"] = value.lineEnding
+      }
+      when (value.docstringCodeFormat != null) {
+        ["docstring-code-format"] = value.docstringCodeFormat
+      }
+      when (value.docstringCodeLineLength != null) {
+        ["docstring-code-line-length"] = value.docstringCodeLineLength
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (lineLength != null) { ["line-length"] = lineLength }
+      when (indentWidth != null) { ["indent-width"] = indentWidth }
+      when (targetVersion != null) { ["target-version"] = targetVersion }
+      when (!src.toList().isEmpty) { ["src"] = src.toList() }
+      when (!exclude.toList().isEmpty) { ["exclude"] = exclude.toList() }
+      when (extend != null) { ["extend"] = extend }
+      when (respectGitignore != null) {
+        ["respect-gitignore"] = respectGitignore
+      }
+      when (fix != null) { ["fix"] = fix }
+      when (unsafeFixes != null) { ["unsafe-fixes"] = unsafeFixes }
+      when (showFixes != null) { ["show-fixes"] = showFixes }
+      when (preview != null) { ["preview"] = preview }
+      when (lint != null) { ["lint"] = renderLint(lint) }
+      when (format != null) { ["format"] = renderFormat(format) }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

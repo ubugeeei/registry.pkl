@@ -1,0 +1,89 @@
+/// Tests for `target.agent.claudeCode.Settings` rendering.
+amends "pkl:test"
+
+import "../claudeCode/Settings.pkl" as ClaudeCodeSettings
+import "../mcp/Core.pkl" as Mcp
+
+local config = (ClaudeCodeSettings) {
+  cleanupPeriodDays = 30
+  includeCoAuthoredBy = true
+  model = "claude-opus-4-7"
+  env {
+    ["FOO"] = "bar"
+  }
+  permissions = new ClaudeCodeSettings.Permissions {
+    defaultMode = "default"
+    allow {
+      "Bash(pkl eval *)"
+    }
+    deny {
+      "Bash(rm -rf *)"
+    }
+  }
+  hooks {
+    ["PreToolUse"] = new Listing {
+      new ClaudeCodeSettings.HookMatcher {
+        matcher = "Bash"
+        hooks {
+          new ClaudeCodeSettings.Hook {
+            command = "echo hi"
+            timeout = 5
+          }
+        }
+      }
+    }
+  }
+  statusLine = new ClaudeCodeSettings.StatusLine {
+    type = "command"
+    command = "echo status"
+    padding = 1
+  }
+  mcpServers {
+    ["fs"] = new Mcp.StdioServer {
+      command = "npx"
+      args {
+        "-y"
+        "@modelcontextprotocol/server-filesystem"
+      }
+    }
+  }
+}
+
+facts {
+  ["top-level scalars render"] {
+    config.rendered["cleanupPeriodDays"] == 30
+    config.rendered["includeCoAuthoredBy"] == true
+    config.rendered["model"] == "claude-opus-4-7"
+  }
+  ["env map renders"] {
+    config.rendered["env"]["FOO"] == "bar"
+  }
+  ["permissions allow and deny render"] {
+    local p = config.rendered["permissions"]
+    p["allow"] == List("Bash(pkl eval *)")
+    p["deny"] == List("Bash(rm -rf *)")
+    p["defaultMode"] == "default"
+  }
+  ["hooks group matchers per event"] {
+    local pre = config.rendered["hooks"]["PreToolUse"][0]
+    pre["matcher"] == "Bash"
+    pre["hooks"][0]["command"] == "echo hi"
+    pre["hooks"][0]["type"] == "command"
+    pre["hooks"][0]["timeout"] == 5
+  }
+  ["statusLine renders type and command"] {
+    config.rendered["statusLine"]["type"] == "command"
+    config.rendered["statusLine"]["command"] == "echo status"
+    config.rendered["statusLine"]["padding"] == 1
+  }
+  ["mcpServers map keeps command and args"] {
+    local fs = config.rendered["mcpServers"]["fs"]
+    fs["command"] == "npx"
+    fs["args"] == List("-y", "@modelcontextprotocol/server-filesystem")
+  }
+  ["unset top-level fields stay out"] {
+    !config.rendered.containsKey("disableAllHooks")
+    !config.rendered.containsKey("autoConnectIde")
+    !config.rendered.containsKey("apiKeyHelper")
+  }
+}

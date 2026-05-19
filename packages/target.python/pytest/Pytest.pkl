@@ -1,0 +1,73 @@
+/// A typed authoring surface for the `[tool.pytest.ini_options]` table or
+/// the equivalent `pytest.ini` configuration.
+module target.python.pytest.Pytest
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+minversion: String? = null
+addopts: (String|Listing<String>)? = null
+testpaths: Listing<String> = new Listing {}
+pythonFiles: Listing<String> = new Listing {}
+pythonClasses: Listing<String> = new Listing {}
+pythonFunctions: Listing<String> = new Listing {}
+markers: Listing<String> = new Listing {}
+filterwarnings: Listing<String> = new Listing {}
+xfailStrict: Boolean? = null
+logCli: Boolean? = null
+logCliLevel: String? = null
+logCliFormat: String? = null
+logCliDateFormat: String? = null
+norecursedirs: Listing<String> = new Listing {}
+requiredPlugins: Listing<String> = new Listing {}
+emptyParameterSetMark: "skip"|"xfail"|"fail_at_collect"? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (minversion != null) { ["minversion"] = minversion }
+      when (addopts != null) {
+        ["addopts"] =
+          if (addopts is Listing) addopts.toList().join(" ") else addopts
+      }
+      when (!testpaths.toList().isEmpty) {
+        ["testpaths"] = testpaths.toList()
+      }
+      when (!pythonFiles.toList().isEmpty) {
+        ["python_files"] = pythonFiles.toList()
+      }
+      when (!pythonClasses.toList().isEmpty) {
+        ["python_classes"] = pythonClasses.toList()
+      }
+      when (!pythonFunctions.toList().isEmpty) {
+        ["python_functions"] = pythonFunctions.toList()
+      }
+      when (!markers.toList().isEmpty) { ["markers"] = markers.toList() }
+      when (!filterwarnings.toList().isEmpty) {
+        ["filterwarnings"] = filterwarnings.toList()
+      }
+      when (xfailStrict != null) { ["xfail_strict"] = xfailStrict }
+      when (logCli != null) { ["log_cli"] = logCli }
+      when (logCliLevel != null) { ["log_cli_level"] = logCliLevel }
+      when (logCliFormat != null) { ["log_cli_format"] = logCliFormat }
+      when (logCliDateFormat != null) {
+        ["log_cli_date_format"] = logCliDateFormat
+      }
+      when (!norecursedirs.toList().isEmpty) {
+        ["norecursedirs"] = norecursedirs.toList()
+      }
+      when (!requiredPlugins.toList().isEmpty) {
+        ["required_plugins"] = requiredPlugins.toList()
+      }
+      when (emptyParameterSetMark != null) {
+        ["empty_parameter_set_mark"] = emptyParameterSetMark
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

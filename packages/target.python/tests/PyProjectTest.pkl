@@ -1,0 +1,57 @@
+/// Tests for `target.python.pyproject.PyProject` rendering.
+amends "pkl:test"
+
+import "../pyproject/PyProject.pkl"
+
+local manifest = (PyProject) {
+  buildSystem = new PyProject.BuildSystem {
+    requires {
+      "hatchling"
+    }
+    buildBackend = "hatchling.build"
+  }
+  project = new PyProject.Project {
+    name = "demo"
+    version = "1.0.0"
+    requiresPython = ">=3.11"
+    dependencies {
+      "httpx"
+    }
+    optionalDependencies {
+      ["dev"] = new Listing { "ruff" }
+    }
+    scripts {
+      ["demo"] = "demo.cli:main"
+    }
+  }
+  tool {
+    ["ruff"] = new Mapping<String, Any> {
+      ["line-length"] = 100
+    }
+  }
+}
+
+facts {
+  ["build-system requires and backend renamed"] {
+    local bs = manifest.rendered["build-system"]
+    bs["requires"] == List("hatchling")
+    bs["build-backend"] == "hatchling.build"
+  }
+  ["project name and version pass through"] {
+    local p = manifest.rendered["project"]
+    p["name"] == "demo"
+    p["version"] == "1.0.0"
+    p["requires-python"] == ">=3.11"
+  }
+  ["dependencies and optional-dependencies emit"] {
+    local p = manifest.rendered["project"]
+    p["dependencies"] == List("httpx")
+    p["optional-dependencies"]["dev"] == List("ruff")
+  }
+  ["scripts table emits"] {
+    manifest.rendered["project"]["scripts"]["demo"] == "demo.cli:main"
+  }
+  ["tool.ruff passes through"] {
+    manifest.rendered["tool"]["ruff"]["line-length"] == 100
+  }
+}

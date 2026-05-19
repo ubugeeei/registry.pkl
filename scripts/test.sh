@@ -13,6 +13,7 @@ FAMILIES=(
   target.editor
   target.agent
   target.ci
+  target.python
 )
 
 failed=0

@@ -1,0 +1,62 @@
+/// A typed GitHub Actions preset for closing stale issues and PRs.
+module target.ci.github.StaleWorkflow
+
+import "@target.core/Maps.pkl" as Maps
+
+name: String = "Stale"
+schedule: String = "0 1 * * *"
+runsOn: String = "ubuntu-latest"
+daysBeforeStale: Int = 60
+daysBeforeClose: Int = 14
+staleIssueLabel: String = "stale"
+stalePrLabel: String = "stale"
+staleIssueMessage: String = "This issue has been automatically marked as stale due to inactivity. Comment to keep it open, otherwise it will be closed in 14 days."
+stalePrMessage: String = "This pull request has been automatically marked as stale due to inactivity. Push or comment to keep it open."
+exemptIssueLabels: String = "pinned,security,roadmap"
+exemptPrLabels: String = "pinned,security"
+operationsPerRun: Int = 60
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = name
+      ["on"] = new Dynamic {
+        ["schedule"] = new Listing {
+          new Dynamic { ["cron"] = schedule }.toMap()
+        }.toList()
+        ["workflow_dispatch"] = new Mapping {}.toMap()
+      }.toMap()
+      ["permissions"] = new Dynamic {
+        ["issues"] = "write"
+        ["pull-requests"] = "write"
+      }.toMap()
+      ["jobs"] = new Dynamic {
+        ["stale"] = new Dynamic {
+          ["runs-on"] = runsOn
+          ["steps"] = new Listing {
+            new Dynamic {
+              ["uses"] = "actions/stale@v9"
+              ["with"] = new Dynamic {
+                ["days-before-stale"] = daysBeforeStale
+                ["days-before-close"] = daysBeforeClose
+                ["stale-issue-label"] = staleIssueLabel
+                ["stale-pr-label"] = stalePrLabel
+                ["stale-issue-message"] = staleIssueMessage
+                ["stale-pr-message"] = stalePrMessage
+                ["exempt-issue-labels"] = exemptIssueLabels
+                ["exempt-pr-labels"] = exemptPrLabels
+                ["operations-per-run"] = operationsPerRun
+              }.toMap()
+            }.toMap()
+          }.toList()
+        }.toMap()
+      }.toMap()
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

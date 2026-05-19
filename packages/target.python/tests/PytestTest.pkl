@@ -1,0 +1,41 @@
+/// Tests for `target.python.pytest.Pytest` rendering.
+amends "pkl:test"
+
+import "../pytest/Pytest.pkl"
+
+local listConfig = (Pytest) {
+  minversion = "8.0"
+  addopts = new Listing<String> {
+    "-ra"
+    "--strict-markers"
+  }
+  testpaths {
+    "tests"
+  }
+  markers {
+    "slow: very slow tests"
+  }
+  xfailStrict = true
+}
+
+local stringConfig = (Pytest) {
+  addopts = "-x"
+}
+
+facts {
+  ["listing addopts join with spaces"] {
+    listConfig.rendered["addopts"] == "-ra --strict-markers"
+  }
+  ["string addopts pass through"] {
+    stringConfig.rendered["addopts"] == "-x"
+  }
+  ["testpaths list emits"] {
+    listConfig.rendered["testpaths"] == List("tests")
+  }
+  ["markers list emits"] {
+    listConfig.rendered["markers"] == List("slow: very slow tests")
+  }
+  ["xfail_strict renames"] {
+    listConfig.rendered["xfail_strict"] == true
+  }
+}

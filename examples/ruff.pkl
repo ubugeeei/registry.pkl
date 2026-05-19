@@ -1,0 +1,31 @@
+amends "@target.python/ruff/Ruff.pkl"
+
+lineLength = 100
+indentWidth = 4
+targetVersion = "py311"
+fix = true
+showFixes = true
+
+lint = new LintOptions {
+  select {
+    "E"
+    "F"
+    "W"
+    "I"
+    "B"
+  }
+  ignore {
+    "E501"
+  }
+  perFileIgnores {
+    ["tests/**/*.py"] = new Listing {
+      "S101"
+    }
+  }
+}
+
+format = new FormatOptions {
+  quoteStyle = "double"
+  indentStyle = "space"
+  docstringCodeFormat = true
+}

@@ -1,0 +1,82 @@
+amends "@target.agent/claudeCode/Settings.pkl"
+
+import "@target.agent/mcp/Core.pkl" as mcp
+
+includeCoAuthoredBy = true
+cleanupPeriodDays = 30
+model = "claude-opus-4-7"
+
+env {
+  ["ANTHROPIC_LOG"] = "info"
+  ["CLAUDE_CODE_AUTO_CONNECT_IDE"] = "1"
+}
+
+permissions = new Permissions {
+  defaultMode = "default"
+  allow {
+    "Bash(pkl eval *)"
+    "Bash(pkl test *)"
+    "Bash(pnpm *)"
+    "Bash(git status)"
+  }
+  deny {
+    "Bash(rm -rf /*)"
+    "Bash(curl http*)"
+  }
+  additionalDirectories {
+    "/tmp"
+  }
+}
+
+hooks {
+  ["PreToolUse"] = new Listing {
+    new HookMatcher {
+      matcher = "Bash"
+      hooks {
+        new Hook {
+          command = "bash -lc 'echo \"about to run a shell command\"'"
+          timeout = 5
+        }
+      }
+    }
+  }
+  ["SessionStart"] = new Listing {
+    new HookMatcher {
+      hooks {
+        new Hook {
+          command = "git status --short"
+          timeout = 10
+        }
+      }
+    }
+  }
+}
+
+statusLine = new StatusLine {
+  type = "command"
+  command = "echo \"$(basename $PWD)\""
+  padding = 1
+}
+
+modelRouting = new ModelRouting {
+  default = "claude-opus-4-7"
+  background = "claude-haiku-4-7"
+}
+
+outputStyles {
+  ["concise"] = new OutputStyle {
+    description = "Short answers, code only when asked"
+    prompt = "Prefer short answers. Avoid filler. Only write code when explicitly asked."
+  }
+}
+
+mcpServers {
+  ["filesystem"] = new mcp.StdioServer {
+    command = "npx"
+    args {
+      "-y"
+      "@modelcontextprotocol/server-filesystem"
+      "/Users/me/projects"
+    }
+  }
+}

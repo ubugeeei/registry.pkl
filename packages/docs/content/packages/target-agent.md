@@ -38,6 +38,9 @@ features:
   - icon: "mdi:terminal"
     title: codex/Settings.pkl
     details: OpenAI Codex CLI config covering approval policy, sandbox tuning, profiles, and MCP server registration.
+  - icon: "mdi:robot-happy"
+    title: claudeCode/Settings.pkl
+    details: Full ~/.claude/settings.json surface — permissions, hooks, statusLine, modelRouting, outputStyles, env, mcpServers.
 ---
 
 ## Install
@@ -51,6 +54,7 @@ amends "package://pkg.example.invalid/target.agent@0.1.0#/vscode/Mcp.pkl"
 - `mcp.json` for VS Code
 - `mcp.json` for Cursor
 - `.mcp.json` for Claude Code or project-level MCP config
+- `~/.claude/settings.json` for Claude Code user-, project-, or managed settings
 - Claude Desktop MCP server JSON
 - Windsurf MCP config JSON
 - `~/.codex/config.toml`-shape JSON for the OpenAI Codex CLI

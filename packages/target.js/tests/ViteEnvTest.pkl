@@ -1,0 +1,44 @@
+/// Tests for `target.js.vite_env.ViteEnv` text rendering.
+amends "pkl:test"
+
+import "../vite-env/ViteEnv.pkl"
+
+local file = (ViteEnv) {
+  mode = "production"
+  banner {
+    "do not edit"
+  }
+  viteVars {
+    ["VITE_API_BASE"] = "https://example.invalid"
+    ["VITE_FEATURES"] = new ViteEnv.Entry {
+      value = "a,b"
+      comment = "two flags"
+    }
+  }
+  serverVars {
+    ["DOCS_BASE"] = "/"
+  }
+}
+
+facts {
+  ["banner is rendered with hash prefix"] {
+    file.rendered.contains("# do not edit")
+  }
+  ["mode appears as a comment"] {
+    file.rendered.contains("# mode: production")
+  }
+  ["VITE_ vars appear under the client section"] {
+    file.rendered.contains("# Client-exposed VITE_*")
+    file.rendered.contains("VITE_API_BASE=https://example.invalid")
+  }
+  ["entry comment renders above the key"] {
+    file.rendered.contains("# two flags\nVITE_FEATURES=a,b")
+  }
+  ["server vars appear under the server section"] {
+    file.rendered.contains("# Server-only")
+    file.rendered.contains("DOCS_BASE=/")
+  }
+  ["file ends with a single trailing newline"] {
+    file.rendered.endsWith("\n")
+  }
+}

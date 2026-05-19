@@ -1,0 +1,124 @@
+/// A typed GitHub Actions preset for deploying a static site to GitHub Pages.
+///
+/// Pre-wires the `actions/configure-pages`, `upload-pages-artifact`, and
+/// `deploy-pages` chain with the right scoped permissions and a separate
+/// deploy job whose only privilege is to publish the uploaded artifact.
+module target.ci.github.DeployPagesWorkflow
+
+import "@target.core/Maps.pkl" as Maps
+
+class Step {
+  name: String? = null
+  uses: String? = null
+  run: String? = null
+  `with`: Mapping<String, Any> = new Mapping {}
+  env: Mapping<String, String> = new Mapping {}
+  workingDirectory: String? = null
+  shell: String? = null
+  `if`: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+name: String = "Deploy Pages"
+branches: Listing<String> = new Listing { "main" }
+manualDispatch: Boolean = true
+runsOn: String = "ubuntu-latest"
+artifactPath: String = "dist"
+environmentName: String = "github-pages"
+concurrencyGroup: String = "github-pages"
+cancelInProgress: Boolean = true
+buildSteps: Listing<Step> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderStep(value: Step) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.uses != null) { ["uses"] = value.uses }
+      when (value.`with`.toMap().length > 0) { ["with"] = value.`with`.toMap() }
+      when (value.run != null) { ["run"] = value.run }
+      when (value.shell != null) { ["shell"] = value.shell }
+      when (value.workingDirectory != null) {
+        ["working-directory"] = value.workingDirectory
+      }
+      when (value.env.toMap().length > 0) { ["env"] = value.env.toMap() }
+      when (value.`if` != null) { ["if"] = value.`if` }
+    },
+    value.extra,
+  )
+
+local checkoutStep =
+  new Dynamic {
+    ["name"] = "Checkout"
+    ["uses"] = "actions/checkout@v4"
+  }.toMap()
+
+local configurePagesStep =
+  new Dynamic {
+    ["name"] = "Setup Pages"
+    ["uses"] = "actions/configure-pages@v5"
+  }.toMap()
+
+local uploadArtifactStep =
+  new Dynamic {
+    ["name"] = "Upload Pages artifact"
+    ["uses"] = "actions/upload-pages-artifact@v3"
+    ["with"] = new Dynamic { ["path"] = artifactPath }.toMap()
+  }.toMap()
+
+local deployStep =
+  new Dynamic {
+    ["name"] = "Deploy to GitHub Pages"
+    ["id"] = "deployment"
+    ["uses"] = "actions/deploy-pages@v4"
+  }.toMap()
+
+hidden buildSteps_rendered =
+  buildSteps.toList().map((value) -> renderStep(value))
+
+hidden buildJobSteps =
+  List(checkoutStep, configurePagesStep) + buildSteps_rendered + List(uploadArtifactStep)
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = name
+      ["on"] =
+        new Dynamic {
+          ["push"] = new Dynamic { ["branches"] = branches.toList() }.toMap()
+          when (manualDispatch) {
+            ["workflow_dispatch"] = new Mapping {}.toMap()
+          }
+        }.toMap()
+      ["permissions"] = new Dynamic {
+        ["contents"] = "read"
+        ["pages"] = "write"
+        ["id-token"] = "write"
+      }.toMap()
+      ["concurrency"] = new Dynamic {
+        ["group"] = concurrencyGroup
+        ["cancel-in-progress"] = cancelInProgress
+      }.toMap()
+      ["jobs"] = new Dynamic {
+        ["build"] = new Dynamic {
+          ["runs-on"] = runsOn
+          ["steps"] = buildJobSteps
+        }.toMap()
+        ["deploy"] = new Dynamic {
+          ["runs-on"] = runsOn
+          ["needs"] = "build"
+          ["environment"] = new Dynamic {
+            ["name"] = environmentName
+            ["url"] = "${{ steps.deployment.outputs.page_url }}"
+          }.toMap()
+          ["steps"] = List(deployStep)
+        }.toMap()
+      }.toMap()
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}
