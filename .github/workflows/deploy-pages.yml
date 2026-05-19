@@ -65,6 +65,16 @@ jobs:
       - name: Build docs
         run: pnpm build
 
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build search index
+        run: |
+          cargo build --release -p search-index
+          ./target/release/search-index \
+            --registry registry \
+            --output dist/docs/registry-search.json
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
