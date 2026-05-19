@@ -1,0 +1,67 @@
+amends "@target.k8s/kustomization/Kustomization.pkl"
+
+namespace = "registry-pkl"
+namePrefix = "registry-"
+
+commonLabels {
+  ["app.kubernetes.io/name"] = "registry-pkl"
+  ["app.kubernetes.io/managed-by"] = "kustomize"
+}
+
+resources {
+  "../base/deployment.yaml"
+  "../base/service.yaml"
+  "../base/ingress.yaml"
+}
+
+components {
+  "../components/metrics"
+}
+
+images {
+  new Image {
+    name = "registry-pkl"
+    newName = "ghcr.io/ubugeeei/registry-pkl"
+    newTag = "0.1.0"
+  }
+}
+
+replicas {
+  new Replicas {
+    name = "registry-pkl"
+    count = 3
+  }
+}
+
+configMapGenerator {
+  new ConfigMapGen {
+    name = "app-config"
+    literals {
+      "LOG_LEVEL=info"
+      "NODE_ENV=production"
+    }
+    options {
+      ["disableNameSuffixHash"] = true
+    }
+  }
+}
+
+patches {
+  new Patch {
+    path = "patches/resource-limits.yaml"
+    target {
+      ["kind"] = "Deployment"
+      ["name"] = "registry-pkl"
+    }
+  }
+}
+
+helmCharts {
+  new HelmChart {
+    name = "postgresql"
+    repo = "https://charts.bitnami.com/bitnami"
+    version = "16.0.0"
+    releaseName = "registry-pkl-db"
+    valuesFile = "values/postgresql.yaml"
+  }
+}

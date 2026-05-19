@@ -47,6 +47,11 @@
       "uri": "projectpackage://pkg.registry.invalid/target.container@0.1.0",
       "path": "packages/target.container"
     },
+    "package://pkg.registry.invalid/target.k8s@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.registry.invalid/target.k8s@0.1.0",
+      "path": "packages/target.k8s"
+    },
     "package://pkg.registry.invalid/target.go@0": {
       "type": "local",
       "uri": "projectpackage://pkg.registry.invalid/target.go@0.1.0",
@@ -56,11 +61,6 @@
       "type": "local",
       "uri": "projectpackage://pkg.registry.invalid/target.lint@0.1.0",
       "path": "packages/target.lint"
-    },
-    "package://pkg.registry.invalid/target.agent@0": {
-      "type": "local",
-      "uri": "projectpackage://pkg.registry.invalid/target.agent@0.1.0",
-      "path": "packages/target.agent"
     },
     "package://pkg.registry.invalid/target.rust@0": {
       "type": "local",
@@ -72,15 +72,20 @@
       "uri": "projectpackage://pkg.registry.invalid/target.python@0.1.0",
       "path": "packages/target.python"
     },
-    "package://pkg.registry.invalid/target.env@0": {
-      "type": "local",
-      "uri": "projectpackage://pkg.registry.invalid/target.env@0.1.0",
-      "path": "packages/target.env"
-    },
     "package://pkg.registry.invalid/target.editor@0": {
       "type": "local",
       "uri": "projectpackage://pkg.registry.invalid/target.editor@0.1.0",
       "path": "packages/target.editor"
+    },
+    "package://pkg.registry.invalid/target.agent@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.registry.invalid/target.agent@0.1.0",
+      "path": "packages/target.agent"
+    },
+    "package://pkg.registry.invalid/target.env@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.registry.invalid/target.env@0.1.0",
+      "path": "packages/target.env"
     }
   }
 }

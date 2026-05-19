@@ -1,0 +1,73 @@
+/// Tests for `target.k8s.kustomization.Kustomization` rendering.
+amends "pkl:test"
+
+import "../kustomization/Kustomization.pkl"
+
+local kust = (Kustomization) {
+  namespace = "demo"
+  namePrefix = "demo-"
+  commonLabels {
+    ["app"] = "demo"
+  }
+  resources {
+    "deployment.yaml"
+    "service.yaml"
+  }
+  images {
+    new Kustomization.Image {
+      name = "myapp"
+      newTag = "1.0.0"
+    }
+  }
+  configMapGenerator {
+    new Kustomization.ConfigMapGen {
+      name = "app-config"
+      literals {
+        "ENV=production"
+        "LOG_LEVEL=info"
+      }
+    }
+  }
+  patches {
+    new Kustomization.Patch {
+      path = "patches/replicas.yaml"
+      target {
+        ["kind"] = "Deployment"
+        ["name"] = "myapp"
+      }
+    }
+  }
+}
+
+facts {
+  ["apiVersion and kind default"] {
+    kust.rendered["apiVersion"] == "kustomize.config.k8s.io/v1beta1"
+    kust.rendered["kind"] == "Kustomization"
+  }
+  ["namespace and namePrefix pass through"] {
+    kust.rendered["namespace"] == "demo"
+    kust.rendered["namePrefix"] == "demo-"
+  }
+  ["commonLabels emit"] {
+    kust.rendered["commonLabels"]["app"] == "demo"
+  }
+  ["resources list"] {
+    kust.rendered["resources"] == List("deployment.yaml", "service.yaml")
+  }
+  ["image entry carries newTag"] {
+    local img = kust.rendered["images"][0]
+    img["name"] == "myapp"
+    img["newTag"] == "1.0.0"
+  }
+  ["configMapGenerator literals"] {
+    local cm = kust.rendered["configMapGenerator"][0]
+    cm["name"] == "app-config"
+    cm["literals"] == List("ENV=production", "LOG_LEVEL=info")
+  }
+  ["patches carry path and target"] {
+    local p = kust.rendered["patches"][0]
+    p["path"] == "patches/replicas.yaml"
+    p["target"]["kind"] == "Deployment"
+    p["target"]["name"] == "myapp"
+  }
+}

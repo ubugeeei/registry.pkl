@@ -1,0 +1,116 @@
+/// A typed authoring surface for Helm `Chart.yaml`.
+module target.k8s.helm_chart.Chart
+
+import "@target.core/Maps.pkl" as Maps
+
+class Dependency {
+  name: String
+  version: String
+  repository: String? = null
+  condition: String? = null
+  tags: Listing<String> = new Listing {}
+  importValues: Listing<Any> = new Listing {}
+  alias: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Maintainer {
+  name: String
+  email: String? = null
+  url: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: ("v1"|"v2") = "v2"
+name: String
+version: String
+description: String? = null
+type: ("application"|"library")? = null
+keywords: Listing<String> = new Listing {}
+home: String? = null
+sources: Listing<String> = new Listing {}
+appVersion: String? = null
+deprecated: Boolean? = null
+maintainers: Listing<Maintainer> = new Listing {}
+icon: String? = null
+kubeVersion: String? = null
+annotations: Mapping<String, String> = new Mapping {}
+dependencies: Listing<Dependency> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderMaintainer(value: Maintainer) =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = value.name
+      when (value.email != null) { ["email"] = value.email }
+      when (value.url != null) { ["url"] = value.url }
+    },
+    value.extra,
+  )
+
+local function renderDependency(value: Dependency) =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = value.name
+      ["version"] = value.version
+      when (value.repository != null) {
+        ["repository"] = value.repository
+      }
+      when (value.condition != null) {
+        ["condition"] = value.condition
+      }
+      when (!value.tags.toList().isEmpty) {
+        ["tags"] = value.tags.toList()
+      }
+      when (!value.importValues.toList().isEmpty) {
+        ["import-values"] = value.importValues.toList()
+      }
+      when (value.alias != null) { ["alias"] = value.alias }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["name"] = name
+      ["version"] = version
+      when (description != null) {
+        ["description"] = description
+      }
+      when (type != null) { ["type"] = type }
+      when (!keywords.toList().isEmpty) {
+        ["keywords"] = keywords.toList()
+      }
+      when (home != null) { ["home"] = home }
+      when (!sources.toList().isEmpty) {
+        ["sources"] = sources.toList()
+      }
+      when (appVersion != null) {
+        ["appVersion"] = appVersion
+      }
+      when (deprecated != null) {
+        ["deprecated"] = deprecated
+      }
+      when (!maintainers.toList().isEmpty) {
+        ["maintainers"] = maintainers.toList().map((m) -> renderMaintainer(m))
+      }
+      when (icon != null) { ["icon"] = icon }
+      when (kubeVersion != null) {
+        ["kubeVersion"] = kubeVersion
+      }
+      when (!annotations.toMap().isEmpty) {
+        ["annotations"] = annotations.toMap()
+      }
+      when (!dependencies.toList().isEmpty) {
+        ["dependencies"] = dependencies.toList().map((d) -> renderDependency(d))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

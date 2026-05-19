@@ -1,0 +1,307 @@
+/// A typed authoring surface for `kustomization.yaml`.
+module target.k8s.kustomization.Kustomization
+
+import "@target.core/Maps.pkl" as Maps
+
+class Patch {
+  path: String? = null
+  patch: String? = null
+  target: Mapping<String, Any> = new Mapping {}
+  options: Mapping<String, Boolean> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ConfigMapGen {
+  name: String
+  namespace: String? = null
+  behavior: ("create"|"replace"|"merge")? = null
+  literals: Listing<String> = new Listing {}
+  files: Listing<String> = new Listing {}
+  envs: Listing<String> = new Listing {}
+  options: Mapping<String, Boolean> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class SecretGen {
+  name: String
+  namespace: String? = null
+  behavior: ("create"|"replace"|"merge")? = null
+  type: String? = null
+  literals: Listing<String> = new Listing {}
+  files: Listing<String> = new Listing {}
+  envs: Listing<String> = new Listing {}
+  options: Mapping<String, Boolean> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Image {
+  name: String
+  newName: String? = null
+  newTag: String? = null
+  digest: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Replicas {
+  name: String
+  count: Int
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class HelmChart {
+  name: String
+  repo: String? = null
+  version: String? = null
+  releaseName: String? = null
+  namespace: String? = null
+  valuesFile: String? = null
+  valuesInline: Mapping<String, Any> = new Mapping {}
+  valuesMerge: ("override"|"merge"|"replace")? = null
+  includeCRDs: Boolean? = null
+  skipHooks: Boolean? = null
+  skipTests: Boolean? = null
+  apiVersions: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: String = "kustomize.config.k8s.io/v1beta1"
+kind: String = "Kustomization"
+namespace: String? = null
+namePrefix: String? = null
+nameSuffix: String? = null
+commonLabels: Mapping<String, String> = new Mapping {}
+commonAnnotations: Mapping<String, String> = new Mapping {}
+labels: Listing<Mapping<String, Any>> = new Listing {}
+annotations: Listing<Mapping<String, Any>> = new Listing {}
+resources: Listing<String> = new Listing {}
+components: Listing<String> = new Listing {}
+configurations: Listing<String> = new Listing {}
+crds: Listing<String> = new Listing {}
+images: Listing<Image> = new Listing {}
+replicas: Listing<Replicas> = new Listing {}
+patches: Listing<Patch> = new Listing {}
+patchesStrategicMerge: Listing<String> = new Listing {}
+patchesJson6902: Listing<Mapping<String, Any>> = new Listing {}
+configMapGenerator: Listing<ConfigMapGen> = new Listing {}
+secretGenerator: Listing<SecretGen> = new Listing {}
+generators: Listing<String> = new Listing {}
+transformers: Listing<String> = new Listing {}
+helmCharts: Listing<HelmChart> = new Listing {}
+helmGlobals: Mapping<String, Any> = new Mapping {}
+buildMetadata: Listing<String> = new Listing {}
+sortOptions: Mapping<String, Any> = new Mapping {}
+openapi: Mapping<String, Any> = new Mapping {}
+vars: Listing<Mapping<String, Any>> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderPatch(value: Patch) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.path != null) { ["path"] = value.path }
+      when (value.patch != null) { ["patch"] = value.patch }
+      when (!value.target.toMap().isEmpty) {
+        ["target"] = value.target.toMap()
+      }
+      when (!value.options.toMap().isEmpty) {
+        ["options"] = value.options.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderConfigMapGen(value: ConfigMapGen) =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = value.name
+      when (value.namespace != null) {
+        ["namespace"] = value.namespace
+      }
+      when (value.behavior != null) {
+        ["behavior"] = value.behavior
+      }
+      when (!value.literals.toList().isEmpty) {
+        ["literals"] = value.literals.toList()
+      }
+      when (!value.files.toList().isEmpty) {
+        ["files"] = value.files.toList()
+      }
+      when (!value.envs.toList().isEmpty) {
+        ["envs"] = value.envs.toList()
+      }
+      when (!value.options.toMap().isEmpty) {
+        ["options"] = value.options.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSecretGen(value: SecretGen) =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = value.name
+      when (value.namespace != null) {
+        ["namespace"] = value.namespace
+      }
+      when (value.behavior != null) {
+        ["behavior"] = value.behavior
+      }
+      when (value.type != null) { ["type"] = value.type }
+      when (!value.literals.toList().isEmpty) {
+        ["literals"] = value.literals.toList()
+      }
+      when (!value.files.toList().isEmpty) {
+        ["files"] = value.files.toList()
+      }
+      when (!value.envs.toList().isEmpty) {
+        ["envs"] = value.envs.toList()
+      }
+      when (!value.options.toMap().isEmpty) {
+        ["options"] = value.options.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderImage(value: Image) =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = value.name
+      when (value.newName != null) { ["newName"] = value.newName }
+      when (value.newTag != null) { ["newTag"] = value.newTag }
+      when (value.digest != null) { ["digest"] = value.digest }
+    },
+    value.extra,
+  )
+
+local function renderReplicas(value: Replicas) =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = value.name
+      ["count"] = value.count
+    },
+    value.extra,
+  )
+
+local function renderHelmChart(value: HelmChart) =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = value.name
+      when (value.repo != null) { ["repo"] = value.repo }
+      when (value.version != null) { ["version"] = value.version }
+      when (value.releaseName != null) {
+        ["releaseName"] = value.releaseName
+      }
+      when (value.namespace != null) {
+        ["namespace"] = value.namespace
+      }
+      when (value.valuesFile != null) {
+        ["valuesFile"] = value.valuesFile
+      }
+      when (!value.valuesInline.toMap().isEmpty) {
+        ["valuesInline"] = value.valuesInline.toMap()
+      }
+      when (value.valuesMerge != null) {
+        ["valuesMerge"] = value.valuesMerge
+      }
+      when (value.includeCRDs != null) {
+        ["includeCRDs"] = value.includeCRDs
+      }
+      when (value.skipHooks != null) {
+        ["skipHooks"] = value.skipHooks
+      }
+      when (value.skipTests != null) {
+        ["skipTests"] = value.skipTests
+      }
+      when (!value.apiVersions.toList().isEmpty) {
+        ["apiVersions"] = value.apiVersions.toList()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      when (namespace != null) { ["namespace"] = namespace }
+      when (namePrefix != null) { ["namePrefix"] = namePrefix }
+      when (nameSuffix != null) { ["nameSuffix"] = nameSuffix }
+      when (!commonLabels.toMap().isEmpty) {
+        ["commonLabels"] = commonLabels.toMap()
+      }
+      when (!commonAnnotations.toMap().isEmpty) {
+        ["commonAnnotations"] = commonAnnotations.toMap()
+      }
+      when (!labels.toList().isEmpty) {
+        ["labels"] = labels.toList().map((m) -> m.toMap())
+      }
+      when (!annotations.toList().isEmpty) {
+        ["annotations"] = annotations.toList().map((m) -> m.toMap())
+      }
+      when (!resources.toList().isEmpty) {
+        ["resources"] = resources.toList()
+      }
+      when (!components.toList().isEmpty) {
+        ["components"] = components.toList()
+      }
+      when (!configurations.toList().isEmpty) {
+        ["configurations"] = configurations.toList()
+      }
+      when (!crds.toList().isEmpty) { ["crds"] = crds.toList() }
+      when (!images.toList().isEmpty) {
+        ["images"] = images.toList().map((i) -> renderImage(i))
+      }
+      when (!replicas.toList().isEmpty) {
+        ["replicas"] = replicas.toList().map((r) -> renderReplicas(r))
+      }
+      when (!patches.toList().isEmpty) {
+        ["patches"] = patches.toList().map((p) -> renderPatch(p))
+      }
+      when (!patchesStrategicMerge.toList().isEmpty) {
+        ["patchesStrategicMerge"] = patchesStrategicMerge.toList()
+      }
+      when (!patchesJson6902.toList().isEmpty) {
+        ["patchesJson6902"] =
+          patchesJson6902.toList().map((m) -> m.toMap())
+      }
+      when (!configMapGenerator.toList().isEmpty) {
+        ["configMapGenerator"] =
+          configMapGenerator.toList().map((c) -> renderConfigMapGen(c))
+      }
+      when (!secretGenerator.toList().isEmpty) {
+        ["secretGenerator"] =
+          secretGenerator.toList().map((s) -> renderSecretGen(s))
+      }
+      when (!generators.toList().isEmpty) {
+        ["generators"] = generators.toList()
+      }
+      when (!transformers.toList().isEmpty) {
+        ["transformers"] = transformers.toList()
+      }
+      when (!helmCharts.toList().isEmpty) {
+        ["helmCharts"] = helmCharts.toList().map((h) -> renderHelmChart(h))
+      }
+      when (!helmGlobals.toMap().isEmpty) {
+        ["helmGlobals"] = helmGlobals.toMap()
+      }
+      when (!buildMetadata.toList().isEmpty) {
+        ["buildMetadata"] = buildMetadata.toList()
+      }
+      when (!sortOptions.toMap().isEmpty) {
+        ["sortOptions"] = sortOptions.toMap()
+      }
+      when (!openapi.toMap().isEmpty) {
+        ["openapi"] = openapi.toMap()
+      }
+      when (!vars.toList().isEmpty) {
+        ["vars"] = vars.toList().map((m) -> m.toMap())
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

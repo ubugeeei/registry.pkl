@@ -1,0 +1,100 @@
+amends "@target.k8s/helm-values/Values.pkl"
+
+replicaCount = 3
+
+image = new ImageSpec {
+  repository = "ghcr.io/ubugeeei/registry-pkl"
+  tag = "0.1.0"
+  pullPolicy = "IfNotPresent"
+}
+
+nameOverride = ""
+fullnameOverride = ""
+
+serviceAccount {
+  ["create"] = true
+  ["annotations"] = new Mapping<String, Any> {}
+  ["name"] = ""
+}
+
+podAnnotations {
+  ["prometheus.io/scrape"] = "true"
+  ["prometheus.io/port"] = "8080"
+}
+
+service = new ServiceSpec {
+  type = "ClusterIP"
+  port = 80
+  ports {
+    new ServicePort {
+      name = "http"
+      port = 80
+      targetPort = 8080
+      protocol = "TCP"
+    }
+  }
+}
+
+ingress = new IngressSpec {
+  enabled = true
+  className = "nginx"
+  annotations {
+    ["nginx.ingress.kubernetes.io/rewrite-target"] = "/"
+  }
+  hosts {
+    new IngressRule {
+      host = "registry-pkl.example.invalid"
+      paths {
+        new Mapping<String, Any> {
+          ["path"] = "/"
+          ["pathType"] = "Prefix"
+        }
+      }
+    }
+  }
+  tls {
+    new IngressTls {
+      hosts {
+        "registry-pkl.example.invalid"
+      }
+      secretName = "registry-pkl-tls"
+    }
+  }
+}
+
+resources = new ResourcesBlock {
+  limits {
+    ["cpu"] = "500m"
+    ["memory"] = "512Mi"
+  }
+  requests {
+    ["cpu"] = "100m"
+    ["memory"] = "128Mi"
+  }
+}
+
+autoscaling = new AutoscalingSpec {
+  enabled = true
+  minReplicas = 2
+  maxReplicas = 10
+  targetCPUUtilizationPercentage = 80
+  targetMemoryUtilizationPercentage = 80
+}
+
+livenessProbe = new Probe {
+  httpGet = new Mapping<String, Any> {
+    ["path"] = "/healthz"
+    ["port"] = "http"
+  }
+  initialDelaySeconds = 30
+  periodSeconds = 10
+}
+
+readinessProbe = new Probe {
+  httpGet = new Mapping<String, Any> {
+    ["path"] = "/ready"
+    ["port"] = "http"
+  }
+  initialDelaySeconds = 5
+  periodSeconds = 5
+}
