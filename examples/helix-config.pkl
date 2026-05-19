@@ -1,0 +1,49 @@
+amends "@target.editor/helix/Config.pkl"
+
+theme = "catppuccin_mocha"
+
+editor = new EditorSettings {
+  line_number = "relative"
+  mouse = true
+  bufferline = "multiple"
+  color_modes = true
+  auto_completion = true
+  auto_format = true
+  auto_save = true
+  completion_trigger_len = 2
+  rulers = new Listing<Int> { 80; 120 }
+  scrolloff = 8
+  true_color = true
+  default_line_ending = "lf"
+  insert_final_newline = true
+  cursor_shape = new Cursor {
+    normal = "block"
+    insert = "bar"
+    select = "underline"
+  }
+  indent_guides = new IndentGuides {
+    render = true
+    character = "│"
+    skip_levels = 1
+  }
+  statusline = new StatusLine {
+    left = new Listing<String> { "mode"; "spinner"; "file-name"; "file-modification-indicator" }
+    center = new Listing<String> { "diagnostics" }
+    right = new Listing<String> { "selections"; "position"; "file-encoding"; "file-line-ending"; "file-type" }
+    separator = "│"
+  }
+  lsp = new LspSettings {
+    enable = true
+    display_messages = true
+    auto_signature_help = true
+    display_inlay_hints = true
+    display_signature_help_docs = true
+    snippets = true
+  }
+  `file-picker` = new FilePicker {
+    `hidden` = false
+    follow_symlinks = true
+    git_ignore = true
+    max_depth = 6
+  }
+}

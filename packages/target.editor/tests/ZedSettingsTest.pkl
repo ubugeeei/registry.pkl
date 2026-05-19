@@ -1,0 +1,58 @@
+/// Tests for `target.editor.zed.Settings` rendering.
+amends "pkl:test"
+
+import "../zed/Settings.pkl"
+
+local config = (Settings) {
+  theme = new Mapping<String, String> {
+    ["mode"] = "system"
+    ["light"] = "One Light"
+    ["dark"] = "One Dark"
+  }
+  buffer_font_family = "Iosevka"
+  buffer_font_size = 14
+  vim_mode = true
+  format_on_save = "on"
+  languages {
+    ["Rust"] = new Settings.LanguageSettings {
+      tab_size = 4
+      formatter = "language_server"
+      language_servers {
+        "rust-analyzer"
+      }
+    }
+    ["TypeScript"] = new Settings.LanguageSettings {
+      tab_size = 2
+      format_on_save = "on"
+    }
+  }
+  assistant = new Settings.Assistant {
+    version = "2"
+    enabled = true
+    default_open_ai_model = "gpt-4o"
+  }
+}
+
+facts {
+  ["theme as mapping passes through"] {
+    config.rendered["theme"]
+      == Map("mode", "system", "light", "One Light", "dark", "One Dark")
+  }
+  ["buffer font passes through"] {
+    config.rendered["buffer_font_family"] == "Iosevka"
+    config.rendered["buffer_font_size"] == 14
+  }
+  ["vim_mode boolean passes through"] {
+    config.rendered["vim_mode"] == true
+  }
+  ["per-language settings nest with snake_case keys"] {
+    local rust = config.rendered["languages"]["Rust"]
+    rust["tab_size"] == 4
+    rust["formatter"] == "language_server"
+    rust["language_servers"] == List("rust-analyzer")
+  }
+  ["assistant block forwards version and default_open_ai_model"] {
+    config.rendered["assistant"]["version"] == "2"
+    config.rendered["assistant"]["default_open_ai_model"] == "gpt-4o"
+  }
+}

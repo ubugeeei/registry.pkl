@@ -1,0 +1,75 @@
+/// Tests for `target.editor.neovim.Init` rendering.
+amends "pkl:test"
+
+import "../neovim/Init.pkl"
+
+local config = (Init) {
+  opt {
+    ["number"] = true
+    ["relativenumber"] = true
+    ["tabstop"] = 2
+    ["shiftwidth"] = 2
+    ["expandtab"] = true
+    ["clipboard"] = "unnamedplus"
+  }
+  globals {
+    ["mapleader"] = " "
+    ["maplocalleader"] = "\\"
+  }
+  keymaps {
+    new Init.Keymap {
+      mode = "n"
+      lhs = "<leader>w"
+      rhs = ":w<CR>"
+      desc = "save"
+      silent = true
+    }
+    new Init.Keymap {
+      mode = new Listing<String> { "n"; "v" }
+      lhs = "<leader>y"
+      rhs = "\"+y"
+      desc = "yank to clipboard"
+    }
+  }
+  autocmds {
+    new Init.Autocmd {
+      event = "BufWritePre"
+      pattern = "*"
+      command = ":%s/\\s\\+$//e"
+      desc = "trim trailing whitespace"
+    }
+  }
+  requires {
+    "config.lazy"
+  }
+}
+
+facts {
+  ["require lines emit first"] {
+    config.rendered.startsWith("require(\"config.lazy\")")
+  }
+  ["vim.opt scalar booleans render"] {
+    config.rendered.contains("vim.opt.number = true")
+    config.rendered.contains("vim.opt.expandtab = true")
+  }
+  ["vim.opt strings get quoted"] {
+    config.rendered.contains("vim.opt.clipboard = \"unnamedplus\"")
+  }
+  ["vim.g leader uses single string"] {
+    config.rendered.contains("vim.g.mapleader = \" \"")
+  }
+  ["keymap.set with desc/silent emits options block"] {
+    config.rendered.contains(
+      "vim.keymap.set(\"n\", \"<leader>w\", \":w<CR>\", { desc = \"save\", silent = true })"
+    )
+  }
+  ["keymap.set with multi-mode emits table"] {
+    config.rendered.contains(
+      "vim.keymap.set({ \"n\", \"v\" }, \"<leader>y\", \"\\\"+y\", { desc = \"yank to clipboard\" })"
+    )
+  }
+  ["autocmd block emits"] {
+    config.rendered.contains("vim.api.nvim_create_autocmd(\"BufWritePre\"")
+    config.rendered.contains("pattern = \"*\"")
+  }
+}

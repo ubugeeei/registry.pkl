@@ -1,0 +1,119 @@
+/// A typed authoring surface for `.sublime-project` files.
+///
+/// Sublime Text projects are JSON documents that pair workspace folders
+/// with per-project settings, build systems, and syntax overrides.
+///
+/// Reference: https://www.sublimetext.com/docs/projects.html
+module target.editor.sublime.Project
+
+import "@target.core/Maps.pkl" as Maps
+
+class Folder {
+  path: String
+  name: String? = null
+  follow_symlinks: Boolean? = null
+  folder_exclude_patterns: Listing<String> = new Listing {}
+  file_exclude_patterns: Listing<String> = new Listing {}
+  binary_file_patterns: Listing<String> = new Listing {}
+  index_exclude_patterns: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class BuildSystem {
+  name: String
+  cmd: (String|Listing<String>)? = null
+  shell_cmd: String? = null
+  selector: String? = null
+  file_regex: String? = null
+  line_regex: String? = null
+  working_dir: String? = null
+  encoding: String? = null
+  variants: Listing<Mapping<String, Any>> = new Listing {}
+  env: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+folders: Listing<Folder> = new Listing {}
+settings: Mapping<String, Any> = new Mapping {}
+build_systems: Listing<BuildSystem> = new Listing {}
+syntax_override: Mapping<String, Listing<String>> = new Mapping {}
+debugger_configurations: Listing<Mapping<String, Any>> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderFolder(value: Folder) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["path"] = value.path
+      when (value.name != null) { ["name"] = value.name }
+      when (value.follow_symlinks != null) {
+        ["follow_symlinks"] = value.follow_symlinks
+      }
+      when (!value.folder_exclude_patterns.toList().isEmpty) {
+        ["folder_exclude_patterns"] = value.folder_exclude_patterns.toList()
+      }
+      when (!value.file_exclude_patterns.toList().isEmpty) {
+        ["file_exclude_patterns"] = value.file_exclude_patterns.toList()
+      }
+      when (!value.binary_file_patterns.toList().isEmpty) {
+        ["binary_file_patterns"] = value.binary_file_patterns.toList()
+      }
+      when (!value.index_exclude_patterns.toList().isEmpty) {
+        ["index_exclude_patterns"] = value.index_exclude_patterns.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderBuild(value: BuildSystem) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = value.name
+      when (value.cmd != null) {
+        ["cmd"] = if (value.cmd is Listing) value.cmd.toList() else value.cmd
+      }
+      when (value.shell_cmd != null) { ["shell_cmd"] = value.shell_cmd }
+      when (value.selector != null) { ["selector"] = value.selector }
+      when (value.file_regex != null) { ["file_regex"] = value.file_regex }
+      when (value.line_regex != null) { ["line_regex"] = value.line_regex }
+      when (value.working_dir != null) {
+        ["working_dir"] = value.working_dir
+      }
+      when (value.encoding != null) { ["encoding"] = value.encoding }
+      when (!value.variants.toList().isEmpty) {
+        ["variants"] = value.variants.toList().map((m) -> m.toMap())
+      }
+      when (!value.env.toMap().isEmpty) {
+        ["env"] = value.env.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!folders.toList().isEmpty) {
+        ["folders"] = folders.toList().map((f) -> renderFolder(f))
+      }
+      when (!settings.toMap().isEmpty) {
+        ["settings"] = settings.toMap()
+      }
+      when (!build_systems.toList().isEmpty) {
+        ["build_systems"] = build_systems.toList().map((b) -> renderBuild(b))
+      }
+      when (!syntax_override.toMap().isEmpty) {
+        ["syntax_override"] = syntax_override.toMap()
+          .mapValues((_, l) -> l.toList())
+      }
+      when (!debugger_configurations.toList().isEmpty) {
+        ["debugger_configurations"] =
+          debugger_configurations.toList().map((m) -> m.toMap())
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

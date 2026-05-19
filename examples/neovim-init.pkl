@@ -1,0 +1,82 @@
+amends "@target.editor/neovim/Init.pkl"
+
+requires {
+  "config.lazy"
+  "config.colorscheme"
+}
+
+opt {
+  ["number"] = true
+  ["relativenumber"] = true
+  ["tabstop"] = 2
+  ["shiftwidth"] = 2
+  ["expandtab"] = true
+  ["smartindent"] = true
+  ["wrap"] = false
+  ["scrolloff"] = 8
+  ["sidescrolloff"] = 8
+  ["clipboard"] = "unnamedplus"
+  ["termguicolors"] = true
+  ["background"] = "dark"
+  ["signcolumn"] = "yes"
+  ["updatetime"] = 50
+  ["undofile"] = true
+  ["mouse"] = "a"
+}
+
+globals {
+  ["mapleader"] = " "
+  ["maplocalleader"] = "\\"
+}
+
+keymaps {
+  new Keymap {
+    mode = "n"
+    lhs = "<leader>w"
+    rhs = ":w<CR>"
+    desc = "save"
+    silent = true
+  }
+  new Keymap {
+    mode = "n"
+    lhs = "<leader>q"
+    rhs = ":q<CR>"
+    desc = "quit"
+    silent = true
+  }
+  new Keymap {
+    mode = new Listing<String> { "n"; "v" }
+    lhs = "<leader>y"
+    rhs = "\"+y"
+    desc = "yank to system clipboard"
+  }
+  new Keymap {
+    mode = "n"
+    lhs = "<leader>ff"
+    rhs = ":Telescope find_files<CR>"
+    desc = "find files"
+    silent = true
+  }
+}
+
+autocmds {
+  new Autocmd {
+    event = "BufWritePre"
+    pattern = "*"
+    command = ":%s/\\s\\+$//e"
+    desc = "trim trailing whitespace on save"
+  }
+  new Autocmd {
+    event = new Listing<String> { "BufRead"; "BufNewFile" }
+    pattern = "*.pkl"
+    command = "set filetype=pkl"
+    desc = "register Pkl files"
+  }
+}
+
+body {
+  ""
+  "-- Diagnostics keymaps"
+  "vim.keymap.set(\"n\", \"]d\", vim.diagnostic.goto_next, { desc = \"next diagnostic\" })"
+  "vim.keymap.set(\"n\", \"[d\", vim.diagnostic.goto_prev, { desc = \"prev diagnostic\" })"
+}
