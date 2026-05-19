@@ -1,0 +1,55 @@
+/// Tests for `target.js.tailwind.Tailwind` rendering.
+amends "pkl:test"
+
+import "../tailwind/Tailwind.pkl"
+
+local config = (Tailwind) {
+  content {
+    "./src/**/*.{ts,tsx}"
+    "./pages/**/*.tsx"
+  }
+  darkMode = "class"
+  prefix = "tw-"
+  theme = new Tailwind.Theme {
+    extend {
+      ["colors"] = new Mapping<String, String> {
+        ["brand"] = "#bada55"
+      }.toMap()
+    }
+    values {
+      ["screens"] = new Mapping<String, String> {
+        ["sm"] = "640px"
+        ["md"] = "768px"
+      }.toMap()
+    }
+  }
+  plugins {
+    "@tailwindcss/forms"
+    "@tailwindcss/typography"
+  }
+}
+
+local listDarkMode = (Tailwind) {
+  darkMode = new Listing<String> { "class"; "[data-mode='dark']" }
+}
+
+facts {
+  ["content listing flattens"] {
+    config.rendered["content"] == List("./src/**/*.{ts,tsx}", "./pages/**/*.tsx")
+  }
+  ["darkMode string passes through"] {
+    config.rendered["darkMode"] == "class"
+  }
+  ["theme.extend nests under 'extend' key"] {
+    config.rendered["theme"]["extend"]["colors"] == Map("brand", "#bada55")
+  }
+  ["theme.values land at theme top-level"] {
+    config.rendered["theme"]["screens"] == Map("sm", "640px", "md", "768px")
+  }
+  ["plugin list emits"] {
+    config.rendered["plugins"] == List("@tailwindcss/forms", "@tailwindcss/typography")
+  }
+  ["darkMode listing form flattens"] {
+    listDarkMode.rendered["darkMode"] == List("class", "[data-mode='dark']")
+  }
+}

@@ -1,0 +1,91 @@
+/// A typed authoring surface for `tailwind.config.json`.
+///
+/// Tailwind v3 and v4 both accept a JSON-compatible config (when written
+/// as `tailwind.config.json`), though most projects use the JS variant.
+/// This module covers the JSON-shaped surface — `content`, `theme`,
+/// `darkMode`, plugins, presets — and forwards the rest via `extra`.
+module target.js.tailwind.Tailwind
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias ContentEntry = String|Mapping<String, Any>
+typealias DarkMode =
+  "media"|"class"|"selector"|Listing<String>
+
+class Theme {
+  /// `extend` adds to defaults rather than replacing them.
+  extend: Mapping<String, Any> = new Mapping {}
+  /// Fields outside `extend` REPLACE the default scale entirely.
+  values: Mapping<String, Any> = new Mapping {}
+  /// Free-form passthrough for theme keys outside the above two maps.
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+content: Listing<ContentEntry> = new Listing {}
+darkMode: DarkMode? = null
+prefix: String? = null
+important: (Boolean|String)? = null
+separator: String? = null
+theme: Theme? = null
+plugins: Listing<String> = new Listing {}
+presets: Listing<String> = new Listing {}
+corePlugins: (Listing<String>|Mapping<String, Boolean>)? = null
+blocklist: Listing<String> = new Listing {}
+safelist: Listing<Any> = new Listing {}
+future: Mapping<String, Boolean> = new Mapping {}
+experimental: Mapping<String, Boolean> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderContentEntry(value: ContentEntry) =
+  if (value is Mapping) value.toMap() else value
+
+local function renderDarkMode(value: DarkMode) =
+  if (value is Listing) value.toList() else value
+
+local function renderTheme(value: Theme) =
+  Maps.withExtra(
+    Maps.withExtra(value.values, value.extra),
+    new Mapping<String, Any> {
+      when (!value.extend.toMap().isEmpty) {
+        ["extend"] = value.extend.toMap()
+      }
+    },
+  )
+
+local function renderCorePlugins(value: Listing<String>|Mapping<String, Boolean>) =
+  if (value is Listing) value.toList() else value.toMap()
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!content.toList().isEmpty) {
+        ["content"] = content.toList().map((c) -> renderContentEntry(c))
+      }
+      when (darkMode != null) { ["darkMode"] = renderDarkMode(darkMode) }
+      when (prefix != null) { ["prefix"] = prefix }
+      when (important != null) { ["important"] = important }
+      when (separator != null) { ["separator"] = separator }
+      when (theme != null) { ["theme"] = renderTheme(theme) }
+      when (!plugins.toList().isEmpty) { ["plugins"] = plugins.toList() }
+      when (!presets.toList().isEmpty) { ["presets"] = presets.toList() }
+      when (corePlugins != null) {
+        ["corePlugins"] = renderCorePlugins(corePlugins)
+      }
+      when (!blocklist.toList().isEmpty) { ["blocklist"] = blocklist.toList() }
+      when (!safelist.toList().isEmpty) {
+        ["safelist"] = safelist.toList().map((s) ->
+          if (s is Mapping) s.toMap() else s
+        )
+      }
+      when (!future.toMap().isEmpty) { ["future"] = future.toMap() }
+      when (!experimental.toMap().isEmpty) {
+        ["experimental"] = experimental.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

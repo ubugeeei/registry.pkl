@@ -1,0 +1,106 @@
+/// A typed authoring surface for `.stylelintrc.json` / `stylelint.config.json`.
+module target.js.stylelint.Stylelint
+
+import "@target.core/Maps.pkl" as Maps
+
+/// A stylelint rule value:
+///   - `null` disables the rule
+///   - `Boolean` toggles it on with defaults
+///   - `String` / `Int` / `Listing` are the rule's primary option
+///   - `Listing<Any>` ([primary, secondary]) gives both options
+typealias RuleValue = Null|Boolean|String|Int|Float|Listing<Any>|Mapping<String, Any>
+
+class OverrideEntry {
+  files: String|Listing<String>
+  customSyntax: String? = null
+  rules: Mapping<String, RuleValue> = new Mapping {}
+  extends_: Listing<String> = new Listing {}
+  plugins: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`extends`: (String|Listing<String>)? = null
+plugins: Listing<String> = new Listing {}
+customSyntax: String? = null
+rules: Mapping<String, RuleValue> = new Mapping {}
+ignoreFiles: Listing<String> = new Listing {}
+overrides: Listing<OverrideEntry> = new Listing {}
+allowEmptyInput: Boolean? = null
+cache: Boolean? = null
+defaultSeverity: ("warning"|"error")? = null
+reportNeedlessDisables: Boolean? = null
+reportInvalidScopeDisables: Boolean? = null
+reportDescriptionlessDisables: Boolean? = null
+fix: Boolean? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderRule(value: RuleValue) =
+  if (value == null) null
+  else if (value is Listing) value.toList()
+  else if (value is Mapping) value.toMap()
+  else value
+
+local function renderRules(map: Mapping<String, RuleValue>) =
+  map.toMap().mapValues((_, v) -> renderRule(v))
+
+local function renderStringOrList(value: String|Listing<String>) =
+  if (value is Listing) value.toList() else value
+
+local function renderOverride(value: OverrideEntry) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["files"] = renderStringOrList(value.files)
+      when (value.customSyntax != null) {
+        ["customSyntax"] = value.customSyntax
+      }
+      when (!value.rules.toMap().isEmpty) {
+        ["rules"] = renderRules(value.rules)
+      }
+      when (!value.extends_.toList().isEmpty) {
+        ["extends"] = value.extends_.toList()
+      }
+      when (!value.plugins.toList().isEmpty) {
+        ["plugins"] = value.plugins.toList()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`extends` != null) {
+        ["extends"] = renderStringOrList(`extends`)
+      }
+      when (!plugins.toList().isEmpty) { ["plugins"] = plugins.toList() }
+      when (customSyntax != null) { ["customSyntax"] = customSyntax }
+      when (!rules.toMap().isEmpty) { ["rules"] = renderRules(rules) }
+      when (!ignoreFiles.toList().isEmpty) {
+        ["ignoreFiles"] = ignoreFiles.toList()
+      }
+      when (!overrides.toList().isEmpty) {
+        ["overrides"] = overrides.toList().map((o) -> renderOverride(o))
+      }
+      when (allowEmptyInput != null) { ["allowEmptyInput"] = allowEmptyInput }
+      when (cache != null) { ["cache"] = cache }
+      when (defaultSeverity != null) {
+        ["defaultSeverity"] = defaultSeverity
+      }
+      when (reportNeedlessDisables != null) {
+        ["reportNeedlessDisables"] = reportNeedlessDisables
+      }
+      when (reportInvalidScopeDisables != null) {
+        ["reportInvalidScopeDisables"] = reportInvalidScopeDisables
+      }
+      when (reportDescriptionlessDisables != null) {
+        ["reportDescriptionlessDisables"] = reportDescriptionlessDisables
+      }
+      when (fix != null) { ["fix"] = fix }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

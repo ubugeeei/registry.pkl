@@ -1,0 +1,68 @@
+/// A typed authoring surface for `postcss.config.json`.
+///
+/// PostCSS's JSON config is the format used by tools that resolve a JSON
+/// `postcss.config.json` instead of the `postcss.config.js` JavaScript
+/// module. Plugins accept either a bare string or a [name, options] pair.
+module target.js.postcss.Postcss
+
+import "@target.core/Maps.pkl" as Maps
+
+/// A plugin reference. Either a bare package name or a name + options.
+class PluginEntry {
+  name: String
+  options: Mapping<String, Any> = new Mapping {}
+}
+
+typealias PluginReference = String|PluginEntry
+
+/// PostCSS allows plugins to be declared as a list (string or pair) or as
+/// an object that maps plugin name -> options. We support both forms.
+plugins: Listing<PluginReference> = new Listing {}
+
+/// When non-empty, plugins are rendered as an `{ name: options }` map
+/// instead of a list. Both forms are valid PostCSS config.
+pluginMap: Mapping<String, Mapping<String, Any>> = new Mapping {}
+
+parser: String? = null
+syntax: String? = null
+stringifier: String? = null
+map: (Boolean|Mapping<String, Any>)? = null
+from: String? = null
+to: String? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderPlugin(value: PluginReference) =
+  if (value is String) value
+  else if (!value.options.toMap().isEmpty)
+    List(value.name, value.options.toMap())
+  else
+    value.name
+
+local function renderPlugins() =
+  if (!pluginMap.toMap().isEmpty)
+    pluginMap.toMap().mapValues((_, m) -> m.toMap())
+  else
+    plugins.toList().map((p) -> renderPlugin(p))
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!plugins.toList().isEmpty || !pluginMap.toMap().isEmpty) {
+        ["plugins"] = renderPlugins()
+      }
+      when (parser != null) { ["parser"] = parser }
+      when (syntax != null) { ["syntax"] = syntax }
+      when (stringifier != null) { ["stringifier"] = stringifier }
+      when (map != null) {
+        ["map"] = if (map is Mapping) map.toMap() else map
+      }
+      when (from != null) { ["from"] = from }
+      when (to != null) { ["to"] = to }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}
