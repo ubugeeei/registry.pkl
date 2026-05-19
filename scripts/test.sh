@@ -16,7 +16,12 @@ FAMILIES=(
   target.python
   target.lint
   target.container
+<<<<<<< HEAD
   target.docs
+=======
+  target.go
+  target.deploy
+>>>>>>> origin/main
 )
 
 failed=0

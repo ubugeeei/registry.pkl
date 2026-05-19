@@ -1,0 +1,215 @@
+/// A typed authoring surface for `vercel.json`.
+module target.deploy.vercel.Vercel
+
+import "@target.core/Maps.pkl" as Maps
+
+class Header {
+  source: String
+  headers: Listing<Mapping<String, String>> = new Listing {}
+  has: Listing<Mapping<String, String>> = new Listing {}
+  missing: Listing<Mapping<String, String>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Rewrite {
+  source: String
+  destination: String
+  has: Listing<Mapping<String, String>> = new Listing {}
+  missing: Listing<Mapping<String, String>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Redirect {
+  source: String
+  destination: String
+  permanent: Boolean? = null
+  statusCode: Int? = null
+  has: Listing<Mapping<String, String>> = new Listing {}
+  missing: Listing<Mapping<String, String>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Crons {
+  path: String
+  schedule: String
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class FunctionConfig {
+  runtime: String? = null
+  memory: Int? = null
+  maxDuration: Int? = null
+  includeFiles: String? = null
+  excludeFiles: String? = null
+  regions: Listing<String> = new Listing {}
+  architecture: ("x86_64"|"arm64")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+version: Int? = null
+name: String? = null
+public: Boolean? = null
+cleanUrls: Boolean? = null
+trailingSlash: Boolean? = null
+framework: String? = null
+buildCommand: String? = null
+devCommand: String? = null
+outputDirectory: String? = null
+installCommand: String? = null
+ignoreCommand: String? = null
+rootDirectory: String? = null
+regions: Listing<String> = new Listing {}
+headers: Listing<Header> = new Listing {}
+rewrites: Listing<Rewrite> = new Listing {}
+redirects: Listing<Redirect> = new Listing {}
+crons: Listing<Crons> = new Listing {}
+env: Mapping<String, String> = new Mapping {}
+build: Mapping<String, Any> = new Mapping {}
+functions: Mapping<String, FunctionConfig> = new Mapping {}
+git: Mapping<String, Any> = new Mapping {}
+github: Mapping<String, Any> = new Mapping {}
+images: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderHeader(value: Header) =
+  Maps.withExtra(
+    new Dynamic {
+      ["source"] = value.source
+      when (!value.headers.toList().isEmpty) {
+        ["headers"] = value.headers.toList().map((m) -> m.toMap())
+      }
+      when (!value.has.toList().isEmpty) {
+        ["has"] = value.has.toList().map((m) -> m.toMap())
+      }
+      when (!value.missing.toList().isEmpty) {
+        ["missing"] = value.missing.toList().map((m) -> m.toMap())
+      }
+    },
+    value.extra,
+  )
+
+local function renderRewrite(value: Rewrite) =
+  Maps.withExtra(
+    new Dynamic {
+      ["source"] = value.source
+      ["destination"] = value.destination
+      when (!value.has.toList().isEmpty) {
+        ["has"] = value.has.toList().map((m) -> m.toMap())
+      }
+      when (!value.missing.toList().isEmpty) {
+        ["missing"] = value.missing.toList().map((m) -> m.toMap())
+      }
+    },
+    value.extra,
+  )
+
+local function renderRedirect(value: Redirect) =
+  Maps.withExtra(
+    new Dynamic {
+      ["source"] = value.source
+      ["destination"] = value.destination
+      when (value.permanent != null) { ["permanent"] = value.permanent }
+      when (value.statusCode != null) {
+        ["statusCode"] = value.statusCode
+      }
+      when (!value.has.toList().isEmpty) {
+        ["has"] = value.has.toList().map((m) -> m.toMap())
+      }
+      when (!value.missing.toList().isEmpty) {
+        ["missing"] = value.missing.toList().map((m) -> m.toMap())
+      }
+    },
+    value.extra,
+  )
+
+local function renderCron(value: Crons) =
+  Maps.withExtra(
+    new Dynamic {
+      ["path"] = value.path
+      ["schedule"] = value.schedule
+    },
+    value.extra,
+  )
+
+local function renderFunction(value: FunctionConfig) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.runtime != null) { ["runtime"] = value.runtime }
+      when (value.memory != null) { ["memory"] = value.memory }
+      when (value.maxDuration != null) {
+        ["maxDuration"] = value.maxDuration
+      }
+      when (value.includeFiles != null) {
+        ["includeFiles"] = value.includeFiles
+      }
+      when (value.excludeFiles != null) {
+        ["excludeFiles"] = value.excludeFiles
+      }
+      when (!value.regions.toList().isEmpty) {
+        ["regions"] = value.regions.toList()
+      }
+      when (value.architecture != null) {
+        ["architecture"] = value.architecture
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (version != null) { ["version"] = version }
+      when (name != null) { ["name"] = name }
+      when (public != null) { ["public"] = public }
+      when (cleanUrls != null) { ["cleanUrls"] = cleanUrls }
+      when (trailingSlash != null) {
+        ["trailingSlash"] = trailingSlash
+      }
+      when (framework != null) { ["framework"] = framework }
+      when (buildCommand != null) { ["buildCommand"] = buildCommand }
+      when (devCommand != null) { ["devCommand"] = devCommand }
+      when (outputDirectory != null) {
+        ["outputDirectory"] = outputDirectory
+      }
+      when (installCommand != null) {
+        ["installCommand"] = installCommand
+      }
+      when (ignoreCommand != null) {
+        ["ignoreCommand"] = ignoreCommand
+      }
+      when (rootDirectory != null) {
+        ["rootDirectory"] = rootDirectory
+      }
+      when (!regions.toList().isEmpty) {
+        ["regions"] = regions.toList()
+      }
+      when (!headers.toList().isEmpty) {
+        ["headers"] = headers.toList().map((h) -> renderHeader(h))
+      }
+      when (!rewrites.toList().isEmpty) {
+        ["rewrites"] = rewrites.toList().map((r) -> renderRewrite(r))
+      }
+      when (!redirects.toList().isEmpty) {
+        ["redirects"] = redirects.toList().map((r) -> renderRedirect(r))
+      }
+      when (!crons.toList().isEmpty) {
+        ["crons"] = crons.toList().map((c) -> renderCron(c))
+      }
+      when (!env.toMap().isEmpty) { ["env"] = env.toMap() }
+      when (!build.toMap().isEmpty) { ["build"] = build.toMap() }
+      when (!functions.toMap().isEmpty) {
+        ["functions"] = functions.toMap().mapValues((_, v) -> renderFunction(v))
+      }
+      when (!git.toMap().isEmpty) { ["git"] = git.toMap() }
+      when (!github.toMap().isEmpty) { ["github"] = github.toMap() }
+      when (!images.toMap().isEmpty) { ["images"] = images.toMap() }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

@@ -1,0 +1,41 @@
+amends "@target.deploy/vercel/Vercel.pkl"
+
+version = 2
+framework = "vite"
+buildCommand = "pnpm build"
+outputDirectory = "dist"
+installCommand = "pnpm install --frozen-lockfile"
+
+env {
+  ["NODE_ENV"] = "production"
+}
+
+regions {
+  "hnd1"
+}
+
+redirects {
+  new Redirect {
+    source = "/old"
+    destination = "/new"
+    permanent = true
+  }
+}
+
+crons {
+  new Crons {
+    path = "/api/cron"
+    schedule = "0 6 * * *"
+  }
+}
+
+functions {
+  ["api/*.ts"] = new FunctionConfig {
+    runtime = "edge"
+    memory = 512
+    maxDuration = 30
+    regions {
+      "hnd1"
+    }
+  }
+}

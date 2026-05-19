@@ -1,0 +1,72 @@
+amends "@target.deploy/render/Render.pkl"
+
+previewsEnabled = true
+previewsExpireAfterDays = 7
+
+services {
+  new Service {
+    type = "web"
+    name = "registry-api"
+    runtime = "node"
+    plan = "starter"
+    region = "singapore"
+    buildCommand = "pnpm install && pnpm build"
+    startCommand = "node dist/server.js"
+    healthCheckPath = "/health"
+    autoDeploy = true
+    pullRequestPreviewsEnabled = true
+    envVars {
+      new EnvVar {
+        key = "NODE_ENV"
+        value = "production"
+      }
+      new EnvVar {
+        key = "DATABASE_URL"
+        fromService = new Mapping<String, String> {
+          ["type"] = "pserv"
+          ["name"] = "registry-db"
+          ["property"] = "connectionString"
+        }
+      }
+      new EnvVar {
+        key = "SESSION_SECRET"
+        generateValue = true
+      }
+    }
+    disk = new Disk {
+      name = "data"
+      mountPath = "/var/data"
+      sizeGB = 10
+    }
+  }
+  new Service {
+    type = "cron"
+    name = "registry-cron"
+    runtime = "node"
+    plan = "starter"
+    schedule = "0 4 * * *"
+    buildCommand = "pnpm install && pnpm build"
+    startCommand = "node dist/cron.js"
+  }
+}
+
+databases {
+  new Database {
+    name = "registry-db"
+    plan = "starter"
+    postgresMajorVersion = "16"
+    region = "singapore"
+  }
+}
+
+envVarGroups {
+  new EnvGroup {
+    name = "telemetry"
+    envVars {
+      new EnvVar {
+        key = "OTEL_EXPORTER"
+        value = "otlp"
+      }
+    }
+  }
+}

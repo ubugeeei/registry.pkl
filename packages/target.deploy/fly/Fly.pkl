@@ -1,0 +1,228 @@
+/// A typed authoring surface for `fly.toml`.
+module target.deploy.fly.Fly
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class Build {
+  builder: String? = null
+  image: String? = null
+  dockerfile: String? = null
+  buildArgs: Mapping<String, String> = new Mapping {}
+  buildTarget: String? = null
+  ignorefile: String? = null
+  args: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class HttpService {
+  internalPort: Int
+  forceHttps: Boolean? = null
+  autoStopMachines: ("off"|"stop"|"suspend"|Boolean)? = null
+  autoStartMachines: Boolean? = null
+  minMachinesRunning: Int? = null
+  processes: Listing<String> = new Listing {}
+  concurrency: Mapping<String, Any> = new Mapping {}
+  httpChecks: Listing<Mapping<String, Any>> = new Listing {}
+  tcpChecks: Listing<Mapping<String, Any>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class VmSpec {
+  cpus: Int? = null
+  memory: (String|Int)? = null
+  cpuKind: ("shared"|"performance")? = null
+  gpus: Int? = null
+  gpuKind: String? = null
+  size: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class MountConfig {
+  source: String
+  destination: String
+  initialSize: String? = null
+  snapshotRetention: Int? = null
+  autoExtendSize: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Statics {
+  guestPath: String
+  urlPrefix: String
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+app: String? = null
+primaryRegion: String? = null
+killSignal: String? = null
+killTimeout: String? = null
+swapSizeMb: Int? = null
+build: Build? = null
+env: Mapping<String, String> = new Mapping {}
+experimental: Mapping<String, Any> = new Mapping {}
+processes: Mapping<String, String> = new Mapping {}
+httpService: HttpService? = null
+services: Listing<Mapping<String, Any>> = new Listing {}
+vm: Listing<VmSpec> = new Listing {}
+mounts: Listing<MountConfig> = new Listing {}
+statics: Listing<Statics> = new Listing {}
+checks: Mapping<String, Any> = new Mapping {}
+deploy: Mapping<String, Any> = new Mapping {}
+metrics: (Mapping<String, Any>|Listing<Mapping<String, Any>>)? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderBuild(value: Build) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.builder != null) { ["builder"] = value.builder }
+      when (value.image != null) { ["image"] = value.image }
+      when (value.dockerfile != null) {
+        ["dockerfile"] = value.dockerfile
+      }
+      when (!value.buildArgs.toMap().isEmpty) {
+        ["build_args"] = value.buildArgs.toMap()
+      }
+      when (value.buildTarget != null) {
+        ["build_target"] = value.buildTarget
+      }
+      when (value.ignorefile != null) {
+        ["ignorefile"] = value.ignorefile
+      }
+      when (!value.args.toMap().isEmpty) {
+        ["args"] = value.args.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderHttpService(value: HttpService) =
+  Maps.withExtra(
+    new Dynamic {
+      ["internal_port"] = value.internalPort
+      when (value.forceHttps != null) {
+        ["force_https"] = value.forceHttps
+      }
+      when (value.autoStopMachines != null) {
+        ["auto_stop_machines"] = value.autoStopMachines
+      }
+      when (value.autoStartMachines != null) {
+        ["auto_start_machines"] = value.autoStartMachines
+      }
+      when (value.minMachinesRunning != null) {
+        ["min_machines_running"] = value.minMachinesRunning
+      }
+      when (!value.processes.toList().isEmpty) {
+        ["processes"] = value.processes.toList()
+      }
+      when (!value.concurrency.toMap().isEmpty) {
+        ["concurrency"] = value.concurrency.toMap()
+      }
+      when (!value.httpChecks.toList().isEmpty) {
+        ["http_checks"] = value.httpChecks.toList().map((m) -> m.toMap())
+      }
+      when (!value.tcpChecks.toList().isEmpty) {
+        ["tcp_checks"] = value.tcpChecks.toList().map((m) -> m.toMap())
+      }
+    },
+    value.extra,
+  )
+
+local function renderVm(value: VmSpec) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.cpus != null) { ["cpus"] = value.cpus }
+      when (value.memory != null) { ["memory"] = value.memory }
+      when (value.cpuKind != null) { ["cpu_kind"] = value.cpuKind }
+      when (value.gpus != null) { ["gpus"] = value.gpus }
+      when (value.gpuKind != null) { ["gpu_kind"] = value.gpuKind }
+      when (value.size != null) { ["size"] = value.size }
+    },
+    value.extra,
+  )
+
+local function renderMount(value: MountConfig) =
+  Maps.withExtra(
+    new Dynamic {
+      ["source"] = value.source
+      ["destination"] = value.destination
+      when (value.initialSize != null) {
+        ["initial_size"] = value.initialSize
+      }
+      when (value.snapshotRetention != null) {
+        ["snapshot_retention"] = value.snapshotRetention
+      }
+      when (value.autoExtendSize != null) {
+        ["auto_extend_size_threshold"] = value.autoExtendSize
+      }
+    },
+    value.extra,
+  )
+
+local function renderStatics(value: Statics) =
+  Maps.withExtra(
+    new Dynamic {
+      ["guest_path"] = value.guestPath
+      ["url_prefix"] = value.urlPrefix
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (app != null) { ["app"] = app }
+      when (primaryRegion != null) {
+        ["primary_region"] = primaryRegion
+      }
+      when (killSignal != null) { ["kill_signal"] = killSignal }
+      when (killTimeout != null) {
+        ["kill_timeout"] = killTimeout
+      }
+      when (swapSizeMb != null) {
+        ["swap_size_mb"] = swapSizeMb
+      }
+      when (build != null) { ["build"] = renderBuild(build) }
+      when (!env.toMap().isEmpty) { ["env"] = env.toMap() }
+      when (!experimental.toMap().isEmpty) {
+        ["experimental"] = experimental.toMap()
+      }
+      when (!processes.toMap().isEmpty) {
+        ["processes"] = processes.toMap()
+      }
+      when (httpService != null) {
+        ["http_service"] = renderHttpService(httpService)
+      }
+      when (!services.toList().isEmpty) {
+        ["services"] = services.toList().map((m) -> m.toMap())
+      }
+      when (!vm.toList().isEmpty) {
+        ["vm"] = vm.toList().map((v) -> renderVm(v))
+      }
+      when (!mounts.toList().isEmpty) {
+        ["mounts"] = mounts.toList().map((m) -> renderMount(m))
+      }
+      when (!statics.toList().isEmpty) {
+        ["statics"] = statics.toList().map((s) -> renderStatics(s))
+      }
+      when (!checks.toMap().isEmpty) {
+        ["checks"] = checks.toMap()
+      }
+      when (!deploy.toMap().isEmpty) {
+        ["deploy"] = deploy.toMap()
+      }
+      when (metrics != null) {
+        ["metrics"] =
+          if (metrics is Listing)
+            metrics.toList().map((m) -> m.toMap())
+          else
+            metrics.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

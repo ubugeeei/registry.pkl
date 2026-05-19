@@ -1,0 +1,69 @@
+/// Tests for `target.deploy.fly.Fly` rendering.
+amends "pkl:test"
+
+import "../fly/Fly.pkl"
+
+local cfg = (Fly) {
+  app = "registry-pkl"
+  primaryRegion = "nrt"
+  build = new Fly.Build {
+    dockerfile = "Dockerfile"
+    buildArgs {
+      ["NODE_ENV"] = "production"
+    }
+  }
+  env {
+    ["LOG_LEVEL"] = "info"
+  }
+  httpService = new Fly.HttpService {
+    internalPort = 3000
+    forceHttps = true
+    autoStopMachines = "stop"
+    autoStartMachines = true
+    minMachinesRunning = 1
+  }
+  vm {
+    new Fly.VmSpec {
+      cpus = 1
+      memory = "512mb"
+      cpuKind = "shared"
+    }
+  }
+  mounts {
+    new Fly.MountConfig {
+      source = "data"
+      destination = "/data"
+      initialSize = "1gb"
+    }
+  }
+}
+
+facts {
+  ["app and primary_region rename"] {
+    cfg.rendered["app"] == "registry-pkl"
+    cfg.rendered["primary_region"] == "nrt"
+  }
+  ["build_args renames"] {
+    cfg.rendered["build"]["build_args"]["NODE_ENV"] == "production"
+  }
+  ["http_service renames keys"] {
+    local h = cfg.rendered["http_service"]
+    h["internal_port"] == 3000
+    h["force_https"] == true
+    h["auto_stop_machines"] == "stop"
+    h["auto_start_machines"] == true
+    h["min_machines_running"] == 1
+  }
+  ["vm list keeps cpu_kind"] {
+    local v = cfg.rendered["vm"][0]
+    v["cpus"] == 1
+    v["memory"] == "512mb"
+    v["cpu_kind"] == "shared"
+  }
+  ["mount renames initial_size"] {
+    local m = cfg.rendered["mounts"][0]
+    m["source"] == "data"
+    m["destination"] == "/data"
+    m["initial_size"] == "1gb"
+  }
+}

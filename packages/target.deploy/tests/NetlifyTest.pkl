@@ -1,0 +1,77 @@
+/// Tests for `target.deploy.netlify.Netlify` rendering.
+amends "pkl:test"
+
+import "../netlify/Netlify.pkl"
+
+local cfg = (Netlify) {
+  build = new Netlify.BuildSection {
+    command = "pnpm build"
+    publish = "dist"
+    environment {
+      ["NODE_VERSION"] = "24"
+    }
+  }
+  context {
+    ["production"] = new Netlify.Context {
+      command = "pnpm build:prod"
+      environment {
+        ["MODE"] = "production"
+      }
+    }
+  }
+  redirects {
+    new Netlify.Redirect {
+      from = "/old"
+      to = "/new"
+      status = 301
+      force = true
+    }
+  }
+  edgeFunctions {
+    new Netlify.EdgeFunction {
+      path = "/api/edge"
+      `function` = "edge"
+      cache = "manual"
+    }
+  }
+  plugins {
+    new Netlify.Plugin {
+      package = "@netlify/plugin-lighthouse"
+      inputs {
+        ["thresholds"] = new Mapping<String, Any> { ["performance"] = 0.9 }
+      }
+    }
+  }
+}
+
+facts {
+  ["build environment renders"] {
+    local b = cfg.rendered["build"]
+    b["command"] == "pnpm build"
+    b["publish"] == "dist"
+    b["environment"]["NODE_VERSION"] == "24"
+  }
+  ["context map keyed by name"] {
+    local prod = cfg.rendered["context"]["production"]
+    prod["command"] == "pnpm build:prod"
+    prod["environment"]["MODE"] == "production"
+  }
+  ["redirect carries from/to/status/force"] {
+    local r = cfg.rendered["redirects"][0]
+    r["from"] == "/old"
+    r["to"] == "/new"
+    r["status"] == 301
+    r["force"] == true
+  }
+  ["edge function renames excluded_path / cache"] {
+    local e = cfg.rendered["edge_functions"][0]
+    e["path"] == "/api/edge"
+    e["function"] == "edge"
+    e["cache"] == "manual"
+  }
+  ["plugin package and inputs render"] {
+    local p = cfg.rendered["plugins"][0]
+    p["package"] == "@netlify/plugin-lighthouse"
+    p["inputs"]["thresholds"]["performance"] == 0.9
+  }
+}
