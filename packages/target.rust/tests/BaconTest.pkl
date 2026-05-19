@@ -1,0 +1,67 @@
+/// Tests for `target.rust.bacon.Bacon` rendering.
+amends "pkl:test"
+
+import "../bacon/Bacon.pkl"
+
+local config = (Bacon) {
+  defaultJob = "check"
+  jobs {
+    ["check"] = new Bacon.Job {
+      command = new Listing<String> { "cargo"; "check"; "--all-targets" }
+      needBacktrace = false
+      watch { "src" }
+    }
+    ["test"] = new Bacon.Job {
+      command = new Listing<String> { "cargo"; "test" }
+      needBacktrace = true
+      env {
+        ["RUST_BACKTRACE"] = "1"
+      }
+      onChangeStrategy = "kill-then-restart"
+    }
+    ["doc-open"] = new Bacon.Job {
+      command = new Listing<String> {
+        "cargo"; "doc"; "--no-deps"; "--open"
+      }
+      background = true
+    }
+  }
+  exports {
+    ["locations"] = new Bacon.Export {
+      enabled = true
+      path = ".bacon-locations"
+      line_format = "{kind} {file}:{line}:{column} {message}"
+    }
+  }
+  keybindings {
+    ["q"] = "quit"
+    ["esc"] = "back"
+  }
+  summary = true
+  wrap = true
+  helpLine = false
+}
+
+facts {
+  ["default_job uses snake_case key"] {
+    config.rendered["default_job"] == "check"
+  }
+  ["job command renders as list"] {
+    config.rendered["jobs"]["check"]["command"]
+      == List("cargo", "check", "--all-targets")
+  }
+  ["env passes through"] {
+    config.rendered["jobs"]["test"]["env"] == Map("RUST_BACKTRACE", "1")
+  }
+  ["onChangeStrategy maps to on_change_strategy"] {
+    config.rendered["jobs"]["test"]["on_change_strategy"] == "kill-then-restart"
+  }
+  ["exports nest path + line_format"] {
+    config.rendered["exports"]["locations"]["path"] == ".bacon-locations"
+    config.rendered["exports"]["locations"]["line_format"]
+      == "{kind} {file}:{line}:{column} {message}"
+  }
+  ["keybindings map passes through"] {
+    config.rendered["keybindings"] == Map("q", "quit", "esc", "back")
+  }
+}

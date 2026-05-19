@@ -1,0 +1,35 @@
+/// Tests for `target.rust.rust_toolchain.RustToolchain` rendering.
+amends "pkl:test"
+
+import "../rust-toolchain/RustToolchain.pkl"
+
+local config = (RustToolchain) {
+  toolchain = new RustToolchain.Toolchain {
+    channel = "1.78.0"
+    profile = "minimal"
+    components {
+      "rustfmt"
+      "clippy"
+      "rust-analyzer"
+    }
+    targets {
+      "x86_64-unknown-linux-musl"
+      "wasm32-unknown-unknown"
+    }
+  }
+}
+
+facts {
+  ["channel + profile pass through"] {
+    config.rendered["toolchain"]["channel"] == "1.78.0"
+    config.rendered["toolchain"]["profile"] == "minimal"
+  }
+  ["components list emits"] {
+    config.rendered["toolchain"]["components"]
+      == List("rustfmt", "clippy", "rust-analyzer")
+  }
+  ["targets list emits"] {
+    config.rendered["toolchain"]["targets"]
+      == List("x86_64-unknown-linux-musl", "wasm32-unknown-unknown")
+  }
+}

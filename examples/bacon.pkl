@@ -1,0 +1,53 @@
+amends "@target.rust/bacon/Bacon.pkl"
+
+defaultJob = "check"
+
+jobs {
+  ["check"] = new Job {
+    command = new Listing<String> { "cargo"; "check"; "--all-targets" }
+    needBacktrace = false
+    watch { "src"; "tests" }
+  }
+  ["clippy"] = new Job {
+    command = new Listing<String> {
+      "cargo"; "clippy"; "--all-targets"; "--"; "-D"; "warnings"
+    }
+  }
+  ["test"] = new Job {
+    command = new Listing<String> {
+      "cargo"; "test"; "--all-targets"
+    }
+    needBacktrace = true
+    env {
+      ["RUST_BACKTRACE"] = "1"
+    }
+    onChangeStrategy = "kill-then-restart"
+  }
+  ["doc-open"] = new Job {
+    command = new Listing<String> {
+      "cargo"; "doc"; "--no-deps"; "--open"
+    }
+    background = true
+  }
+}
+
+exports {
+  ["locations"] = new Export {
+    enabled = true
+    path = ".bacon-locations"
+    line_format = "{kind} {file}:{line}:{column} {message}"
+  }
+}
+
+keybindings {
+  ["q"] = "quit"
+  ["esc"] = "back"
+  ["c"] = "job:check"
+  ["t"] = "job:test"
+  ["l"] = "job:clippy"
+}
+
+summary = true
+wrap = true
+reverse = false
+helpLine = false

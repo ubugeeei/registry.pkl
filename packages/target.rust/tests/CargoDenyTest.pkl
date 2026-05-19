@@ -1,0 +1,67 @@
+/// Tests for `target.rust.cargo_deny.CargoDeny` rendering.
+amends "pkl:test"
+
+import "../cargo-deny/CargoDeny.pkl"
+
+local config = (CargoDeny) {
+  graph = new CargoDeny.Graph {
+    targets {
+      "x86_64-unknown-linux-gnu"
+      new Mapping<String, Any> {
+        ["triple"] = "x86_64-pc-windows-msvc"
+      }
+    }
+    all_features = true
+  }
+  advisories = new CargoDeny.Advisories {
+    vulnerability = "deny"
+    yanked = "warn"
+    ignore {
+      "RUSTSEC-2020-0071"
+    }
+  }
+  licenses = new CargoDeny.Licenses {
+    allow {
+      "MIT"
+      "Apache-2.0"
+      "BSD-3-Clause"
+    }
+    deny {
+      "GPL-3.0"
+    }
+    confidence_threshold = 0.8
+    copyleft = "deny"
+  }
+  bans = new CargoDeny.Bans {
+    multiple_versions = "warn"
+    wildcards = "deny"
+  }
+}
+
+facts {
+  ["graph.targets accepts strings and mappings"] {
+    config.rendered["graph"]["targets"][0] == "x86_64-unknown-linux-gnu"
+    config.rendered["graph"]["targets"][1] == Map("triple", "x86_64-pc-windows-msvc")
+  }
+  ["graph.all-features uses kebab-case"] {
+    config.rendered["graph"]["all-features"] == true
+  }
+  ["advisories severity passes through"] {
+    config.rendered["advisories"]["vulnerability"] == "deny"
+    config.rendered["advisories"]["yanked"] == "warn"
+  }
+  ["advisories.ignore list emits"] {
+    config.rendered["advisories"]["ignore"] == List("RUSTSEC-2020-0071")
+  }
+  ["licenses allow + deny lists emit"] {
+    config.rendered["licenses"]["allow"] == List("MIT", "Apache-2.0", "BSD-3-Clause")
+    config.rendered["licenses"]["deny"] == List("GPL-3.0")
+  }
+  ["licenses.confidence-threshold uses kebab-case"] {
+    config.rendered["licenses"]["confidence-threshold"] == 0.8
+  }
+  ["bans severities pass through"] {
+    config.rendered["bans"]["multiple-versions"] == "warn"
+    config.rendered["bans"]["wildcards"] == "deny"
+  }
+}

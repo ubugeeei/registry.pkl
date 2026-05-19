@@ -1,0 +1,17 @@
+amends "@target.rust/rust-toolchain/RustToolchain.pkl"
+
+toolchain = new Toolchain {
+  channel = "1.78.0"
+  profile = "minimal"
+  components {
+    "rustfmt"
+    "clippy"
+    "rust-analyzer"
+    "rust-src"
+  }
+  targets {
+    "x86_64-unknown-linux-musl"
+    "aarch64-apple-darwin"
+    "wasm32-unknown-unknown"
+  }
+}
