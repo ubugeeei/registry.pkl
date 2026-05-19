@@ -14,7 +14,9 @@
     "clippy.toml",
     "rust-toolchain.toml",
     "deny.toml",
-    "bacon.toml"
+    "bacon.toml",
+    ".config/nextest.toml",
+    ".cargo/mutants.toml"
   ],
   "formats": [
     "toml"

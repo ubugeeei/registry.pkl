@@ -1,0 +1,55 @@
+/// Tests for `target.python.uv.Uv` rendering.
+amends "pkl:test"
+
+import "../uv/Uv.pkl"
+
+local u = (Uv) {
+  managed = true
+  dev_dependencies {
+    "pytest>=8"
+    "ruff>=0.5"
+  }
+  indexes {
+    new Uv.Index {
+      name = "internal"
+      url = "https://pypi.internal/simple/"
+      `default` = true
+    }
+  }
+  sources {
+    ["my-lib"] = new Uv.Source {
+      git = "https://github.com/example/my-lib"
+      tag = "v1.0.0"
+    }
+  }
+  resolution = "highest"
+  preReleaseStrategy = "if-necessary-or-explicit"
+  linkMode = "hardlink"
+  compileBytecode = true
+}
+
+facts {
+  ["nests under [tool.uv]"] {
+    u.rendered["tool"]["uv"]["managed"] == true
+  }
+  ["dev-dependencies uses kebab-case"] {
+    u.rendered["tool"]["uv"]["dev-dependencies"]
+      == List("pytest>=8", "ruff>=0.5")
+  }
+  ["indexes list emits"] {
+    local idx = u.rendered["tool"]["uv"]["index"][0]
+    idx["name"] == "internal"
+    idx["url"] == "https://pypi.internal/simple/"
+    idx["default"] == true
+  }
+  ["sources nest under [tool.uv.sources]"] {
+    local src = u.rendered["tool"]["uv"]["sources"]["my-lib"]
+    src["git"] == "https://github.com/example/my-lib"
+    src["tag"] == "v1.0.0"
+  }
+  ["resolution + prerelease + link-mode"] {
+    u.rendered["tool"]["uv"]["resolution"] == "highest"
+    u.rendered["tool"]["uv"]["prerelease"] == "if-necessary-or-explicit"
+    u.rendered["tool"]["uv"]["link-mode"] == "hardlink"
+  }
+}

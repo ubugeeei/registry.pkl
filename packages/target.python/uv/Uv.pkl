@@ -1,0 +1,165 @@
+/// A typed authoring surface for the `[tool.uv]` block of `pyproject.toml`.
+///
+/// uv (https://docs.astral.sh/uv) is Astral's package manager + builder
+/// + venv tool. Its config lives under `[tool.uv]` and adds index
+/// servers, dev dependencies, and resolution settings on top of the
+/// PEP 621 `[project]` block.
+///
+/// Reference: https://docs.astral.sh/uv/reference/settings/
+module target.python.uv.Uv
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class Index {
+  name: String? = null
+  url: String
+  explicit: Boolean? = null
+  `default`: Boolean? = null
+  publishUrl: String? = null
+}
+
+class Source {
+  index: String? = null
+  url: String? = null
+  git: String? = null
+  branch: String? = null
+  tag: String? = null
+  rev: String? = null
+  subdirectory: String? = null
+  path: String? = null
+  workspace: Boolean? = null
+  marker: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Workspace {
+  members: Listing<String> = new Listing {}
+  exclude: Listing<String> = new Listing {}
+}
+
+dev_dependencies: Listing<String> = new Listing {}
+override_dependencies: Listing<String> = new Listing {}
+constraint_dependencies: Listing<String> = new Listing {}
+build_constraint_dependencies: Listing<String> = new Listing {}
+managed: Boolean? = null
+package: Boolean? = null
+indexes: Listing<Index> = new Listing {}
+sources: Mapping<String, Source> = new Mapping {}
+workspace: Workspace? = null
+resolution: ("highest"|"lowest"|"lowest-direct")? = null
+preReleaseStrategy: ("disallow"|"if-necessary"|"explicit"|"if-necessary-or-explicit"|"allow")? = null
+linkMode: ("clone"|"copy"|"hardlink"|"symlink")? = null
+compileBytecode: Boolean? = null
+noBuildIsolation: (Boolean|Listing<String>)? = null
+noBuild: (Boolean|Listing<String>)? = null
+noBinary: (Boolean|Listing<String>)? = null
+preview: (Boolean|Listing<String>)? = null
+environments: Listing<String> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderIndex(value: Index) =
+  new Mapping<String, Any> {
+    when (value.name != null) { ["name"] = value.name }
+    ["url"] = value.url
+    when (value.explicit != null) { ["explicit"] = value.explicit }
+    when (value.`default` != null) { ["default"] = value.`default` }
+    when (value.publishUrl != null) {
+      ["publish-url"] = value.publishUrl
+    }
+  }.toMap()
+
+local function renderSource(value: Source) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.index != null) { ["index"] = value.index }
+      when (value.url != null) { ["url"] = value.url }
+      when (value.git != null) { ["git"] = value.git }
+      when (value.branch != null) { ["branch"] = value.branch }
+      when (value.tag != null) { ["tag"] = value.tag }
+      when (value.rev != null) { ["rev"] = value.rev }
+      when (value.subdirectory != null) {
+        ["subdirectory"] = value.subdirectory
+      }
+      when (value.path != null) { ["path"] = value.path }
+      when (value.workspace != null) {
+        ["workspace"] = value.workspace
+      }
+      when (value.marker != null) { ["marker"] = value.marker }
+    },
+    value.extra,
+  )
+
+local function renderBoolOrList(value: Boolean|Listing<String>) =
+  if (value is Listing) value.toList() else value
+
+hidden uvBlock =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!dev_dependencies.toList().isEmpty) {
+        ["dev-dependencies"] = dev_dependencies.toList()
+      }
+      when (!override_dependencies.toList().isEmpty) {
+        ["override-dependencies"] = override_dependencies.toList()
+      }
+      when (!constraint_dependencies.toList().isEmpty) {
+        ["constraint-dependencies"] = constraint_dependencies.toList()
+      }
+      when (!build_constraint_dependencies.toList().isEmpty) {
+        ["build-constraint-dependencies"] = build_constraint_dependencies.toList()
+      }
+      when (managed != null) { ["managed"] = managed }
+      when (package != null) { ["package"] = package }
+      when (!indexes.toList().isEmpty) {
+        ["index"] = indexes.toList().map((i) -> renderIndex(i))
+      }
+      when (!sources.toMap().isEmpty) {
+        ["sources"] = sources.toMap().mapValues((_, s) -> renderSource(s))
+      }
+      when (workspace != null) {
+        ["workspace"] = new Mapping<String, Any> {
+          when (!workspace.members.toList().isEmpty) {
+            ["members"] = workspace.members.toList()
+          }
+          when (!workspace.exclude.toList().isEmpty) {
+            ["exclude"] = workspace.exclude.toList()
+          }
+        }.toMap()
+      }
+      when (resolution != null) { ["resolution"] = resolution }
+      when (preReleaseStrategy != null) {
+        ["prerelease"] = preReleaseStrategy
+      }
+      when (linkMode != null) { ["link-mode"] = linkMode }
+      when (compileBytecode != null) {
+        ["compile-bytecode"] = compileBytecode
+      }
+      when (noBuildIsolation != null) {
+        ["no-build-isolation"] = renderBoolOrList(noBuildIsolation)
+      }
+      when (noBuild != null) {
+        ["no-build"] = renderBoolOrList(noBuild)
+      }
+      when (noBinary != null) {
+        ["no-binary"] = renderBoolOrList(noBinary)
+      }
+      when (preview != null) {
+        ["preview"] = renderBoolOrList(preview)
+      }
+      when (!environments.toList().isEmpty) {
+        ["environments"] = environments.toList()
+      }
+    },
+    extra,
+  )
+
+hidden rendered = new Mapping<String, Any> {
+  ["tool"] = new Mapping<String, Any> {
+    ["uv"] = uvBlock
+  }.toMap()
+}
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

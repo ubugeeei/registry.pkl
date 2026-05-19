@@ -1,0 +1,40 @@
+amends "@target.python/uv/Uv.pkl"
+
+managed = true
+
+dev_dependencies {
+  "pytest>=8"
+  "pytest-asyncio>=0.23"
+  "ruff>=0.5"
+  "mypy>=1.10"
+}
+
+indexes {
+  new Index {
+    name = "pypi"
+    url = "https://pypi.org/simple/"
+    `default` = true
+  }
+  new Index {
+    name = "internal"
+    url = "https://pypi.internal.example.com/simple/"
+    explicit = true
+  }
+}
+
+sources {
+  ["my-lib"] = new Source {
+    git = "https://github.com/example/my-lib"
+    tag = "v1.0.0"
+  }
+}
+
+resolution = "highest"
+preReleaseStrategy = "if-necessary-or-explicit"
+linkMode = "hardlink"
+compileBytecode = true
+
+environments {
+  "sys_platform == 'linux'"
+  "sys_platform == 'darwin'"
+}

@@ -1,0 +1,158 @@
+/// A typed authoring surface for Railway's `railway.json`.
+///
+/// Railway reads service config from `railway.json` (or
+/// `railway.toml`). This module emits JSON; both formats accept the
+/// same shape — build, deploy, environments.
+///
+/// Reference: https://docs.railway.com/reference/config-as-code
+module target.deploy.railway.Railway
+
+import "@target.core/Maps.pkl" as Maps
+
+class Build {
+  builder: ("NIXPACKS"|"DOCKERFILE"|"RAILPACK")? = null
+  buildCommand: String? = null
+  dockerfilePath: String? = null
+  watchPatterns: Listing<String> = new Listing {}
+  nixpacksPlan: Mapping<String, Any>? = null
+  nixpacksVersion: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Deploy {
+  startCommand: String? = null
+  numReplicas: Int? = null
+  region: (String|Listing<String>)? = null
+  preDeployCommand: (String|Listing<String>)? = null
+  multiRegionConfig: Mapping<String, Any>? = null
+  healthcheckPath: String? = null
+  healthcheckTimeout: Int? = null
+  healthcheckInterval: Int? = null
+  restartPolicyType: ("NEVER"|"ALWAYS"|"ON_FAILURE")? = null
+  restartPolicyMaxRetries: Int? = null
+  sleepApplication: Boolean? = null
+  drainingSeconds: Int? = null
+  overlapSeconds: Int? = null
+  cronSchedule: String? = null
+  runtime: ("V2"|"LEGACY")? = null
+  useLegacyStacker: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class EnvironmentConfig {
+  build: Build? = null
+  deploy: Deploy? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+build: Build? = null
+deploy: Deploy? = null
+environments: Mapping<String, EnvironmentConfig> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderBuild(value: Build) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.builder != null) { ["builder"] = value.builder }
+      when (value.buildCommand != null) {
+        ["buildCommand"] = value.buildCommand
+      }
+      when (value.dockerfilePath != null) {
+        ["dockerfilePath"] = value.dockerfilePath
+      }
+      when (!value.watchPatterns.toList().isEmpty) {
+        ["watchPatterns"] = value.watchPatterns.toList()
+      }
+      when (value.nixpacksPlan != null) {
+        ["nixpacksPlan"] = value.nixpacksPlan.toMap()
+      }
+      when (value.nixpacksVersion != null) {
+        ["nixpacksVersion"] = value.nixpacksVersion
+      }
+    },
+    value.extra,
+  )
+
+local function renderDeploy(value: Deploy) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.startCommand != null) {
+        ["startCommand"] = value.startCommand
+      }
+      when (value.numReplicas != null) {
+        ["numReplicas"] = value.numReplicas
+      }
+      when (value.region != null) {
+        ["region"] = if (value.region is Listing) value.region.toList() else value.region
+      }
+      when (value.preDeployCommand != null) {
+        ["preDeployCommand"] = if (value.preDeployCommand is Listing) value.preDeployCommand.toList() else value.preDeployCommand
+      }
+      when (value.multiRegionConfig != null) {
+        ["multiRegionConfig"] = value.multiRegionConfig.toMap()
+      }
+      when (value.healthcheckPath != null) {
+        ["healthcheckPath"] = value.healthcheckPath
+      }
+      when (value.healthcheckTimeout != null) {
+        ["healthcheckTimeout"] = value.healthcheckTimeout
+      }
+      when (value.healthcheckInterval != null) {
+        ["healthcheckInterval"] = value.healthcheckInterval
+      }
+      when (value.restartPolicyType != null) {
+        ["restartPolicyType"] = value.restartPolicyType
+      }
+      when (value.restartPolicyMaxRetries != null) {
+        ["restartPolicyMaxRetries"] = value.restartPolicyMaxRetries
+      }
+      when (value.sleepApplication != null) {
+        ["sleepApplication"] = value.sleepApplication
+      }
+      when (value.drainingSeconds != null) {
+        ["drainingSeconds"] = value.drainingSeconds
+      }
+      when (value.overlapSeconds != null) {
+        ["overlapSeconds"] = value.overlapSeconds
+      }
+      when (value.cronSchedule != null) {
+        ["cronSchedule"] = value.cronSchedule
+      }
+      when (value.runtime != null) { ["runtime"] = value.runtime }
+      when (value.useLegacyStacker != null) {
+        ["useLegacyStacker"] = value.useLegacyStacker
+      }
+    },
+    value.extra,
+  )
+
+local function renderEnv(value: EnvironmentConfig) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.build != null) { ["build"] = renderBuild(value.build) }
+      when (value.deploy != null) {
+        ["deploy"] = renderDeploy(value.deploy)
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (build != null) { ["build"] = renderBuild(build) }
+      when (deploy != null) { ["deploy"] = renderDeploy(deploy) }
+      when (!environments.toMap().isEmpty) {
+        ["environments"] = environments.toMap()
+          .mapValues((_, e) -> renderEnv(e))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

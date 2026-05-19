@@ -1,0 +1,53 @@
+amends "@target.python/poetry/Poetry.pkl"
+
+name = "registry-api"
+version = "0.1.0"
+description = "Python wrapper around the registry.pkl HTTP API."
+license = "Apache-2.0"
+authors {
+  "Ubugeeei <ubuge1122@gmail.com>"
+}
+readme = "README.md"
+homepage = "https://ubugeeei.github.io/registry.pkl/"
+repository = "https://github.com/ubugeeei/registry.pkl"
+keywords {
+  "registry"
+  "pkl"
+  "config"
+}
+classifiers {
+  "Development Status :: 3 - Alpha"
+  "License :: OSI Approved :: Apache Software License"
+}
+
+dependencies {
+  ["python"] = "^3.12"
+  ["httpx"] = new Dependency {
+    version = "^0.27"
+    extras = new Listing<String> { "http2" }
+  }
+  ["pydantic"] = "^2.7"
+}
+
+groups {
+  ["dev"] = new Group {
+    optional = false
+    dependencies {
+      ["pytest"] = "^8.0"
+      ["pytest-asyncio"] = "^0.23"
+      ["ruff"] = "^0.5"
+      ["mypy"] = "^1.10"
+    }
+  }
+  ["docs"] = new Group {
+    optional = true
+    dependencies {
+      ["mkdocs"] = "^1.6"
+      ["mkdocs-material"] = "^9.5"
+    }
+  }
+}
+
+scripts {
+  ["registry-cli"] = "registry.cli:main"
+}

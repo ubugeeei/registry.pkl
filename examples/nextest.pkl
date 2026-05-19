@@ -1,0 +1,44 @@
+amends "@target.rust/nextest/Nextest.pkl"
+
+profiles {
+  ["default"] = new Profile {
+    retries = new RetryConfig {
+      backoff = "exponential"
+      count = 2
+      delay = "5s"
+      maxDelay = "60s"
+    }
+    slowTimeout = "60s"
+    leakTimeout = "100ms"
+    failureOutput = "immediate-final"
+    statusLevel = "retry"
+    finalStatusLevel = "slow"
+    failFast = false
+  }
+  ["ci"] = new Profile {
+    retries = 1
+    failFast = true
+    junit = new Junit {
+      path = "junit.xml"
+      reportName = "registry"
+      storeFailureOutput = true
+    }
+  }
+}
+
+testGroups {
+  ["serial"] = new TestGroup {
+    maxThreads = 1
+  }
+  ["heavy"] = new TestGroup {
+    maxThreads = "75%"
+  }
+}
+
+overrides {
+  new Override {
+    filter = "test(::flaky_)"
+    retries = 5
+    testGroup = "serial"
+  }
+}

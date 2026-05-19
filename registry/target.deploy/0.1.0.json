@@ -12,7 +12,9 @@
     "vercel.json",
     "netlify.toml",
     "fly.toml",
-    "render.yaml"
+    "render.yaml",
+    "koyeb.yaml",
+    "railway.json"
   ],
   "formats": [
     "json",
@@ -24,7 +26,9 @@
     "vercel",
     "netlify",
     "fly",
-    "render"
+    "render",
+    "koyeb",
+    "railway"
   ],
   "maintainers": [
     "ubugeeei"
