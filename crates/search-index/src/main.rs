@@ -20,7 +20,11 @@ struct Cli {
     registry: PathBuf,
 
     /// Output JSON file.
-    #[arg(long, value_name = "FILE", default_value = "dist/docs/registry-search.json")]
+    #[arg(
+        long,
+        value_name = "FILE",
+        default_value = "dist/docs/registry-search.json"
+    )]
     output: PathBuf,
 
     /// Override the `generated` timestamp baked into the index. Useful for
@@ -45,18 +49,13 @@ fn main() -> Result<ExitCode> {
     let index = build(&opts).context("build search index")?;
     let body = to_json(&index);
     if let Some(parent) = cli.output.parent() {
-        fs::create_dir_all(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
     let mut file = fs::File::create(&cli.output)
         .with_context(|| format!("create {}", cli.output.display()))?;
     file.write_all(body.as_bytes())
         .with_context(|| format!("write {}", cli.output.display()))?;
-    eprintln!(
-        "wrote {} ({} hits)",
-        cli.output.display(),
-        index.hits.len()
-    );
+    eprintln!("wrote {} ({} hits)", cli.output.display(), index.hits.len());
     Ok(ExitCode::SUCCESS)
 }
 

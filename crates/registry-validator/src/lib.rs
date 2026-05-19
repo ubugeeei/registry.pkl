@@ -96,7 +96,14 @@ struct Source {
 }
 
 const ALLOWED_FORMATS: &[&str] = &[
-    "json", "yaml", "toml", "ini", "text", "hcl", "dotenv", "properties",
+    "json",
+    "yaml",
+    "toml",
+    "ini",
+    "text",
+    "hcl",
+    "dotenv",
+    "properties",
 ];
 
 const KNOWN_ECOSYSTEMS: &[&str] = &[
@@ -246,8 +253,7 @@ fn validate_record(path: &Path, record: &Record) -> Vec<Issue> {
             "maintainers must list at least one entry".to_string(),
         ));
     }
-    if !KNOWN_ECOSYSTEMS.contains(&record.ecosystem.as_str())
-        && !is_lower_kebab(&record.ecosystem)
+    if !KNOWN_ECOSYSTEMS.contains(&record.ecosystem.as_str()) && !is_lower_kebab(&record.ecosystem)
     {
         issues.push(Issue::new(
             path,
@@ -263,13 +269,10 @@ fn validate_record(path: &Path, record: &Record) -> Vec<Issue> {
             "source.repo must be an https:// URL".to_string(),
         ));
     }
-    if record.source.directory.starts_with('/')
-        || record.source.directory.starts_with("./")
-    {
+    if record.source.directory.starts_with('/') || record.source.directory.starts_with("./") {
         issues.push(Issue::new(
             path,
-            "source.directory must be a repo-relative path (no leading `/` or `./`)"
-                .to_string(),
+            "source.directory must be a repo-relative path (no leading `/` or `./`)".to_string(),
         ));
     }
     if let Some(prev) = record.supersedes.as_deref() {
@@ -277,9 +280,7 @@ fn validate_record(path: &Path, record: &Record) -> Vec<Issue> {
         if !prev.starts_with(&expected_prefix) {
             issues.push(Issue::new(
                 path,
-                format!(
-                    "supersedes `{prev}` must start with `{expected_prefix}`"
-                ),
+                format!("supersedes `{prev}` must start with `{expected_prefix}`"),
             ));
         }
     }

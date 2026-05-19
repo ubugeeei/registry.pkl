@@ -112,8 +112,8 @@ pub fn build(options: &BuildOptions) -> anyhow::Result<Index> {
             if path.extension().and_then(|s| s.to_str()) != Some("json") {
                 continue;
             }
-            let bytes = fs::read(&path)
-                .map_err(|e| anyhow::anyhow!("read {}: {e}", path.display()))?;
+            let bytes =
+                fs::read(&path).map_err(|e| anyhow::anyhow!("read {}: {e}", path.display()))?;
             let record: RawRecord = serde_json::from_slice(&bytes)
                 .map_err(|e| anyhow::anyhow!("parse {}: {e}", path.display()))?;
             hits.push(hit_from(record));
@@ -127,7 +127,10 @@ pub fn build(options: &BuildOptions) -> anyhow::Result<Index> {
     for hit in &hits {
         let key = format!("{}@{}", hit.name, hit.version);
         for target in &hit.targets {
-            by_target.entry(target.clone()).or_default().push(key.clone());
+            by_target
+                .entry(target.clone())
+                .or_default()
+                .push(key.clone());
         }
         by_ecosystem
             .entry(hit.ecosystem.clone())
@@ -257,10 +260,7 @@ mod tests {
     #[test]
     fn reverse_indices_populated() {
         let tmp = tempfile::tempdir().unwrap();
-        write(
-            &tmp.path().join("a/0.1.0.json"),
-            &fixture("a", "0.1.0"),
-        );
+        write(&tmp.path().join("a/0.1.0.json"), &fixture("a", "0.1.0"));
         let opts = BuildOptions {
             root: tmp.path(),
             generated_at: "2026-05-19T00:00:00Z",
@@ -279,10 +279,7 @@ mod tests {
     #[test]
     fn haystack_combines_searchable_fields() {
         let tmp = tempfile::tempdir().unwrap();
-        write(
-            &tmp.path().join("a/0.1.0.json"),
-            &fixture("a", "0.1.0"),
-        );
+        write(&tmp.path().join("a/0.1.0.json"), &fixture("a", "0.1.0"));
         let opts = BuildOptions {
             root: tmp.path(),
             generated_at: "now",
