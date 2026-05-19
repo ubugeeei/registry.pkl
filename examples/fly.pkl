@@ -1,0 +1,55 @@
+amends "@target.deploy/fly/Fly.pkl"
+
+app = "registry-pkl"
+primaryRegion = "nrt"
+killTimeout = "5s"
+
+build = new Build {
+  dockerfile = "Dockerfile"
+  buildArgs {
+    ["NODE_ENV"] = "production"
+  }
+}
+
+env {
+  ["LOG_LEVEL"] = "info"
+  ["PORT"] = "3000"
+}
+
+httpService = new HttpService {
+  internalPort = 3000
+  forceHttps = true
+  autoStopMachines = "stop"
+  autoStartMachines = true
+  minMachinesRunning = 1
+  concurrency {
+    ["type"] = "requests"
+    ["soft_limit"] = 200
+    ["hard_limit"] = 300
+  }
+  httpChecks {
+    new Mapping<String, Any> {
+      ["interval"] = "10s"
+      ["timeout"] = "2s"
+      ["grace_period"] = "5s"
+      ["method"] = "GET"
+      ["path"] = "/health"
+    }
+  }
+}
+
+vm {
+  new VmSpec {
+    cpus = 1
+    memory = "512mb"
+    cpuKind = "shared"
+  }
+}
+
+mounts {
+  new MountConfig {
+    source = "data"
+    destination = "/data"
+    initialSize = "1gb"
+  }
+}

@@ -1,0 +1,249 @@
+/// A typed authoring surface for `render.yaml` (Render Blueprint).
+module target.deploy.render.Render
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias ServiceType = "web"|"worker"|"cron"|"pserv"|"redis"|"static"
+
+class EnvVar {
+  key: String
+  value: String? = null
+  fromService: Mapping<String, String>? = null
+  fromGroup: String? = null
+  generateValue: Boolean? = null
+  sync: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Disk {
+  name: String
+  mountPath: String
+  sizeGB: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class AutoDeploy {
+  enabled: Boolean? = null
+  buildFilter: Mapping<String, Listing<String>>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Service {
+  type: ServiceType
+  name: String
+  runtime: String? = null
+  region: String? = null
+  plan: String? = null
+  branch: String? = null
+  buildCommand: String? = null
+  startCommand: String? = null
+  dockerCommand: String? = null
+  dockerContext: String? = null
+  dockerfilePath: String? = null
+  numInstances: Int? = null
+  healthCheckPath: String? = null
+  envVars: Listing<EnvVar> = new Listing {}
+  disk: Disk? = null
+  scaling: Mapping<String, Any> = new Mapping {}
+  preDeployCommand: String? = null
+  autoDeploy: (Boolean|AutoDeploy)? = null
+  pullRequestPreviewsEnabled: Boolean? = null
+  schedule: String? = null
+  rootDir: String? = null
+  staticPublishPath: String? = null
+  routes: Listing<Mapping<String, Any>> = new Listing {}
+  headers: Listing<Mapping<String, Any>> = new Listing {}
+  redirects: Listing<Mapping<String, Any>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Database {
+  name: String
+  plan: String? = null
+  databaseName: String? = null
+  user: String? = null
+  ipAllowList: Listing<Mapping<String, String>> = new Listing {}
+  postgresMajorVersion: String? = null
+  region: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class EnvGroup {
+  name: String
+  envVars: Listing<EnvVar> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+previewsEnabled: Boolean? = null
+previewsExpireAfterDays: Int? = null
+services: Listing<Service> = new Listing {}
+databases: Listing<Database> = new Listing {}
+envVarGroups: Listing<EnvGroup> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderEnvVar(value: EnvVar) =
+  Maps.withExtra(
+    new Dynamic {
+      ["key"] = value.key
+      when (value.value != null) { ["value"] = value.value }
+      when (value.fromService != null) {
+        ["fromService"] = value.fromService.toMap()
+      }
+      when (value.fromGroup != null) {
+        ["fromGroup"] = value.fromGroup
+      }
+      when (value.generateValue != null) {
+        ["generateValue"] = value.generateValue
+      }
+      when (value.sync != null) { ["sync"] = value.sync }
+    },
+    value.extra,
+  )
+
+local function renderDisk(value: Disk) =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = value.name
+      ["mountPath"] = value.mountPath
+      when (value.sizeGB != null) { ["sizeGB"] = value.sizeGB }
+    },
+    value.extra,
+  )
+
+local function renderAutoDeploy(value: Boolean|AutoDeploy) =
+  if (value is Boolean)
+    value
+  else
+    Maps.withExtra(
+      new Dynamic {
+        when (value.enabled != null) { ["enabled"] = value.enabled }
+        when (value.buildFilter != null) {
+          ["buildFilter"] = value.buildFilter.toMap().mapValues((_, v) -> v.toList())
+        }
+      },
+      value.extra,
+    )
+
+local function renderService(value: Service) =
+  Maps.withExtra(
+    new Dynamic {
+      ["type"] = value.type
+      ["name"] = value.name
+      when (value.runtime != null) { ["runtime"] = value.runtime }
+      when (value.region != null) { ["region"] = value.region }
+      when (value.plan != null) { ["plan"] = value.plan }
+      when (value.branch != null) { ["branch"] = value.branch }
+      when (value.buildCommand != null) {
+        ["buildCommand"] = value.buildCommand
+      }
+      when (value.startCommand != null) {
+        ["startCommand"] = value.startCommand
+      }
+      when (value.dockerCommand != null) {
+        ["dockerCommand"] = value.dockerCommand
+      }
+      when (value.dockerContext != null) {
+        ["dockerContext"] = value.dockerContext
+      }
+      when (value.dockerfilePath != null) {
+        ["dockerfilePath"] = value.dockerfilePath
+      }
+      when (value.numInstances != null) {
+        ["numInstances"] = value.numInstances
+      }
+      when (value.healthCheckPath != null) {
+        ["healthCheckPath"] = value.healthCheckPath
+      }
+      when (!value.envVars.toList().isEmpty) {
+        ["envVars"] = value.envVars.toList().map((e) -> renderEnvVar(e))
+      }
+      when (value.disk != null) {
+        ["disk"] = renderDisk(value.disk)
+      }
+      when (!value.scaling.toMap().isEmpty) {
+        ["scaling"] = value.scaling.toMap()
+      }
+      when (value.preDeployCommand != null) {
+        ["preDeployCommand"] = value.preDeployCommand
+      }
+      when (value.autoDeploy != null) {
+        ["autoDeploy"] = renderAutoDeploy(value.autoDeploy)
+      }
+      when (value.pullRequestPreviewsEnabled != null) {
+        ["pullRequestPreviewsEnabled"] = value.pullRequestPreviewsEnabled
+      }
+      when (value.schedule != null) { ["schedule"] = value.schedule }
+      when (value.rootDir != null) { ["rootDir"] = value.rootDir }
+      when (value.staticPublishPath != null) {
+        ["staticPublishPath"] = value.staticPublishPath
+      }
+      when (!value.routes.toList().isEmpty) {
+        ["routes"] = value.routes.toList().map((m) -> m.toMap())
+      }
+      when (!value.headers.toList().isEmpty) {
+        ["headers"] = value.headers.toList().map((m) -> m.toMap())
+      }
+      when (!value.redirects.toList().isEmpty) {
+        ["redirects"] = value.redirects.toList().map((m) -> m.toMap())
+      }
+    },
+    value.extra,
+  )
+
+local function renderDatabase(value: Database) =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = value.name
+      when (value.plan != null) { ["plan"] = value.plan }
+      when (value.databaseName != null) {
+        ["databaseName"] = value.databaseName
+      }
+      when (value.user != null) { ["user"] = value.user }
+      when (!value.ipAllowList.toList().isEmpty) {
+        ["ipAllowList"] = value.ipAllowList.toList().map((m) -> m.toMap())
+      }
+      when (value.postgresMajorVersion != null) {
+        ["postgresMajorVersion"] = value.postgresMajorVersion
+      }
+      when (value.region != null) { ["region"] = value.region }
+    },
+    value.extra,
+  )
+
+local function renderEnvGroup(value: EnvGroup) =
+  Maps.withExtra(
+    new Dynamic {
+      ["name"] = value.name
+      when (!value.envVars.toList().isEmpty) {
+        ["envVars"] = value.envVars.toList().map((e) -> renderEnvVar(e))
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (previewsEnabled != null) {
+        ["previewsEnabled"] = previewsEnabled
+      }
+      when (previewsExpireAfterDays != null) {
+        ["previewsExpireAfterDays"] = previewsExpireAfterDays
+      }
+      when (!services.toList().isEmpty) {
+        ["services"] = services.toList().map((s) -> renderService(s))
+      }
+      when (!databases.toList().isEmpty) {
+        ["databases"] = databases.toList().map((d) -> renderDatabase(d))
+      }
+      when (!envVarGroups.toList().isEmpty) {
+        ["envVarGroups"] = envVarGroups.toList().map((g) -> renderEnvGroup(g))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

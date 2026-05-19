@@ -16,6 +16,7 @@ FAMILIES=(
   target.python
   target.lint
   target.container
+  target.deploy
 )
 
 failed=0

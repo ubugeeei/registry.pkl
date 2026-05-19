@@ -1,0 +1,57 @@
+/// Tests for `target.deploy.vercel.Vercel` rendering.
+amends "pkl:test"
+
+import "../vercel/Vercel.pkl"
+
+local cfg = (Vercel) {
+  version = 2
+  name = "registry-pkl"
+  framework = "vite"
+  buildCommand = "pnpm build"
+  outputDirectory = "dist"
+  redirects {
+    new Vercel.Redirect {
+      source = "/old"
+      destination = "/new"
+      permanent = true
+    }
+  }
+  crons {
+    new Vercel.Crons {
+      path = "/api/cron"
+      schedule = "0 6 * * *"
+    }
+  }
+  functions {
+    ["api/*.ts"] = new Vercel.FunctionConfig {
+      runtime = "edge"
+      memory = 512
+      maxDuration = 30
+    }
+  }
+}
+
+facts {
+  ["scalars pass through"] {
+    cfg.rendered["version"] == 2
+    cfg.rendered["name"] == "registry-pkl"
+    cfg.rendered["framework"] == "vite"
+  }
+  ["redirect emits source/destination/permanent"] {
+    local r = cfg.rendered["redirects"][0]
+    r["source"] == "/old"
+    r["destination"] == "/new"
+    r["permanent"] == true
+  }
+  ["cron emits path and schedule"] {
+    local c = cfg.rendered["crons"][0]
+    c["path"] == "/api/cron"
+    c["schedule"] == "0 6 * * *"
+  }
+  ["function entry keeps runtime / memory / maxDuration"] {
+    local f = cfg.rendered["functions"]["api/*.ts"]
+    f["runtime"] == "edge"
+    f["memory"] == 512
+    f["maxDuration"] == 30
+  }
+}
