@@ -1,0 +1,114 @@
+/// A typed authoring surface for `v1.PersistentVolumeClaim`.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#persistentvolumeclaim-v1-core
+module target.k8s.persistentvolumeclaim.PersistentVolumeClaim
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../deployment/Deployment.pkl" as Dep
+
+class ResourceRequirements {
+  limits: Mapping<String, String> = new Mapping {}
+  requests: Mapping<String, String> = new Mapping {}
+}
+
+class Spec {
+  accessModes: Listing<String> = new Listing {}
+  selector: Dep.LabelSelector? = null
+  resources: ResourceRequirements? = null
+  storageClassName: String? = null
+  volumeName: String? = null
+  volumeMode: ("Filesystem"|"Block")? = null
+  dataSource: Mapping<String, Any>? = null
+  dataSourceRef: Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: String = "v1"
+kind: String = "PersistentVolumeClaim"
+metadata: Pod.ObjectMeta
+spec: Spec
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderObjectMeta(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSelector(value: Dep.LabelSelector) =
+  new Mapping<String, Any> {
+    when (!value.matchLabels.toMap().isEmpty) {
+      ["matchLabels"] = value.matchLabels.toMap()
+    }
+    when (!value.matchExpressions.toList().isEmpty) {
+      ["matchExpressions"] = value.matchExpressions.toList()
+        .map((m) -> m.toMap())
+    }
+  }.toMap()
+
+local function renderResources(value: ResourceRequirements) =
+  new Mapping<String, Any> {
+    when (!value.limits.toMap().isEmpty) {
+      ["limits"] = value.limits.toMap()
+    }
+    when (!value.requests.toMap().isEmpty) {
+      ["requests"] = value.requests.toMap()
+    }
+  }.toMap()
+
+local function renderSpec(value: Spec) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.accessModes.toList().isEmpty) {
+        ["accessModes"] = value.accessModes.toList()
+      }
+      when (value.selector != null) {
+        ["selector"] = renderSelector(value.selector)
+      }
+      when (value.resources != null) {
+        ["resources"] = renderResources(value.resources)
+      }
+      when (value.storageClassName != null) {
+        ["storageClassName"] = value.storageClassName
+      }
+      when (value.volumeName != null) {
+        ["volumeName"] = value.volumeName
+      }
+      when (value.volumeMode != null) {
+        ["volumeMode"] = value.volumeMode
+      }
+      when (value.dataSource != null) {
+        ["dataSource"] = value.dataSource.toMap()
+      }
+      when (value.dataSourceRef != null) {
+        ["dataSourceRef"] = value.dataSourceRef.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderObjectMeta(metadata)
+      ["spec"] = renderSpec(spec)
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

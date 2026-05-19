@@ -1,0 +1,172 @@
+/// A typed authoring surface for `networking.k8s.io/v1.Ingress`.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#ingress-v1-networking-k8s-io
+module target.k8s.ingress.Ingress
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+class ServiceBackendPort {
+  name: String? = null
+  number: Int? = null
+}
+
+class IngressServiceBackend {
+  name: String
+  port: ServiceBackendPort? = null
+}
+
+class TypedLocalObjectReference {
+  apiGroup: String? = null
+  kind: String
+  name: String
+}
+
+class IngressBackend {
+  service: IngressServiceBackend? = null
+  resource: TypedLocalObjectReference? = null
+}
+
+class HTTPIngressPath {
+  path: String? = null
+  pathType: ("Exact"|"Prefix"|"ImplementationSpecific")
+  backend: IngressBackend
+}
+
+class HTTPIngressRuleValue {
+  paths: Listing<HTTPIngressPath>
+}
+
+class IngressRule {
+  host: String? = null
+  http: HTTPIngressRuleValue? = null
+}
+
+class IngressTLS {
+  hosts: Listing<String> = new Listing {}
+  secretName: String? = null
+}
+
+class Spec {
+  ingressClassName: String? = null
+  defaultBackend: IngressBackend? = null
+  rules: Listing<IngressRule> = new Listing {}
+  tls: Listing<IngressTLS> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: String = "networking.k8s.io/v1"
+kind: String = "Ingress"
+metadata: Pod.ObjectMeta
+spec: Spec
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderObjectMeta(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderPort(value: ServiceBackendPort) =
+  new Mapping<String, Any> {
+    when (value.name != null) { ["name"] = value.name }
+    when (value.number != null) { ["number"] = value.number }
+  }.toMap()
+
+local function renderServiceBackend(value: IngressServiceBackend) =
+  new Mapping<String, Any> {
+    ["name"] = value.name
+    when (value.port != null) {
+      ["port"] = renderPort(value.port)
+    }
+  }.toMap()
+
+local function renderResourceRef(value: TypedLocalObjectReference) =
+  new Mapping<String, Any> {
+    when (value.apiGroup != null) {
+      ["apiGroup"] = value.apiGroup
+    }
+    ["kind"] = value.kind
+    ["name"] = value.name
+  }.toMap()
+
+local function renderBackend(value: IngressBackend) =
+  new Mapping<String, Any> {
+    when (value.service != null) {
+      ["service"] = renderServiceBackend(value.service)
+    }
+    when (value.resource != null) {
+      ["resource"] = renderResourceRef(value.resource)
+    }
+  }.toMap()
+
+local function renderPath(value: HTTPIngressPath) =
+  new Mapping<String, Any> {
+    when (value.path != null) { ["path"] = value.path }
+    ["pathType"] = value.pathType
+    ["backend"] = renderBackend(value.backend)
+  }.toMap()
+
+local function renderRule(value: IngressRule) =
+  new Mapping<String, Any> {
+    when (value.host != null) { ["host"] = value.host }
+    when (value.http != null) {
+      ["http"] = new Mapping<String, Any> {
+        ["paths"] = value.http.paths.toList().map((p) -> renderPath(p))
+      }.toMap()
+    }
+  }.toMap()
+
+local function renderTls(value: IngressTLS) =
+  new Mapping<String, Any> {
+    when (!value.hosts.toList().isEmpty) {
+      ["hosts"] = value.hosts.toList()
+    }
+    when (value.secretName != null) {
+      ["secretName"] = value.secretName
+    }
+  }.toMap()
+
+local function renderSpec(value: Spec) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.ingressClassName != null) {
+        ["ingressClassName"] = value.ingressClassName
+      }
+      when (value.defaultBackend != null) {
+        ["defaultBackend"] = renderBackend(value.defaultBackend)
+      }
+      when (!value.rules.toList().isEmpty) {
+        ["rules"] = value.rules.toList().map((r) -> renderRule(r))
+      }
+      when (!value.tls.toList().isEmpty) {
+        ["tls"] = value.tls.toList().map((t) -> renderTls(t))
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderObjectMeta(metadata)
+      ["spec"] = renderSpec(spec)
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

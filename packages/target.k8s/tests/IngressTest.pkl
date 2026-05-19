@@ -1,0 +1,68 @@
+/// Tests for `target.k8s.ingress.Ingress` rendering.
+amends "pkl:test"
+
+import "../ingress/Ingress.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+local ing = (Ingress) {
+  metadata = new Pod.ObjectMeta {
+    name = "api"
+    namespace = "registry"
+    annotations {
+      ["cert-manager.io/cluster-issuer"] = "letsencrypt"
+    }
+  }
+  spec = new Ingress.Spec {
+    ingressClassName = "nginx"
+    tls {
+      new Ingress.IngressTLS {
+        hosts { "api.example.com" }
+        secretName = "api-tls"
+      }
+    }
+    rules {
+      new Ingress.IngressRule {
+        host = "api.example.com"
+        http = new Ingress.HTTPIngressRuleValue {
+          paths {
+            new Ingress.HTTPIngressPath {
+              path = "/"
+              pathType = "Prefix"
+              backend = new Ingress.IngressBackend {
+                service = new Ingress.IngressServiceBackend {
+                  name = "registry-api"
+                  port = new Ingress.ServiceBackendPort {
+                    name = "http"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    ing.rendered["apiVersion"] == "networking.k8s.io/v1"
+    ing.rendered["kind"] == "Ingress"
+  }
+  ["ingressClassName passes through"] {
+    ing.rendered["spec"]["ingressClassName"] == "nginx"
+  }
+  ["tls hosts list"] {
+    ing.rendered["spec"]["tls"][0]["hosts"] == List("api.example.com")
+    ing.rendered["spec"]["tls"][0]["secretName"] == "api-tls"
+  }
+  ["rule with prefix path + service backend"] {
+    local rule = ing.rendered["spec"]["rules"][0]
+    rule["host"] == "api.example.com"
+    local path = rule["http"]["paths"][0]
+    path["path"] == "/"
+    path["pathType"] == "Prefix"
+    path["backend"]["service"]["name"] == "registry-api"
+    path["backend"]["service"]["port"]["name"] == "http"
+  }
+}

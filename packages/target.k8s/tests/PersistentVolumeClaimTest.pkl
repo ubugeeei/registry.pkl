@@ -1,0 +1,39 @@
+/// Tests for `target.k8s.persistentvolumeclaim.PersistentVolumeClaim` rendering.
+amends "pkl:test"
+
+import "../persistentvolumeclaim/PersistentVolumeClaim.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+local pvc = (PersistentVolumeClaim) {
+  metadata = new Pod.ObjectMeta {
+    name = "data"
+    namespace = "registry"
+  }
+  spec = new PersistentVolumeClaim.Spec {
+    accessModes { "ReadWriteOnce" }
+    storageClassName = "fast-ssd"
+    volumeMode = "Filesystem"
+    resources = new PersistentVolumeClaim.ResourceRequirements {
+      requests { ["storage"] = "10Gi" }
+      limits { ["storage"] = "20Gi" }
+    }
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    pvc.rendered["apiVersion"] == "v1"
+    pvc.rendered["kind"] == "PersistentVolumeClaim"
+  }
+  ["accessModes list"] {
+    pvc.rendered["spec"]["accessModes"] == List("ReadWriteOnce")
+  }
+  ["storageClassName + volumeMode"] {
+    pvc.rendered["spec"]["storageClassName"] == "fast-ssd"
+    pvc.rendered["spec"]["volumeMode"] == "Filesystem"
+  }
+  ["resource requests + limits"] {
+    pvc.rendered["spec"]["resources"]["requests"]["storage"] == "10Gi"
+    pvc.rendered["spec"]["resources"]["limits"]["storage"] == "20Gi"
+  }
+}
