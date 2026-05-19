@@ -9,6 +9,6 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 
 ## Modules
 
-- [`target.python.PyProject`](./PyProject.html)
-- [`target.python.Pytest`](./Pytest.html)
-- [`target.python.Ruff`](./Ruff.html)
+- [`target.python.pyproject.PyProject`](./pyproject/PyProject.html)
+- [`target.python.pytest.Pytest`](./pytest/Pytest.html)
+- [`target.python.ruff.Ruff`](./ruff/Ruff.html)

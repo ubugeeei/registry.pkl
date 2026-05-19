@@ -9,9 +9,9 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 
 ## Modules
 
-- [`target.rust.Bacon`](./Bacon.html)
-- [`target.rust.Cargo`](./Cargo.html)
-- [`target.rust.CargoDeny`](./CargoDeny.html)
-- [`target.rust.Clippy`](./Clippy.html)
-- [`target.rust.RustToolchain`](./RustToolchain.html)
-- [`target.rust.Rustfmt`](./Rustfmt.html)
+- [`target.rust.bacon.Bacon`](./bacon/Bacon.html)
+- [`target.rust.cargo-deny.CargoDeny`](./cargo-deny/CargoDeny.html)
+- [`target.rust.cargo.Cargo`](./cargo/Cargo.html)
+- [`target.rust.clippy.Clippy`](./clippy/Clippy.html)
+- [`target.rust.rust-toolchain.RustToolchain`](./rust-toolchain/RustToolchain.html)
+- [`target.rust.rustfmt.Rustfmt`](./rustfmt/Rustfmt.html)

@@ -9,7 +9,7 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 
 ## Modules
 
-- [`target.deploy.Fly`](./Fly.html)
-- [`target.deploy.Netlify`](./Netlify.html)
-- [`target.deploy.Render`](./Render.html)
-- [`target.deploy.Vercel`](./Vercel.html)
+- [`target.deploy.fly.Fly`](./fly/Fly.html)
+- [`target.deploy.netlify.Netlify`](./netlify/Netlify.html)
+- [`target.deploy.render.Render`](./render/Render.html)
+- [`target.deploy.vercel.Vercel`](./vercel/Vercel.html)

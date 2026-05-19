@@ -9,5 +9,5 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 
 ## Modules
 
-- [`target.go.Golangci`](./Golangci.html)
-- [`target.go.Goreleaser`](./Goreleaser.html)
+- [`target.go.golangci-lint.Golangci`](./golangci-lint/Golangci.html)
+- [`target.go.goreleaser.Goreleaser`](./goreleaser/Goreleaser.html)

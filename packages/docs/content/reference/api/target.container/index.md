@@ -9,6 +9,6 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 
 ## Modules
 
-- [`target.container.Compose`](./Compose.html)
-- [`target.container.Devbox`](./Devbox.html)
-- [`target.container.Dockerfile`](./Dockerfile.html)
+- [`target.container.devbox.Devbox`](./devbox/Devbox.html)
+- [`target.container.docker-compose.Compose`](./docker-compose/Compose.html)
+- [`target.container.dockerfile.Dockerfile`](./dockerfile/Dockerfile.html)
