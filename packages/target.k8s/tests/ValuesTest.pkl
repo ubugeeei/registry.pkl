@@ -1,0 +1,101 @@
+/// Tests for `target.k8s.helm_values.Values` rendering.
+amends "pkl:test"
+
+import "../helm-values/Values.pkl"
+
+local vals = (Values) {
+  replicaCount = 3
+  image = new Values.ImageSpec {
+    repository = "nginx"
+    tag = "1.27"
+    pullPolicy = "IfNotPresent"
+  }
+  service = new Values.ServiceSpec {
+    type = "ClusterIP"
+    port = 80
+    ports {
+      new Values.ServicePort {
+        name = "http"
+        port = 80
+        targetPort = 8080
+      }
+    }
+  }
+  ingress = new Values.IngressSpec {
+    enabled = true
+    className = "nginx"
+    hosts {
+      new Values.IngressRule {
+        host = "example.invalid"
+        paths {
+          new Mapping<String, Any> {
+            ["path"] = "/"
+            ["pathType"] = "Prefix"
+          }
+        }
+      }
+    }
+    tls {
+      new Values.IngressTls {
+        hosts {
+          "example.invalid"
+        }
+        secretName = "example-tls"
+      }
+    }
+  }
+  resources = new Values.ResourcesBlock {
+    limits {
+      ["cpu"] = "500m"
+      ["memory"] = "512Mi"
+    }
+    requests {
+      ["cpu"] = "100m"
+      ["memory"] = "128Mi"
+    }
+  }
+  autoscaling = new Values.AutoscalingSpec {
+    enabled = true
+    minReplicas = 2
+    maxReplicas = 10
+    targetCPUUtilizationPercentage = 80
+  }
+}
+
+facts {
+  ["replicaCount passes through"] {
+    vals.rendered["replicaCount"] == 3
+  }
+  ["image fields render"] {
+    local img = vals.rendered["image"]
+    img["repository"] == "nginx"
+    img["tag"] == "1.27"
+    img["pullPolicy"] == "IfNotPresent"
+  }
+  ["service ports list"] {
+    local svc = vals.rendered["service"]
+    svc["type"] == "ClusterIP"
+    svc["port"] == 80
+    svc["ports"][0]["name"] == "http"
+    svc["ports"][0]["targetPort"] == 8080
+  }
+  ["ingress with hosts and tls"] {
+    local ing = vals.rendered["ingress"]
+    ing["enabled"] == true
+    ing["className"] == "nginx"
+    ing["hosts"][0]["host"] == "example.invalid"
+    ing["tls"][0]["secretName"] == "example-tls"
+  }
+  ["resources limits and requests"] {
+    local r = vals.rendered["resources"]
+    r["limits"]["cpu"] == "500m"
+    r["requests"]["memory"] == "128Mi"
+  }
+  ["autoscaling thresholds"] {
+    local a = vals.rendered["autoscaling"]
+    a["enabled"] == true
+    a["minReplicas"] == 2
+    a["maxReplicas"] == 10
+    a["targetCPUUtilizationPercentage"] == 80
+  }
+}

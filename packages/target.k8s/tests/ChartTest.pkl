@@ -1,0 +1,57 @@
+/// Tests for `target.k8s.helm_chart.Chart` rendering.
+amends "pkl:test"
+
+import "../helm-chart/Chart.pkl"
+
+local chart = (Chart) {
+  name = "demo"
+  version = "1.0.0"
+  description = "Demo chart"
+  appVersion = "1.2.3"
+  type = "application"
+  maintainers {
+    new Chart.Maintainer {
+      name = "Demo"
+      email = "demo@example.invalid"
+    }
+  }
+  dependencies {
+    new Chart.Dependency {
+      name = "postgresql"
+      version = "16.0.0"
+      repository = "https://charts.bitnami.com/bitnami"
+      condition = "postgresql.enabled"
+    }
+  }
+  keywords {
+    "demo"
+  }
+}
+
+facts {
+  ["apiVersion defaults to v2"] {
+    chart.rendered["apiVersion"] == "v2"
+  }
+  ["scalars pass through"] {
+    chart.rendered["name"] == "demo"
+    chart.rendered["version"] == "1.0.0"
+    chart.rendered["description"] == "Demo chart"
+    chart.rendered["appVersion"] == "1.2.3"
+    chart.rendered["type"] == "application"
+  }
+  ["maintainer carries email"] {
+    local m = chart.rendered["maintainers"][0]
+    m["name"] == "Demo"
+    m["email"] == "demo@example.invalid"
+  }
+  ["dependency carries repository and condition"] {
+    local d = chart.rendered["dependencies"][0]
+    d["name"] == "postgresql"
+    d["version"] == "16.0.0"
+    d["repository"] == "https://charts.bitnami.com/bitnami"
+    d["condition"] == "postgresql.enabled"
+  }
+  ["keywords list emits"] {
+    chart.rendered["keywords"] == List("demo")
+  }
+}

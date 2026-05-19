@@ -1,0 +1,46 @@
+amends "@target.k8s/helm-chart/Chart.pkl"
+
+apiVersion = "v2"
+name = "registry-pkl"
+version = "0.1.0"
+appVersion = "0.1.0"
+description = "Helm chart for registry.pkl"
+type = "application"
+
+keywords {
+  "pkl"
+  "registry"
+  "configuration"
+}
+
+home = "https://ubugeeei.github.io/registry.pkl/"
+sources {
+  "https://github.com/ubugeeei/registry.pkl"
+}
+
+maintainers {
+  new Maintainer {
+    name = "Ubugeeei"
+    email = "ubugeeei@gmail.com"
+    url = "https://github.com/ubugeeei"
+  }
+}
+
+dependencies {
+  new Dependency {
+    name = "postgresql"
+    version = "16.0.0"
+    repository = "https://charts.bitnami.com/bitnami"
+    condition = "postgresql.enabled"
+  }
+  new Dependency {
+    name = "redis"
+    version = "20.0.0"
+    repository = "https://charts.bitnami.com/bitnami"
+    condition = "redis.enabled"
+  }
+}
+
+annotations {
+  ["category"] = "Tools"
+}

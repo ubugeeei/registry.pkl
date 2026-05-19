@@ -1,0 +1,371 @@
+/// A typed authoring surface for Helm `values.yaml`.
+///
+/// Each chart defines its own values shape. This module provides a
+/// minimum extensible base — `image`, `service`, `ingress`, `resources`,
+/// `autoscaling`, `nodeSelector`, `tolerations`, `affinity` — that most
+/// charts inherit, plus an open `extra` map for chart-specific keys.
+module target.k8s.helm_values.Values
+
+import "@target.core/Maps.pkl" as Maps
+
+class ImageSpec {
+  repository: String? = null
+  tag: String? = null
+  pullPolicy: ("Always"|"IfNotPresent"|"Never")? = null
+  digest: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ServicePort {
+  name: String? = null
+  port: Int
+  targetPort: (Int|String)? = null
+  protocol: ("TCP"|"UDP"|"SCTP")? = null
+  nodePort: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ServiceSpec {
+  type: ("ClusterIP"|"NodePort"|"LoadBalancer"|"ExternalName")? = null
+  port: Int? = null
+  targetPort: (Int|String)? = null
+  ports: Listing<ServicePort> = new Listing {}
+  annotations: Mapping<String, String> = new Mapping {}
+  externalName: String? = null
+  loadBalancerIP: String? = null
+  loadBalancerSourceRanges: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class IngressRule {
+  host: String? = null
+  paths: Listing<Mapping<String, Any>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class IngressTls {
+  hosts: Listing<String> = new Listing {}
+  secretName: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class IngressSpec {
+  enabled: Boolean? = null
+  className: String? = null
+  annotations: Mapping<String, String> = new Mapping {}
+  hosts: Listing<IngressRule> = new Listing {}
+  tls: Listing<IngressTls> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ResourcesBlock {
+  limits: Mapping<String, String> = new Mapping {}
+  requests: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class AutoscalingSpec {
+  enabled: Boolean? = null
+  minReplicas: Int? = null
+  maxReplicas: Int? = null
+  targetCPUUtilizationPercentage: Int? = null
+  targetMemoryUtilizationPercentage: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Probe {
+  httpGet: Mapping<String, Any>? = null
+  tcpSocket: Mapping<String, Any>? = null
+  exec: Mapping<String, Any>? = null
+  initialDelaySeconds: Int? = null
+  periodSeconds: Int? = null
+  timeoutSeconds: Int? = null
+  successThreshold: Int? = null
+  failureThreshold: Int? = null
+  terminationGracePeriodSeconds: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+replicaCount: Int? = null
+image: ImageSpec? = null
+imagePullSecrets: Listing<Mapping<String, String>> = new Listing {}
+nameOverride: String? = null
+fullnameOverride: String? = null
+serviceAccount: Mapping<String, Any> = new Mapping {}
+podAnnotations: Mapping<String, String> = new Mapping {}
+podLabels: Mapping<String, String> = new Mapping {}
+podSecurityContext: Mapping<String, Any> = new Mapping {}
+securityContext: Mapping<String, Any> = new Mapping {}
+service: ServiceSpec? = null
+ingress: IngressSpec? = null
+resources: ResourcesBlock? = null
+livenessProbe: Probe? = null
+readinessProbe: Probe? = null
+startupProbe: Probe? = null
+autoscaling: AutoscalingSpec? = null
+volumes: Listing<Mapping<String, Any>> = new Listing {}
+volumeMounts: Listing<Mapping<String, Any>> = new Listing {}
+nodeSelector: Mapping<String, String> = new Mapping {}
+tolerations: Listing<Mapping<String, Any>> = new Listing {}
+affinity: Mapping<String, Any> = new Mapping {}
+env: Listing<Mapping<String, Any>> = new Listing {}
+envFrom: Listing<Mapping<String, Any>> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderImage(value: ImageSpec) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.repository != null) {
+        ["repository"] = value.repository
+      }
+      when (value.tag != null) { ["tag"] = value.tag }
+      when (value.pullPolicy != null) {
+        ["pullPolicy"] = value.pullPolicy
+      }
+      when (value.digest != null) { ["digest"] = value.digest }
+    },
+    value.extra,
+  )
+
+local function renderPort(value: ServicePort) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.name != null) { ["name"] = value.name }
+      ["port"] = value.port
+      when (value.targetPort != null) {
+        ["targetPort"] = value.targetPort
+      }
+      when (value.protocol != null) {
+        ["protocol"] = value.protocol
+      }
+      when (value.nodePort != null) {
+        ["nodePort"] = value.nodePort
+      }
+    },
+    value.extra,
+  )
+
+local function renderService(value: ServiceSpec) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.type != null) { ["type"] = value.type }
+      when (value.port != null) { ["port"] = value.port }
+      when (value.targetPort != null) {
+        ["targetPort"] = value.targetPort
+      }
+      when (!value.ports.toList().isEmpty) {
+        ["ports"] = value.ports.toList().map((p) -> renderPort(p))
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+      when (value.externalName != null) {
+        ["externalName"] = value.externalName
+      }
+      when (value.loadBalancerIP != null) {
+        ["loadBalancerIP"] = value.loadBalancerIP
+      }
+      when (!value.loadBalancerSourceRanges.toList().isEmpty) {
+        ["loadBalancerSourceRanges"] =
+          value.loadBalancerSourceRanges.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderIngressRule(value: IngressRule) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.host != null) { ["host"] = value.host }
+      when (!value.paths.toList().isEmpty) {
+        ["paths"] = value.paths.toList().map((m) -> m.toMap())
+      }
+    },
+    value.extra,
+  )
+
+local function renderIngressTls(value: IngressTls) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.hosts.toList().isEmpty) {
+        ["hosts"] = value.hosts.toList()
+      }
+      when (value.secretName != null) {
+        ["secretName"] = value.secretName
+      }
+    },
+    value.extra,
+  )
+
+local function renderIngress(value: IngressSpec) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (value.className != null) {
+        ["className"] = value.className
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+      when (!value.hosts.toList().isEmpty) {
+        ["hosts"] = value.hosts.toList().map((h) -> renderIngressRule(h))
+      }
+      when (!value.tls.toList().isEmpty) {
+        ["tls"] = value.tls.toList().map((t) -> renderIngressTls(t))
+      }
+    },
+    value.extra,
+  )
+
+local function renderResources(value: ResourcesBlock) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.limits.toMap().isEmpty) {
+        ["limits"] = value.limits.toMap()
+      }
+      when (!value.requests.toMap().isEmpty) {
+        ["requests"] = value.requests.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderAutoscaling(value: AutoscalingSpec) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (value.minReplicas != null) {
+        ["minReplicas"] = value.minReplicas
+      }
+      when (value.maxReplicas != null) {
+        ["maxReplicas"] = value.maxReplicas
+      }
+      when (value.targetCPUUtilizationPercentage != null) {
+        ["targetCPUUtilizationPercentage"] =
+          value.targetCPUUtilizationPercentage
+      }
+      when (value.targetMemoryUtilizationPercentage != null) {
+        ["targetMemoryUtilizationPercentage"] =
+          value.targetMemoryUtilizationPercentage
+      }
+    },
+    value.extra,
+  )
+
+local function renderProbe(value: Probe) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.httpGet != null) {
+        ["httpGet"] = value.httpGet.toMap()
+      }
+      when (value.tcpSocket != null) {
+        ["tcpSocket"] = value.tcpSocket.toMap()
+      }
+      when (value.exec != null) {
+        ["exec"] = value.exec.toMap()
+      }
+      when (value.initialDelaySeconds != null) {
+        ["initialDelaySeconds"] = value.initialDelaySeconds
+      }
+      when (value.periodSeconds != null) {
+        ["periodSeconds"] = value.periodSeconds
+      }
+      when (value.timeoutSeconds != null) {
+        ["timeoutSeconds"] = value.timeoutSeconds
+      }
+      when (value.successThreshold != null) {
+        ["successThreshold"] = value.successThreshold
+      }
+      when (value.failureThreshold != null) {
+        ["failureThreshold"] = value.failureThreshold
+      }
+      when (value.terminationGracePeriodSeconds != null) {
+        ["terminationGracePeriodSeconds"] =
+          value.terminationGracePeriodSeconds
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (replicaCount != null) {
+        ["replicaCount"] = replicaCount
+      }
+      when (image != null) { ["image"] = renderImage(image) }
+      when (!imagePullSecrets.toList().isEmpty) {
+        ["imagePullSecrets"] =
+          imagePullSecrets.toList().map((m) -> m.toMap())
+      }
+      when (nameOverride != null) {
+        ["nameOverride"] = nameOverride
+      }
+      when (fullnameOverride != null) {
+        ["fullnameOverride"] = fullnameOverride
+      }
+      when (!serviceAccount.toMap().isEmpty) {
+        ["serviceAccount"] = serviceAccount.toMap()
+      }
+      when (!podAnnotations.toMap().isEmpty) {
+        ["podAnnotations"] = podAnnotations.toMap()
+      }
+      when (!podLabels.toMap().isEmpty) {
+        ["podLabels"] = podLabels.toMap()
+      }
+      when (!podSecurityContext.toMap().isEmpty) {
+        ["podSecurityContext"] = podSecurityContext.toMap()
+      }
+      when (!securityContext.toMap().isEmpty) {
+        ["securityContext"] = securityContext.toMap()
+      }
+      when (service != null) {
+        ["service"] = renderService(service)
+      }
+      when (ingress != null) {
+        ["ingress"] = renderIngress(ingress)
+      }
+      when (resources != null) {
+        ["resources"] = renderResources(resources)
+      }
+      when (livenessProbe != null) {
+        ["livenessProbe"] = renderProbe(livenessProbe)
+      }
+      when (readinessProbe != null) {
+        ["readinessProbe"] = renderProbe(readinessProbe)
+      }
+      when (startupProbe != null) {
+        ["startupProbe"] = renderProbe(startupProbe)
+      }
+      when (autoscaling != null) {
+        ["autoscaling"] = renderAutoscaling(autoscaling)
+      }
+      when (!volumes.toList().isEmpty) {
+        ["volumes"] = volumes.toList().map((m) -> m.toMap())
+      }
+      when (!volumeMounts.toList().isEmpty) {
+        ["volumeMounts"] = volumeMounts.toList().map((m) -> m.toMap())
+      }
+      when (!nodeSelector.toMap().isEmpty) {
+        ["nodeSelector"] = nodeSelector.toMap()
+      }
+      when (!tolerations.toList().isEmpty) {
+        ["tolerations"] = tolerations.toList().map((m) -> m.toMap())
+      }
+      when (!affinity.toMap().isEmpty) {
+        ["affinity"] = affinity.toMap()
+      }
+      when (!env.toList().isEmpty) {
+        ["env"] = env.toList().map((m) -> m.toMap())
+      }
+      when (!envFrom.toList().isEmpty) {
+        ["envFrom"] = envFrom.toList().map((m) -> m.toMap())
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

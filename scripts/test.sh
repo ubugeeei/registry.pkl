@@ -19,6 +19,7 @@ FAMILIES=(
   target.go
   target.deploy
   target.docs
+  target.k8s
 )
 
 failed=0
