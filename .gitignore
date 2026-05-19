@@ -1,6 +1,7 @@
 node_modules
 /dist
 /.out
+/target
 /package.json
 /.oxfmtrc.json
 /.mise.toml

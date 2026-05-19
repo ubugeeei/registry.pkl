@@ -1,0 +1,136 @@
+/// The formal schema for a `registry.pkl` registry record.
+///
+/// A registry record is the searchable index entry attached to every
+/// published Pkl package version. The reference shape lives in
+/// `packages/docs/content/reference/registry-record.md`; this module
+/// promotes it to a typed Pkl module so package authors can render
+/// JSON records with `amends "@target.core/RegistryRecord.pkl"`.
+///
+/// The validator CLI under `crates/registry-validator/` consumes the
+/// same schema — write records as Pkl, render to JSON, validate before
+/// merge.
+module target.core.RegistryRecord
+
+import "Maps.pkl" as Maps
+
+/// SemVer string. Validated upstream by the validator CLI rather than
+/// inside Pkl, so this is a plain `String`.
+typealias SemVer = String
+
+/// Ecosystem facet. Aligned with the first-party `target.*` families
+/// but expressly open-ended — community packages may add new values.
+typealias Ecosystem =
+  "javascript"|"typescript"|"rust"|"python"|"go"|"editor"|"agent"
+  |"ci"|"env"|"container"|"deploy"|"docs"|"k8s"|"lint"|"core"|String
+
+/// Output formats produced by this package.
+typealias Format = "json"|"yaml"|"toml"|"ini"|"text"|"hcl"|"dotenv"|"properties"
+
+/// Pointer to the source repository for this package.
+class Source {
+  /// Public repo URL (https://github.com/<owner>/<repo>).
+  repo: String
+
+  /// Path inside the repo where the package lives (e.g. `packages/target.js`).
+  directory: String
+
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+/// Required name. Must match `packages/<name>/PklProject`.
+name: String
+
+/// Required SemVer version. Must match the package `version` exactly.
+version: SemVer
+
+/// `package://<host>/<name>@<version>` form.
+packageUri: String
+
+/// Stable HTTPS URL of the package metadata JSON (per-version index entry).
+metadataUrl: String
+
+/// Immutable HTTPS URL of the release zip.
+packageZipUrl: String
+
+/// Optional immutable URL of the checksum file. The release workflow
+/// publishes the digest alongside the zip; when present, the validator
+/// fetches and pins the SHA.
+packageZipSha256Url: String? = null
+
+/// Stable docs page for this version.
+docsUrl: String
+
+/// Ecosystem facet for search filtering.
+ecosystem: Ecosystem
+
+/// `true` for `registry.pkl`-owned packages; `false` for community submissions.
+firstParty: Boolean? = null
+
+/// The concrete config files this package emits — e.g. `package.json`,
+/// `.gitlab-ci.yml`. Used by the per-target reverse index.
+targets: Listing<String>
+
+/// Output formats produced by this package.
+formats: Listing<Format>
+
+/// Free-form curated tags for search.
+tags: Listing<String> = new Listing {}
+
+/// GitHub handles maintaining this package.
+maintainers: Listing<String>
+
+/// Optional human description, surfaced in search hits.
+description: String? = null
+
+/// Source repository pointer.
+source: Source
+
+/// ISO-8601 UTC timestamp set by the release workflow.
+releasedAt: String? = null
+
+/// Previous version this record supersedes — used by changelog rendering.
+supersedes: String? = null
+
+/// Free-form passthrough for fields that haven't been promoted to
+/// first-class properties yet.
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderSource(value: Source) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["repo"] = value.repo
+      ["directory"] = value.directory
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = name
+      ["version"] = version
+      ["packageUri"] = packageUri
+      ["metadataUrl"] = metadataUrl
+      ["packageZipUrl"] = packageZipUrl
+      when (packageZipSha256Url != null) {
+        ["packageZipSha256Url"] = packageZipSha256Url
+      }
+      ["docsUrl"] = docsUrl
+      ["ecosystem"] = ecosystem
+      when (firstParty != null) { ["firstParty"] = firstParty }
+      ["targets"] = targets.toList()
+      ["formats"] = formats.toList()
+      when (!tags.toList().isEmpty) { ["tags"] = tags.toList() }
+      ["maintainers"] = maintainers.toList()
+      when (description != null) { ["description"] = description }
+      ["source"] = renderSource(source)
+      when (releasedAt != null) { ["releasedAt"] = releasedAt }
+      when (supersedes != null) { ["supersedes"] = supersedes }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

@@ -1,0 +1,50 @@
+amends "@target.core/RegistryRecord.pkl"
+
+name = "target.js"
+version = "0.1.0"
+
+packageUri = "package://pkg.registry.invalid/target.js@0.1.0"
+metadataUrl = "https://ubugeeei.github.io/registry.pkl/registry/target.js/0.1.0.json"
+packageZipUrl = "https://github.com/ubugeeei/registry.pkl/releases/download/target.js@0.1.0/target.js@0.1.0.zip"
+packageZipSha256Url = "https://github.com/ubugeeei/registry.pkl/releases/download/target.js@0.1.0/target.js@0.1.0.zip.sha256"
+docsUrl = "https://ubugeeei.github.io/registry.pkl/packages/target-js/"
+
+ecosystem = "javascript"
+firstParty = true
+
+targets {
+  "package.json"
+  "tsconfig.json"
+  "biome.json"
+  ".prettierrc"
+  ".oxlintrc.json"
+  ".oxfmtrc.json"
+  "pnpm-workspace.yaml"
+  "turbo.json"
+  "renovate.json"
+  ".eslintrc.json"
+}
+
+formats {
+  "json"
+  "yaml"
+}
+
+tags {
+  "typescript"
+  "monorepo"
+  "tooling"
+}
+
+description = "Typed Pkl modules for JavaScript, TypeScript, and monorepo tooling."
+
+maintainers {
+  "ubugeeei"
+}
+
+source = new Source {
+  repo = "https://github.com/ubugeeei/registry.pkl"
+  directory = "packages/target.js"
+}
+
+releasedAt = "2026-05-19T00:00:00Z"
