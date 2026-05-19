@@ -1,4 +1,8 @@
-#![allow(clippy::doc_markdown, clippy::format_push_string)]
+#![allow(
+    clippy::doc_markdown,
+    clippy::format_push_string,
+    clippy::too_many_lines
+)]
 
 use std::fs;
 use std::path::PathBuf;

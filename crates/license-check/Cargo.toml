@@ -1,0 +1,24 @@
+[package]
+name = "license-check"
+version = "0.1.0"
+description = "Verify Apache-2.0 license declarations across the registry.pkl workspace."
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "license-check"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

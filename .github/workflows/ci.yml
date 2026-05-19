@@ -119,6 +119,12 @@ jobs:
       - name: Test
         run: cargo test --release --workspace
 
+      - name: License check
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cargo build --release -p license-check
+          ./target/release/license-check .
+
   rust-coverage:
     runs-on: ubuntu-latest
     timeout-minutes: 15
