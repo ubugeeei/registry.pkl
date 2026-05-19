@@ -1,0 +1,61 @@
+amends "@target.container/docker-compose/Compose.pkl"
+
+name = "registry-pkl-stack"
+
+services {
+  ["api"] = new Service {
+    image = "node:24-alpine"
+    command = "node dist/server.js"
+    ports {
+      "3000:3000"
+    }
+    environment = new Mapping<String, EnvValue> {
+      ["NODE_ENV"] = "production"
+      ["LOG_LEVEL"] = "info"
+    }
+    dependsOn = new Mapping<String, DependsOn> {
+      ["db"] = new DependsOn {
+        condition = "service_healthy"
+      }
+    }
+    healthcheck = new Healthcheck {
+      test = new Listing<String> {
+        "CMD"
+        "wget"
+        "-qO-"
+        "http://localhost:3000/health"
+      }
+      interval = "10s"
+      timeout = "3s"
+      retries = 5
+    }
+    restart = "unless-stopped"
+  }
+  ["db"] = new Service {
+    image = "postgres:17"
+    environment = new Mapping<String, EnvValue> {
+      ["POSTGRES_USER"] = "registry"
+      ["POSTGRES_DB"] = "registry"
+    }
+    volumes {
+      "db-data:/var/lib/postgresql/data"
+    }
+    healthcheck = new Healthcheck {
+      test = "pg_isready -U registry"
+      interval = "5s"
+      retries = 10
+    }
+  }
+}
+
+volumes {
+  ["db-data"] = new VolumeSpec {
+    driver = "local"
+  }
+}
+
+networks {
+  ["default"] = new NetworkSpec {
+    driver = "bridge"
+  }
+}

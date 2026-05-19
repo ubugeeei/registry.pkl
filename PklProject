@@ -10,5 +10,6 @@ dependencies {
   ["target.ci"] = import("./packages/target.ci/PklProject")
   ["target.python"] = import("./packages/target.python/PklProject")
   ["target.lint"] = import("./packages/target.lint/PklProject")
+  ["target.container"] = import("./packages/target.container/PklProject")
   ["target.go"] = import("./packages/target.go/PklProject")
 }
