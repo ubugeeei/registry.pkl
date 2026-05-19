@@ -49,6 +49,30 @@ features:
     title: target.python
     details: Typed authoring for pyproject.toml, ruff, and pytest. TOML output via the shared pkl.toml renderer.
     link: ./target-python/index.html
+  - icon: "mdi:shield-search"
+    title: target.lint
+    details: Cross-language linters — markdownlint, commitlint, gitleaks.
+    link: ./target-lint/index.html
+  - icon: "mdi:docker"
+    title: target.container
+    details: Docker Compose, Dockerfile, and Devbox manifests authored in Pkl.
+    link: ./target-container/index.html
+  - icon: "mdi:language-go"
+    title: target.go
+    details: golangci-lint and goreleaser configuration for Go projects.
+    link: ./target-go/index.html
+  - icon: "mdi:rocket-launch"
+    title: target.deploy
+    details: Vercel, Netlify, Fly, and Render — one typed module per platform.
+    link: ./target-deploy/index.html
+  - icon: "mdi:book-open-page-variant"
+    title: target.docs
+    details: VitePress, Docusaurus, and TypeDoc — typed documentation generator configs.
+    link: ./target-docs/index.html
+  - icon: "mdi:kubernetes"
+    title: target.k8s
+    details: Kustomize, Helm chart metadata, and the Helm values surface.
+    link: ./target-k8s/index.html
 ---
 
 ## How To Use This Section
@@ -69,6 +93,12 @@ features:
 | [target.ci](./target-ci.md) | Second wave | Repository automation and workflows | 4 | `#/github/NodeCiWorkflow.pkl` |
 | [target.agent](./target-agent.md) | Second wave | MCP wrappers for agent clients | 6 | `#/vscode/Mcp.pkl` |
 | [target.python](./target-python.md) | First wave | Python project metadata, linting, testing | 3 | `#/pyproject/PyProject.pkl` |
+| [target.lint](./target-lint.md) | Second wave | Cross-language linting | 3 | `#/markdownlint/Markdownlint.pkl` |
+| [target.container](./target-container.md) | Second wave | Compose, Dockerfile, Devbox | 3 | `#/docker-compose/DockerCompose.pkl` |
+| [target.go](./target-go.md) | Second wave | golangci-lint + goreleaser | 2 | `#/golangci/Golangci.pkl` |
+| [target.deploy](./target-deploy.md) | Second wave | Vercel / Netlify / Fly / Render | 4 | `#/vercel/Vercel.pkl` |
+| [target.docs](./target-docs.md) | Second wave | VitePress / Docusaurus / TypeDoc | 3 | `#/vitepress/VitePress.pkl` |
+| [target.k8s](./target-k8s.md) | Second wave | Kustomize + Helm | 3 | `#/kustomization/Kustomization.pkl` |
 
 ## Catalog Rules
 
