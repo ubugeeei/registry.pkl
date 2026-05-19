@@ -1,0 +1,70 @@
+/// Tests for `target.k8s.networkpolicy.NetworkPolicy` rendering.
+amends "pkl:test"
+
+import "../networkpolicy/NetworkPolicy.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../deployment/Deployment.pkl" as Dep
+
+local np = (NetworkPolicy) {
+  metadata = new Pod.ObjectMeta {
+    name = "deny-egress"
+    namespace = "registry"
+  }
+  spec = new NetworkPolicy.Spec {
+    podSelector = new Dep.LabelSelector {
+      matchLabels { ["app"] = "api" }
+    }
+    policyTypes { "Egress"; "Ingress" }
+    egress {
+      new NetworkPolicy.NetworkPolicyEgressRule {
+        ports {
+          new NetworkPolicy.NetworkPolicyPort {
+            protocol = "TCP"
+            port = 5432
+          }
+        }
+        to {
+          new NetworkPolicy.NetworkPolicyPeer {
+            podSelector = new Dep.LabelSelector {
+              matchLabels { ["app"] = "postgres" }
+            }
+          }
+        }
+      }
+    }
+    ingress {
+      new NetworkPolicy.NetworkPolicyIngressRule {
+        `from` {
+          new NetworkPolicy.NetworkPolicyPeer {
+            ipBlock = new NetworkPolicy.IPBlock {
+              cidr = "10.0.0.0/8"
+              except { "10.0.1.0/24" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    np.rendered["apiVersion"] == "networking.k8s.io/v1"
+    np.rendered["kind"] == "NetworkPolicy"
+  }
+  ["podSelector + policyTypes"] {
+    np.rendered["spec"]["podSelector"]["matchLabels"] == Map("app", "api")
+    np.rendered["spec"]["policyTypes"] == List("Egress", "Ingress")
+  }
+  ["egress rule with port + podSelector peer"] {
+    local rule = np.rendered["spec"]["egress"][0]
+    rule["ports"][0]["protocol"] == "TCP"
+    rule["ports"][0]["port"] == 5432
+    rule["to"][0]["podSelector"]["matchLabels"] == Map("app", "postgres")
+  }
+  ["ingress rule with ipBlock peer"] {
+    local rule = np.rendered["spec"]["ingress"][0]
+    rule["from"][0]["ipBlock"]["cidr"] == "10.0.0.0/8"
+    rule["from"][0]["ipBlock"]["except"] == List("10.0.1.0/24")
+  }
+}

@@ -1,0 +1,156 @@
+/// A typed authoring surface for `networking.k8s.io/v1.NetworkPolicy`.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#networkpolicy-v1-networking-k8s-io
+module target.k8s.networkpolicy.NetworkPolicy
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../deployment/Deployment.pkl" as Dep
+
+class NetworkPolicyPort {
+  protocol: ("TCP"|"UDP"|"SCTP")? = null
+  port: (String|Int)? = null
+  endPort: Int? = null
+}
+
+class IPBlock {
+  cidr: String
+  except: Listing<String> = new Listing {}
+}
+
+class NetworkPolicyPeer {
+  podSelector: Dep.LabelSelector? = null
+  namespaceSelector: Dep.LabelSelector? = null
+  ipBlock: IPBlock? = null
+}
+
+class NetworkPolicyIngressRule {
+  ports: Listing<NetworkPolicyPort> = new Listing {}
+  `from`: Listing<NetworkPolicyPeer> = new Listing {}
+}
+
+class NetworkPolicyEgressRule {
+  ports: Listing<NetworkPolicyPort> = new Listing {}
+  to: Listing<NetworkPolicyPeer> = new Listing {}
+}
+
+class Spec {
+  podSelector: Dep.LabelSelector
+  policyTypes: Listing<"Ingress"|"Egress"> = new Listing {}
+  ingress: Listing<NetworkPolicyIngressRule> = new Listing {}
+  egress: Listing<NetworkPolicyEgressRule> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: String = "networking.k8s.io/v1"
+kind: String = "NetworkPolicy"
+metadata: Pod.ObjectMeta
+spec: Spec
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderObjectMeta(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSelector(value: Dep.LabelSelector) =
+  new Mapping<String, Any> {
+    when (!value.matchLabels.toMap().isEmpty) {
+      ["matchLabels"] = value.matchLabels.toMap()
+    }
+    when (!value.matchExpressions.toList().isEmpty) {
+      ["matchExpressions"] = value.matchExpressions.toList()
+        .map((m) -> m.toMap())
+    }
+  }.toMap()
+
+local function renderPort(value: NetworkPolicyPort) =
+  new Mapping<String, Any> {
+    when (value.protocol != null) { ["protocol"] = value.protocol }
+    when (value.port != null) { ["port"] = value.port }
+    when (value.endPort != null) { ["endPort"] = value.endPort }
+  }.toMap()
+
+local function renderIPBlock(value: IPBlock) =
+  new Mapping<String, Any> {
+    ["cidr"] = value.cidr
+    when (!value.except.toList().isEmpty) {
+      ["except"] = value.except.toList()
+    }
+  }.toMap()
+
+local function renderPeer(value: NetworkPolicyPeer) =
+  new Mapping<String, Any> {
+    when (value.podSelector != null) {
+      ["podSelector"] = renderSelector(value.podSelector)
+    }
+    when (value.namespaceSelector != null) {
+      ["namespaceSelector"] = renderSelector(value.namespaceSelector)
+    }
+    when (value.ipBlock != null) {
+      ["ipBlock"] = renderIPBlock(value.ipBlock)
+    }
+  }.toMap()
+
+local function renderIngress(value: NetworkPolicyIngressRule) =
+  new Mapping<String, Any> {
+    when (!value.ports.toList().isEmpty) {
+      ["ports"] = value.ports.toList().map((p) -> renderPort(p))
+    }
+    when (!value.`from`.toList().isEmpty) {
+      ["from"] = value.`from`.toList().map((p) -> renderPeer(p))
+    }
+  }.toMap()
+
+local function renderEgress(value: NetworkPolicyEgressRule) =
+  new Mapping<String, Any> {
+    when (!value.ports.toList().isEmpty) {
+      ["ports"] = value.ports.toList().map((p) -> renderPort(p))
+    }
+    when (!value.to.toList().isEmpty) {
+      ["to"] = value.to.toList().map((p) -> renderPeer(p))
+    }
+  }.toMap()
+
+local function renderSpec(value: Spec) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["podSelector"] = renderSelector(value.podSelector)
+      when (!value.policyTypes.toList().isEmpty) {
+        ["policyTypes"] = value.policyTypes.toList()
+      }
+      when (!value.ingress.toList().isEmpty) {
+        ["ingress"] = value.ingress.toList().map((r) -> renderIngress(r))
+      }
+      when (!value.egress.toList().isEmpty) {
+        ["egress"] = value.egress.toList().map((r) -> renderEgress(r))
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderObjectMeta(metadata)
+      ["spec"] = renderSpec(spec)
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

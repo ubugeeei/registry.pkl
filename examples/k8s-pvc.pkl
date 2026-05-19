@@ -1,0 +1,25 @@
+amends "@target.k8s/persistentvolumeclaim/PersistentVolumeClaim.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+
+metadata = new Pod.ObjectMeta {
+  name = "registry-search-index"
+  namespace = "registry"
+  labels { ["app"] = "registry-api" }
+}
+
+spec = new Spec {
+  accessModes {
+    "ReadWriteOnce"
+  }
+  storageClassName = "fast-ssd"
+  volumeMode = "Filesystem"
+  resources = new ResourceRequirements {
+    requests {
+      ["storage"] = "20Gi"
+    }
+    limits {
+      ["storage"] = "100Gi"
+    }
+  }
+}

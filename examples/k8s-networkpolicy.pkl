@@ -1,0 +1,72 @@
+amends "@target.k8s/networkpolicy/NetworkPolicy.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+import "@target.k8s/deployment/Deployment.pkl" as Dep
+
+metadata = new Pod.ObjectMeta {
+  name = "registry-api-default-deny"
+  namespace = "registry"
+}
+
+spec = new Spec {
+  podSelector = new Dep.LabelSelector {
+    matchLabels { ["app"] = "registry-api" }
+  }
+  policyTypes { "Ingress"; "Egress" }
+  ingress {
+    new NetworkPolicyIngressRule {
+      `from` {
+        new NetworkPolicyPeer {
+          namespaceSelector = new Dep.LabelSelector {
+            matchLabels { ["name"] = "ingress-nginx" }
+          }
+        }
+      }
+      ports {
+        new NetworkPolicyPort {
+          protocol = "TCP"
+          port = 8080
+        }
+      }
+    }
+  }
+  egress {
+    new NetworkPolicyEgressRule {
+      to {
+        new NetworkPolicyPeer {
+          podSelector = new Dep.LabelSelector {
+            matchLabels { ["app"] = "postgres" }
+          }
+        }
+      }
+      ports {
+        new NetworkPolicyPort {
+          protocol = "TCP"
+          port = 5432
+        }
+      }
+    }
+    new NetworkPolicyEgressRule {
+      to {
+        new NetworkPolicyPeer {
+          namespaceSelector = new Dep.LabelSelector {
+            matchLabels { ["name"] = "kube-system" }
+          }
+          podSelector = new Dep.LabelSelector {
+            matchLabels { ["k8s-app"] = "kube-dns" }
+          }
+        }
+      }
+      ports {
+        new NetworkPolicyPort {
+          protocol = "UDP"
+          port = 53
+        }
+        new NetworkPolicyPort {
+          protocol = "TCP"
+          port = 53
+        }
+      }
+    }
+  }
+}

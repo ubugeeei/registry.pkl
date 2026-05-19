@@ -1,0 +1,57 @@
+amends "@target.k8s/ingress/Ingress.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+
+metadata = new Pod.ObjectMeta {
+  name = "registry-api"
+  namespace = "registry"
+  annotations {
+    ["cert-manager.io/cluster-issuer"] = "letsencrypt-prod"
+    ["nginx.ingress.kubernetes.io/ssl-redirect"] = "true"
+  }
+}
+
+spec = new Spec {
+  ingressClassName = "nginx"
+  tls {
+    new IngressTLS {
+      hosts {
+        "api.registry.example.com"
+      }
+      secretName = "api-registry-tls"
+    }
+  }
+  rules {
+    new IngressRule {
+      host = "api.registry.example.com"
+      http = new HTTPIngressRuleValue {
+        paths {
+          new HTTPIngressPath {
+            path = "/api"
+            pathType = "Prefix"
+            backend = new IngressBackend {
+              service = new IngressServiceBackend {
+                name = "registry-api"
+                port = new ServiceBackendPort {
+                  name = "http"
+                }
+              }
+            }
+          }
+          new HTTPIngressPath {
+            path = "/metrics"
+            pathType = "Exact"
+            backend = new IngressBackend {
+              service = new IngressServiceBackend {
+                name = "registry-api"
+                port = new ServiceBackendPort {
+                  name = "metrics"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

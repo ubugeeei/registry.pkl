@@ -16,6 +16,10 @@ targets {
   "daemonset.yaml"
   "job.yaml"
   "cronjob.yaml"
+  "ingress.yaml"
+  "networkpolicy.yaml"
+  "secret.yaml"
+  "persistentvolumeclaim.yaml"
 }
 
 formats {
