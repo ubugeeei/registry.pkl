@@ -1,0 +1,52 @@
+/// Tests for `target.js.lerna.Lerna` rendering.
+amends "pkl:test"
+
+import "../lerna/Lerna.pkl"
+
+local config = (Lerna) {
+  version = "0.0.0"
+  packages {
+    "packages/*"
+    "apps/*"
+  }
+  npmClient = "pnpm"
+  useNx = true
+  command = new Lerna.Command {
+    publish = new Lerna.PublishCommand {
+      conventionalCommits = true
+      message = "chore(release): publish %s"
+      registry = "https://registry.npmjs.org"
+      ignoreChanges {
+        "**/*.md"
+        "**/test/**"
+      }
+    }
+    version = new Lerna.VersionCommand {
+      conventionalCommits = true
+      allowBranch = new Listing<String> { "main"; "release/*" }
+      message = "chore(release): version %s"
+      signGitTag = true
+    }
+  }
+}
+
+facts {
+  ["version field is required"] {
+    config.rendered["version"] == "0.0.0"
+  }
+  ["packages list emits"] {
+    config.rendered["packages"] == List("packages/*", "apps/*")
+  }
+  ["command.publish forwards conventionalCommits and message"] {
+    config.rendered["command"]["publish"]["conventionalCommits"] == true
+    config.rendered["command"]["publish"]["message"] == "chore(release): publish %s"
+  }
+  ["command.version allowBranch flattens listing"] {
+    config.rendered["command"]["version"]["allowBranch"]
+      == List("main", "release/*")
+  }
+  ["npmClient + useNx pass through"] {
+    config.rendered["npmClient"] == "pnpm"
+    config.rendered["useNx"] == true
+  }
+}

@@ -1,0 +1,31 @@
+amends "@target.js/lerna/Lerna.pkl"
+
+version = "independent"
+npmClient = "pnpm"
+useNx = true
+
+packages {
+  "packages/*"
+  "apps/*"
+}
+
+command = new Command {
+  publish = new PublishCommand {
+    conventionalCommits = true
+    registry = "https://registry.npmjs.org"
+    message = "chore(release): publish %s"
+    ignoreChanges {
+      "**/*.md"
+      "**/__tests__/**"
+    }
+    noVerifyAccess = false
+  }
+  version = new VersionCommand {
+    conventionalCommits = true
+    changelogPreset = "angular"
+    allowBranch = new Listing<String> { "main"; "release/*" }
+    message = "chore(release): version %s [skip ci]"
+    signGitCommit = true
+    signGitTag = true
+  }
+}

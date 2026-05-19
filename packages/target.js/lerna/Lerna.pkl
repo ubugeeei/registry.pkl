@@ -1,0 +1,179 @@
+/// A typed authoring surface for `lerna.json`.
+///
+/// Models Lerna v8+ surface: packages, npmClient, useNx, command-specific
+/// settings under `command`, and changelog / versioning fields.
+module target.js.lerna.Lerna
+
+import "@target.core/Maps.pkl" as Maps
+
+class PublishCommand {
+  conventionalCommits: Boolean? = null
+  message: String? = null
+  registry: String? = null
+  ignoreChanges: Listing<String> = new Listing {}
+  graphType: ("all"|"dependencies")? = null
+  yes: Boolean? = null
+  push: Boolean? = null
+  gitRemote: String? = null
+  noVerifyAccess: Boolean? = null
+  distTag: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class VersionCommand {
+  conventionalCommits: Boolean? = null
+  conventionalGraduate: (Boolean|String)? = null
+  changelogPreset: String? = null
+  message: String? = null
+  exact: Boolean? = null
+  push: Boolean? = null
+  gitTagVersion: Boolean? = null
+  forceGitTag: Boolean? = null
+  signGitCommit: Boolean? = null
+  signGitTag: Boolean? = null
+  amend: Boolean? = null
+  allowBranch: (String|Listing<String>)? = null
+  ignoreChanges: Listing<String> = new Listing {}
+  yes: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Command {
+  publish: PublishCommand? = null
+  version: VersionCommand? = null
+  bootstrap: Mapping<String, Any> = new Mapping {}
+  init: Mapping<String, Any> = new Mapping {}
+  run: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+version: String|"independent" = "independent"
+packages: Listing<String> = new Listing {}
+npmClient: ("npm"|"yarn"|"pnpm")? = null
+useNx: Boolean? = null
+useWorkspaces: Boolean? = null
+command: Command? = null
+changelogPreset: String? = null
+ignoreChanges: Listing<String> = new Listing {}
+loglevel: String? = null
+ci: Boolean? = null
+granularPathspec: Boolean? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderStringOrList(value: String|Listing<String>) =
+  if (value is Listing) value.toList() else value
+
+local function renderPublish(value: PublishCommand) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.conventionalCommits != null) {
+        ["conventionalCommits"] = value.conventionalCommits
+      }
+      when (value.message != null) { ["message"] = value.message }
+      when (value.registry != null) { ["registry"] = value.registry }
+      when (!value.ignoreChanges.toList().isEmpty) {
+        ["ignoreChanges"] = value.ignoreChanges.toList()
+      }
+      when (value.graphType != null) { ["graphType"] = value.graphType }
+      when (value.yes != null) { ["yes"] = value.yes }
+      when (value.push != null) { ["push"] = value.push }
+      when (value.gitRemote != null) { ["gitRemote"] = value.gitRemote }
+      when (value.noVerifyAccess != null) {
+        ["noVerifyAccess"] = value.noVerifyAccess
+      }
+      when (value.distTag != null) { ["distTag"] = value.distTag }
+    },
+    value.extra,
+  )
+
+local function renderVersion(value: VersionCommand) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.conventionalCommits != null) {
+        ["conventionalCommits"] = value.conventionalCommits
+      }
+      when (value.conventionalGraduate != null) {
+        ["conventionalGraduate"] = value.conventionalGraduate
+      }
+      when (value.changelogPreset != null) {
+        ["changelogPreset"] = value.changelogPreset
+      }
+      when (value.message != null) { ["message"] = value.message }
+      when (value.exact != null) { ["exact"] = value.exact }
+      when (value.push != null) { ["push"] = value.push }
+      when (value.gitTagVersion != null) {
+        ["gitTagVersion"] = value.gitTagVersion
+      }
+      when (value.forceGitTag != null) {
+        ["forceGitTag"] = value.forceGitTag
+      }
+      when (value.signGitCommit != null) {
+        ["signGitCommit"] = value.signGitCommit
+      }
+      when (value.signGitTag != null) {
+        ["signGitTag"] = value.signGitTag
+      }
+      when (value.amend != null) { ["amend"] = value.amend }
+      when (value.allowBranch != null) {
+        ["allowBranch"] = renderStringOrList(value.allowBranch)
+      }
+      when (!value.ignoreChanges.toList().isEmpty) {
+        ["ignoreChanges"] = value.ignoreChanges.toList()
+      }
+      when (value.yes != null) { ["yes"] = value.yes }
+    },
+    value.extra,
+  )
+
+local function renderCommand(value: Command) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.publish != null) {
+        ["publish"] = renderPublish(value.publish)
+      }
+      when (value.version != null) {
+        ["version"] = renderVersion(value.version)
+      }
+      when (!value.bootstrap.toMap().isEmpty) {
+        ["bootstrap"] = value.bootstrap.toMap()
+      }
+      when (!value.init.toMap().isEmpty) {
+        ["init"] = value.init.toMap()
+      }
+      when (!value.run.toMap().isEmpty) {
+        ["run"] = value.run.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      ["version"] = version
+      when (!packages.toList().isEmpty) { ["packages"] = packages.toList() }
+      when (npmClient != null) { ["npmClient"] = npmClient }
+      when (useNx != null) { ["useNx"] = useNx }
+      when (useWorkspaces != null) { ["useWorkspaces"] = useWorkspaces }
+      when (command != null) { ["command"] = renderCommand(command) }
+      when (changelogPreset != null) {
+        ["changelogPreset"] = changelogPreset
+      }
+      when (!ignoreChanges.toList().isEmpty) {
+        ["ignoreChanges"] = ignoreChanges.toList()
+      }
+      when (loglevel != null) { ["loglevel"] = loglevel }
+      when (ci != null) { ["ci"] = ci }
+      when (granularPathspec != null) {
+        ["granularPathspec"] = granularPathspec
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

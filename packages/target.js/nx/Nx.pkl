@@ -1,0 +1,177 @@
+/// A typed authoring surface for `nx.json`.
+///
+/// Nx's root config keys: `namedInputs`, `targetDefaults`, `tasksRunnerOptions`,
+/// `plugins`, `affected`, `release`. Each target default declares cache
+/// behavior, inputs, outputs, and dependsOn for a given target name.
+module target.js.nx.Nx
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias InputEntry = String|Mapping<String, Any>
+
+class TargetDefault {
+  dependsOn: Listing<String|Mapping<String, Any>> = new Listing {}
+  inputs: Listing<InputEntry> = new Listing {}
+  outputs: Listing<String> = new Listing {}
+  cache: Boolean? = null
+  options: Mapping<String, Any> = new Mapping {}
+  executor: String? = null
+  configurations: Mapping<String, Mapping<String, Any>> = new Mapping {}
+  parallelism: Boolean? = null
+  syncGenerators: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class PluginRef {
+  plugin: String
+  options: Mapping<String, Any> = new Mapping {}
+  include: Listing<String> = new Listing {}
+  exclude: Listing<String> = new Listing {}
+}
+
+class Release {
+  projectsRelationship: ("fixed"|"independent")? = null
+  releaseTagPattern: String? = null
+  version: Mapping<String, Any> = new Mapping {}
+  changelog: (Mapping<String, Any>|Boolean)? = null
+  git: Mapping<String, Any> = new Mapping {}
+  conventionalCommits: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+affected: Mapping<String, Any>? = null
+defaultBase: String? = null
+namedInputs: Mapping<String, Listing<InputEntry>> = new Mapping {}
+targetDefaults: Mapping<String, TargetDefault> = new Mapping {}
+tasksRunnerOptions: Mapping<String, Mapping<String, Any>> = new Mapping {}
+plugins: Listing<String|PluginRef> = new Listing {}
+release: Release? = null
+nxCloudAccessToken: String? = null
+nxCloudId: String? = null
+parallel: Int? = null
+useInferencePlugins: Boolean? = null
+defaultProject: String? = null
+generators: Mapping<String, Mapping<String, Any>> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderInputs(items: Listing<InputEntry>) =
+  items.toList().map((it) -> if (it is Mapping) it.toMap() else it)
+
+local function renderTargetDefault(value: TargetDefault) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.dependsOn.toList().isEmpty) {
+        ["dependsOn"] = value.dependsOn.toList().map((d) ->
+          if (d is Mapping) d.toMap() else d
+        )
+      }
+      when (!value.inputs.toList().isEmpty) {
+        ["inputs"] = renderInputs(value.inputs)
+      }
+      when (!value.outputs.toList().isEmpty) {
+        ["outputs"] = value.outputs.toList()
+      }
+      when (value.cache != null) { ["cache"] = value.cache }
+      when (!value.options.toMap().isEmpty) {
+        ["options"] = value.options.toMap()
+      }
+      when (value.executor != null) { ["executor"] = value.executor }
+      when (!value.configurations.toMap().isEmpty) {
+        ["configurations"] = value.configurations.toMap()
+          .mapValues((_, m) -> m.toMap())
+      }
+      when (value.parallelism != null) {
+        ["parallelism"] = value.parallelism
+      }
+      when (!value.syncGenerators.toList().isEmpty) {
+        ["syncGenerators"] = value.syncGenerators.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderPlugin(value: String|PluginRef) =
+  if (value is String) value
+  else
+    new Mapping<String, Any> {
+      ["plugin"] = value.plugin
+      when (!value.options.toMap().isEmpty) {
+        ["options"] = value.options.toMap()
+      }
+      when (!value.include.toList().isEmpty) {
+        ["include"] = value.include.toList()
+      }
+      when (!value.exclude.toList().isEmpty) {
+        ["exclude"] = value.exclude.toList()
+      }
+    }.toMap()
+
+local function renderRelease(value: Release) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.projectsRelationship != null) {
+        ["projectsRelationship"] = value.projectsRelationship
+      }
+      when (value.releaseTagPattern != null) {
+        ["releaseTagPattern"] = value.releaseTagPattern
+      }
+      when (!value.version.toMap().isEmpty) {
+        ["version"] = value.version.toMap()
+      }
+      when (value.changelog != null) {
+        ["changelog"] = if (value.changelog is Mapping) value.changelog.toMap() else value.changelog
+      }
+      when (!value.git.toMap().isEmpty) { ["git"] = value.git.toMap() }
+      when (!value.conventionalCommits.toMap().isEmpty) {
+        ["conventionalCommits"] = value.conventionalCommits.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (affected != null) { ["affected"] = affected.toMap() }
+      when (defaultBase != null) { ["defaultBase"] = defaultBase }
+      when (!namedInputs.toMap().isEmpty) {
+        ["namedInputs"] = namedInputs.toMap()
+          .mapValues((_, l) -> renderInputs(l))
+      }
+      when (!targetDefaults.toMap().isEmpty) {
+        ["targetDefaults"] = targetDefaults.toMap()
+          .mapValues((_, t) -> renderTargetDefault(t))
+      }
+      when (!tasksRunnerOptions.toMap().isEmpty) {
+        ["tasksRunnerOptions"] = tasksRunnerOptions.toMap()
+          .mapValues((_, m) -> m.toMap())
+      }
+      when (!plugins.toList().isEmpty) {
+        ["plugins"] = plugins.toList().map((p) -> renderPlugin(p))
+      }
+      when (release != null) { ["release"] = renderRelease(release) }
+      when (nxCloudAccessToken != null) {
+        ["nxCloudAccessToken"] = nxCloudAccessToken
+      }
+      when (nxCloudId != null) { ["nxCloudId"] = nxCloudId }
+      when (parallel != null) { ["parallel"] = parallel }
+      when (useInferencePlugins != null) {
+        ["useInferencePlugins"] = useInferencePlugins
+      }
+      when (defaultProject != null) {
+        ["defaultProject"] = defaultProject
+      }
+      when (!generators.toMap().isEmpty) {
+        ["generators"] = generators.toMap()
+          .mapValues((_, m) -> m.toMap())
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

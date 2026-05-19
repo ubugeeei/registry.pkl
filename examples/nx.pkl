@@ -1,0 +1,72 @@
+amends "@target.js/nx/Nx.pkl"
+
+defaultBase = "origin/main"
+parallel = 4
+useInferencePlugins = true
+
+namedInputs {
+  ["default"] = new Listing<InputEntry> {
+    "{projectRoot}/**/*"
+    new Mapping<String, Any> {
+      ["externalDependencies"] = new Listing<String> { "nx" }.toList()
+    }
+  }
+  ["production"] = new Listing<InputEntry> {
+    "default"
+    "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)"
+    "!{projectRoot}/tsconfig.spec.json"
+  }
+}
+
+targetDefaults {
+  ["build"] = new TargetDefault {
+    dependsOn { "^build" }
+    inputs { "production"; "^production" }
+    outputs { "{projectRoot}/dist" }
+    cache = true
+  }
+  ["test"] = new TargetDefault {
+    inputs { "default"; "^production" }
+    cache = true
+  }
+  ["lint"] = new TargetDefault {
+    inputs { "default" }
+    cache = true
+  }
+}
+
+plugins {
+  new PluginRef {
+    plugin = "@nx/jest/plugin"
+    options {
+      ["targetName"] = "test"
+    }
+  }
+  new PluginRef {
+    plugin = "@nx/eslint/plugin"
+    options {
+      ["targetName"] = "lint"
+    }
+  }
+  new PluginRef {
+    plugin = "@nx/playwright/plugin"
+    options {
+      ["targetName"] = "e2e"
+    }
+  }
+}
+
+release = new Release {
+  projectsRelationship = "independent"
+  releaseTagPattern = "{projectName}@{version}"
+  conventionalCommits {
+    ["types"] = new Mapping<String, Any> {
+      ["feat"] = new Mapping<String, Any> {
+        ["semverBump"] = "minor"
+      }.toMap()
+      ["fix"] = new Mapping<String, Any> {
+        ["semverBump"] = "patch"
+      }.toMap()
+    }.toMap()
+  }
+}
