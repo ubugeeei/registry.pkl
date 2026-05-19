@@ -1,0 +1,296 @@
+/// A typed authoring surface for Helix's `config.toml`.
+///
+/// Reference: https://docs.helix-editor.com/configuration.html
+module target.editor.helix.Config
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class IndentGuides {
+  render: Boolean? = null
+  character: String? = null
+  skip_levels: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Cursor {
+  normal: ("block"|"bar"|"underline"|"hidden")? = null
+  insert: ("block"|"bar"|"underline"|"hidden")? = null
+  select: ("block"|"bar"|"underline"|"hidden")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class StatusLine {
+  left: Listing<String> = new Listing {}
+  center: Listing<String> = new Listing {}
+  right: Listing<String> = new Listing {}
+  separator: String? = null
+  mode: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class LspSettings {
+  enable: Boolean? = null
+  display_messages: Boolean? = null
+  auto_signature_help: Boolean? = null
+  display_inlay_hints: Boolean? = null
+  display_signature_help_docs: Boolean? = null
+  snippets: Boolean? = null
+  goto_reference_include_declaration: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class FilePicker {
+  `hidden`: Boolean? = null
+  follow_symlinks: Boolean? = null
+  parents: Boolean? = null
+  ignore: Boolean? = null
+  git_ignore: Boolean? = null
+  git_global: Boolean? = null
+  git_exclude: Boolean? = null
+  max_depth: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class EditorSettings {
+  scrolloff: Int? = null
+  mouse: Boolean? = null
+  middle_click_paste: Boolean? = null
+  scroll_lines: Int? = null
+  shell: Listing<String> = new Listing {}
+  line_number: ("absolute"|"relative")? = null
+  cursorline: Boolean? = null
+  cursorcolumn: Boolean? = null
+  gutters: Listing<String> = new Listing {}
+  auto_completion: Boolean? = null
+  auto_format: Boolean? = null
+  auto_save: Boolean? = null
+  completion_trigger_len: Int? = null
+  completion_replace: Boolean? = null
+  idle_timeout: Int? = null
+  preview_completion_insert: Boolean? = null
+  true_color: Boolean? = null
+  rulers: Listing<Int> = new Listing {}
+  bufferline: ("always"|"never"|"multiple")? = null
+  color_modes: Boolean? = null
+  text_width: Int? = null
+  workspace_lsp_roots: Listing<String> = new Listing {}
+  default_line_ending: ("native"|"lf"|"crlf")? = null
+  insert_final_newline: Boolean? = null
+  smart_tab: Mapping<String, Any>? = null
+  indent_guides: IndentGuides? = null
+  cursor_shape: Cursor? = null
+  statusline: StatusLine? = null
+  lsp: LspSettings? = null
+  `file-picker`: FilePicker? = null
+  whitespace: Mapping<String, Any>? = null
+  soft_wrap: Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+theme: String? = null
+editor: EditorSettings? = null
+keys: Mapping<String, Mapping<String, Any>> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderIndentGuides(value: IndentGuides) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.render != null) { ["render"] = value.render }
+      when (value.character != null) { ["character"] = value.character }
+      when (value.skip_levels != null) {
+        ["skip-levels"] = value.skip_levels
+      }
+    },
+    value.extra,
+  )
+
+local function renderCursor(value: Cursor) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.normal != null) { ["normal"] = value.normal }
+      when (value.insert != null) { ["insert"] = value.insert }
+      when (value.select != null) { ["select"] = value.select }
+    },
+    value.extra,
+  )
+
+local function renderStatusline(value: StatusLine) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.left.toList().isEmpty) { ["left"] = value.left.toList() }
+      when (!value.center.toList().isEmpty) {
+        ["center"] = value.center.toList()
+      }
+      when (!value.right.toList().isEmpty) {
+        ["right"] = value.right.toList()
+      }
+      when (value.separator != null) { ["separator"] = value.separator }
+      when (!value.mode.toMap().isEmpty) {
+        ["mode"] = value.mode.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderLsp(value: LspSettings) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.enable != null) { ["enable"] = value.enable }
+      when (value.display_messages != null) {
+        ["display-messages"] = value.display_messages
+      }
+      when (value.auto_signature_help != null) {
+        ["auto-signature-help"] = value.auto_signature_help
+      }
+      when (value.display_inlay_hints != null) {
+        ["display-inlay-hints"] = value.display_inlay_hints
+      }
+      when (value.display_signature_help_docs != null) {
+        ["display-signature-help-docs"] = value.display_signature_help_docs
+      }
+      when (value.snippets != null) { ["snippets"] = value.snippets }
+      when (value.goto_reference_include_declaration != null) {
+        ["goto-reference-include-declaration"] =
+          value.goto_reference_include_declaration
+      }
+    },
+    value.extra,
+  )
+
+local function renderFilePicker(value: FilePicker) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.`hidden` != null) { ["hidden"] = value.`hidden` }
+      when (value.follow_symlinks != null) {
+        ["follow-symlinks"] = value.follow_symlinks
+      }
+      when (value.parents != null) { ["parents"] = value.parents }
+      when (value.ignore != null) { ["ignore"] = value.ignore }
+      when (value.git_ignore != null) {
+        ["git-ignore"] = value.git_ignore
+      }
+      when (value.git_global != null) {
+        ["git-global"] = value.git_global
+      }
+      when (value.git_exclude != null) {
+        ["git-exclude"] = value.git_exclude
+      }
+      when (value.max_depth != null) {
+        ["max-depth"] = value.max_depth
+      }
+    },
+    value.extra,
+  )
+
+local function renderEditor(value: EditorSettings) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.scrolloff != null) { ["scrolloff"] = value.scrolloff }
+      when (value.mouse != null) { ["mouse"] = value.mouse }
+      when (value.middle_click_paste != null) {
+        ["middle-click-paste"] = value.middle_click_paste
+      }
+      when (value.scroll_lines != null) {
+        ["scroll-lines"] = value.scroll_lines
+      }
+      when (!value.shell.toList().isEmpty) {
+        ["shell"] = value.shell.toList()
+      }
+      when (value.line_number != null) {
+        ["line-number"] = value.line_number
+      }
+      when (value.cursorline != null) { ["cursorline"] = value.cursorline }
+      when (value.cursorcolumn != null) {
+        ["cursorcolumn"] = value.cursorcolumn
+      }
+      when (!value.gutters.toList().isEmpty) {
+        ["gutters"] = value.gutters.toList()
+      }
+      when (value.auto_completion != null) {
+        ["auto-completion"] = value.auto_completion
+      }
+      when (value.auto_format != null) {
+        ["auto-format"] = value.auto_format
+      }
+      when (value.auto_save != null) {
+        ["auto-save"] = value.auto_save
+      }
+      when (value.completion_trigger_len != null) {
+        ["completion-trigger-len"] = value.completion_trigger_len
+      }
+      when (value.completion_replace != null) {
+        ["completion-replace"] = value.completion_replace
+      }
+      when (value.idle_timeout != null) {
+        ["idle-timeout"] = value.idle_timeout
+      }
+      when (value.preview_completion_insert != null) {
+        ["preview-completion-insert"] = value.preview_completion_insert
+      }
+      when (value.true_color != null) {
+        ["true-color"] = value.true_color
+      }
+      when (!value.rulers.toList().isEmpty) {
+        ["rulers"] = value.rulers.toList()
+      }
+      when (value.bufferline != null) {
+        ["bufferline"] = value.bufferline
+      }
+      when (value.color_modes != null) {
+        ["color-modes"] = value.color_modes
+      }
+      when (value.text_width != null) {
+        ["text-width"] = value.text_width
+      }
+      when (!value.workspace_lsp_roots.toList().isEmpty) {
+        ["workspace-lsp-roots"] = value.workspace_lsp_roots.toList()
+      }
+      when (value.default_line_ending != null) {
+        ["default-line-ending"] = value.default_line_ending
+      }
+      when (value.insert_final_newline != null) {
+        ["insert-final-newline"] = value.insert_final_newline
+      }
+      when (value.smart_tab != null) {
+        ["smart-tab"] = value.smart_tab.toMap()
+      }
+      when (value.indent_guides != null) {
+        ["indent-guides"] = renderIndentGuides(value.indent_guides)
+      }
+      when (value.cursor_shape != null) {
+        ["cursor-shape"] = renderCursor(value.cursor_shape)
+      }
+      when (value.statusline != null) {
+        ["statusline"] = renderStatusline(value.statusline)
+      }
+      when (value.lsp != null) { ["lsp"] = renderLsp(value.lsp) }
+      when (value.`file-picker` != null) {
+        ["file-picker"] = renderFilePicker(value.`file-picker`)
+      }
+      when (value.whitespace != null) {
+        ["whitespace"] = value.whitespace.toMap()
+      }
+      when (value.soft_wrap != null) {
+        ["soft-wrap"] = value.soft_wrap.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (theme != null) { ["theme"] = theme }
+      when (editor != null) { ["editor"] = renderEditor(editor) }
+      when (!keys.toMap().isEmpty) {
+        ["keys"] = keys.toMap().mapValues((_, m) -> m.toMap())
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

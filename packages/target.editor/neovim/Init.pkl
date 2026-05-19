@@ -1,0 +1,150 @@
+/// A typed authoring surface for a basic `init.lua`.
+///
+/// This module models the small slice of Neovim config that maps cleanly
+/// to data: scalar options under `vim.opt` / `vim.g`, autocommands,
+/// keymaps. Anything more expressive should fall through to the `body`
+/// escape hatch which is rendered verbatim.
+///
+/// Reference: https://neovim.io/doc/user/lua-guide.html
+module target.editor.neovim.Init
+
+typealias Scalar = String|Boolean|Int|Float
+
+class Keymap {
+  /// Modes ("n", "i", "v", "x", "o", "s", "c", "t", or combinations like "nv").
+  mode: String|Listing<String> = "n"
+  lhs: String
+  rhs: String
+  desc: String? = null
+  silent: Boolean? = null
+  noremap: Boolean? = null
+  expr: Boolean? = null
+  buffer: Boolean? = null
+}
+
+class Autocmd {
+  event: String|Listing<String>
+  pattern: (String|Listing<String>)? = null
+  command: String? = null
+  callback: String? = null
+  group: String? = null
+  desc: String? = null
+  once: Boolean? = null
+  nested: Boolean? = null
+}
+
+class Plugin {
+  /// Plugin spec line. The exact spec depends on which manager you use
+  /// (lazy.nvim, packer, plug, etc.); this module just emits the spec
+  /// inside a `body` block your manager wraps. Leave plugin management
+  /// to the caller.
+  spec: String
+}
+
+/// Options assigned via `vim.opt.<name> = <value>`.
+opt: Mapping<String, Scalar|Listing<Scalar>|Mapping<String, Scalar>> = new Mapping {}
+
+/// Globals assigned via `vim.g.<name> = <value>`.
+globals: Mapping<String, Scalar|Listing<Scalar>|Mapping<String, Scalar>> = new Mapping {}
+
+/// Keymaps installed via `vim.keymap.set`.
+keymaps: Listing<Keymap> = new Listing {}
+
+/// Autocommands installed via `vim.api.nvim_create_autocmd`.
+autocmds: Listing<Autocmd> = new Listing {}
+
+/// Lua require() statements emitted near the top of the file.
+requires: Listing<String> = new Listing {}
+
+/// Trailing Lua body — emitted verbatim after the structured blocks.
+body: Listing<String> = new Listing {}
+
+local function luaString(value: String) =
+  "\"" + value.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"") + "\""
+
+local function luaValue(value: Any) =
+  if (value is Boolean) value.toString()
+  else if (value is Int) value.toString()
+  else if (value is Float) value.toString()
+  else if (value is String) luaString(value)
+  else if (value is Listing)
+    "{ " + value.toList().map((v) -> luaValue(v)).join(", ") + " }"
+  else if (value is Mapping)
+    "{ " + value.toMap().entries
+      .map((e) -> "\(e.key) = \(luaValue(e.value))")
+      .join(", ") + " }"
+  else value.toString()
+
+local function renderOpt(name: String, value: Any) =
+  "vim.opt.\(name) = \(luaValue(value))"
+
+local function renderGlobal(name: String, value: Any) =
+  "vim.g.\(name) = \(luaValue(value))"
+
+local function modeLua(value: String|Listing<String>) =
+  if (value is Listing)
+    "{ " + value.toList().map((m) -> luaString(m)).join(", ") + " }"
+  else luaString(value)
+
+local function renderKeymap(k: Keymap) =
+  let (opts =
+    new Listing<String> {
+      when (k.desc != null) { "desc = \(luaString(k.desc!!))" }
+      when (k.silent != null) { "silent = \(k.silent)" }
+      when (k.noremap != null) { "noremap = \(k.noremap)" }
+      when (k.expr != null) { "expr = \(k.expr)" }
+      when (k.buffer != null) { "buffer = \(k.buffer)" }
+    }.toList().join(", "))
+    "vim.keymap.set(\(modeLua(k.mode)), \(luaString(k.lhs)), \(luaString(k.rhs))"
+      + (if (opts != "") ", { \(opts) }" else "")
+      + ")"
+
+local function eventLua(value: String|Listing<String>) =
+  if (value is Listing)
+    "{ " + value.toList().map((e) -> luaString(e)).join(", ") + " }"
+  else luaString(value)
+
+local function patternLua(value: String|Listing<String>) =
+  if (value is Listing)
+    "{ " + value.toList().map((p) -> luaString(p)).join(", ") + " }"
+  else luaString(value)
+
+local function renderAutocmd(a: Autocmd) =
+  let (opts =
+    new Listing<String> {
+      when (a.pattern != null) { "pattern = \(patternLua(a.pattern!!))" }
+      when (a.command != null) { "command = \(luaString(a.command!!))" }
+      when (a.callback != null) { "callback = \(a.callback!!)" }
+      when (a.group != null) { "group = \(luaString(a.group!!))" }
+      when (a.desc != null) { "desc = \(luaString(a.desc!!))" }
+      when (a.once != null) { "once = \(a.once)" }
+      when (a.nested != null) { "nested = \(a.nested)" }
+    }.toList().join(", "))
+    "vim.api.nvim_create_autocmd(\(eventLua(a.event)), { \(opts) })"
+
+local optLines: List<String> =
+  opt.toMap().entries.map((e) -> renderOpt(e.key, e.value))
+
+local globalLines: List<String> =
+  globals.toMap().entries.map((e) -> renderGlobal(e.key, e.value))
+
+local requireLines: List<String> =
+  requires.toList().map((r) -> "require(\"\(r)\")")
+
+local keymapLines: List<String> =
+  keymaps.toList().map((k) -> renderKeymap(k))
+
+local autocmdLines: List<String> =
+  autocmds.toList().map((a) -> renderAutocmd(a))
+
+hidden rendered: String =
+  (requireLines
+    + optLines
+    + globalLines
+    + keymapLines
+    + autocmdLines
+    + body.toList()).join("\n") + "\n"
+
+output {
+  text = rendered
+}

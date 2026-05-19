@@ -1,0 +1,84 @@
+/// A typed authoring surface for JetBrains workspace XML files
+/// (`.idea/workspace.xml`).
+///
+/// JetBrains stores workspace state as XML, but the shape is a stable
+/// tree of `<component>` elements containing nested `<option>` /
+/// `<list>` / `<map>` nodes. This module emits a JSON intermediate
+/// that downstream tooling (or a tiny Rust wrapper) can convert to
+/// XML — Pkl does not ship an XML renderer, so we keep the shape
+/// declarative and reviewable.
+///
+/// Reference: https://www.jetbrains.com/help/idea/configuring-the-project-environment.html
+module target.editor.jetbrains.Workspace
+
+import "@target.core/Maps.pkl" as Maps
+
+class OptionValue {
+  /// `<option name="X" value="Y" />`.
+  value: String? = null
+  /// `<option name="X"><value>...</value></option>` body, when value is structured.
+  children: Listing<Mapping<String, Any>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Component {
+  /// Component name, e.g. "RunManager", "PropertiesComponent".
+  name: String
+  /// Map of `<option>` children keyed by their `name=` attribute.
+  options: Mapping<String, OptionValue> = new Mapping {}
+  /// Arbitrary child element JSON for things that don't fit `options`.
+  children: Listing<Mapping<String, Any>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+/// Root <project version="N">.
+version: Int = 4
+
+/// Components keyed by their `name=` attribute. The Workspace renders
+/// `<project><component name=...>` for each.
+components: Mapping<String, Component> = new Mapping {}
+
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderOption(value: OptionValue) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.value != null) { ["value"] = value.value }
+      when (!value.children.toList().isEmpty) {
+        ["children"] = value.children.toList().map((m) -> m.toMap())
+      }
+    },
+    value.extra,
+  )
+
+local function renderComponent(value: Component) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = value.name
+      when (!value.options.toMap().isEmpty) {
+        ["options"] = value.options.toMap()
+          .mapValues((_, o) -> renderOption(o))
+      }
+      when (!value.children.toList().isEmpty) {
+        ["children"] = value.children.toList().map((m) -> m.toMap())
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["version"] = version
+      when (!components.toMap().isEmpty) {
+        ["components"] = components.toMap()
+          .mapValues((_, c) -> renderComponent(c))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

@@ -1,0 +1,48 @@
+amends "@target.editor/jetbrains/Workspace.pkl"
+
+version = 4
+
+components {
+  ["PropertiesComponent"] = new Component {
+    name = "PropertiesComponent"
+    options {
+      ["nodejs_package_manager_path"] = new OptionValue {
+        value = "pnpm"
+      }
+      ["last_opened_file_path"] = new OptionValue {
+        value = "$PROJECT_DIR$"
+      }
+      ["WebServerToolWindowFactoryState"] = new OptionValue {
+        value = "false"
+      }
+    }
+  }
+  ["RunManager"] = new Component {
+    name = "RunManager"
+    children {
+      new Mapping<String, Any> {
+        ["tag"] = "configuration"
+        ["attrs"] = new Mapping<String, String> {
+          ["name"] = "Test"
+          ["type"] = "JavaScriptTestRunnerJest"
+          ["factoryName"] = "Jest"
+        }.toMap()
+      }
+      new Mapping<String, Any> {
+        ["tag"] = "configuration"
+        ["attrs"] = new Mapping<String, String> {
+          ["name"] = "Lint"
+          ["type"] = "ShellScript"
+        }.toMap()
+      }
+    }
+  }
+  ["TaskManager"] = new Component {
+    name = "TaskManager"
+    options {
+      ["localTasksCounter"] = new OptionValue {
+        value = "1"
+      }
+    }
+  }
+}

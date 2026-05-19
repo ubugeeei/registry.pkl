@@ -1,0 +1,52 @@
+/// Tests for `target.editor.sublime.Project` rendering.
+amends "pkl:test"
+
+import "../sublime/Project.pkl"
+
+local proj = (Project) {
+  folders {
+    new Project.Folder {
+      path = "."
+      folder_exclude_patterns {
+        "node_modules"
+        "dist"
+        "target"
+      }
+      file_exclude_patterns {
+        "*.pyc"
+      }
+    }
+  }
+  settings {
+    ["tab_size"] = 2
+    ["translate_tabs_to_spaces"] = true
+    ["ensure_newline_at_eof_on_save"] = true
+  }
+  build_systems {
+    new Project.BuildSystem {
+      name = "Test"
+      shell_cmd = "pnpm test"
+      working_dir = "$project_path"
+      file_regex = "([^:]+):([0-9]+):([0-9]+)"
+    }
+  }
+}
+
+facts {
+  ["folders emit path and exclude patterns"] {
+    local f = proj.rendered["folders"][0]
+    f["path"] == "."
+    f["folder_exclude_patterns"] == List("node_modules", "dist", "target")
+    f["file_exclude_patterns"] == List("*.pyc")
+  }
+  ["settings map passes through"] {
+    proj.rendered["settings"]["tab_size"] == 2
+    proj.rendered["settings"]["translate_tabs_to_spaces"] == true
+  }
+  ["build system fields emit"] {
+    local b = proj.rendered["build_systems"][0]
+    b["name"] == "Test"
+    b["shell_cmd"] == "pnpm test"
+    b["file_regex"] == "([^:]+):([0-9]+):([0-9]+)"
+  }
+}

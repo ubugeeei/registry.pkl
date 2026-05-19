@@ -1,0 +1,59 @@
+/// Tests for `target.editor.helix.Config` rendering.
+amends "pkl:test"
+
+import "../helix/Config.pkl"
+
+local config = (Config) {
+  theme = "catppuccin_mocha"
+  editor = new Config.EditorSettings {
+    line_number = "relative"
+    mouse = true
+    bufferline = "multiple"
+    color_modes = true
+    auto_format = true
+    completion_trigger_len = 2
+    rulers = new Listing<Int> { 80; 120 }
+    cursor_shape = new Config.Cursor {
+      normal = "block"
+      insert = "bar"
+      select = "underline"
+    }
+    indent_guides = new Config.IndentGuides {
+      render = true
+      character = "│"
+      skip_levels = 1
+    }
+    lsp = new Config.LspSettings {
+      display_messages = true
+      display_inlay_hints = true
+    }
+  }
+}
+
+facts {
+  ["theme passes through"] {
+    config.rendered["theme"] == "catppuccin_mocha"
+  }
+  ["editor scalars use kebab-case keys"] {
+    config.rendered["editor"]["line-number"] == "relative"
+    config.rendered["editor"]["bufferline"] == "multiple"
+    config.rendered["editor"]["color-modes"] == true
+  }
+  ["rulers list emits"] {
+    config.rendered["editor"]["rulers"] == List(80, 120)
+  }
+  ["cursor shape nests under cursor-shape"] {
+    local cs = config.rendered["editor"]["cursor-shape"]
+    cs["normal"] == "block"
+    cs["insert"] == "bar"
+    cs["select"] == "underline"
+  }
+  ["indent_guides emits with kebab-case skip-levels"] {
+    config.rendered["editor"]["indent-guides"]["skip-levels"] == 1
+    config.rendered["editor"]["indent-guides"]["character"] == "│"
+  }
+  ["lsp settings emit display-messages / display-inlay-hints"] {
+    config.rendered["editor"]["lsp"]["display-messages"] == true
+    config.rendered["editor"]["lsp"]["display-inlay-hints"] == true
+  }
+}

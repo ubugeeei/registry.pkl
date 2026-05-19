@@ -1,0 +1,48 @@
+/// Tests for `target.editor.jetbrains.Workspace` rendering.
+amends "pkl:test"
+
+import "../jetbrains/Workspace.pkl"
+
+local ws = (Workspace) {
+  version = 4
+  components {
+    ["PropertiesComponent"] = new Workspace.Component {
+      name = "PropertiesComponent"
+      options {
+        ["nodejs_package_manager_path"] = new Workspace.OptionValue {
+          value = "pnpm"
+        }
+        ["last.edited"] = new Workspace.OptionValue {
+          value = "true"
+        }
+      }
+    }
+    ["RunManager"] = new Workspace.Component {
+      name = "RunManager"
+      children {
+        new Mapping<String, Any> {
+          ["tag"] = "configuration"
+          ["attrs"] = new Mapping<String, String> {
+            ["name"] = "Test"
+            ["type"] = "JavaScriptTestRunnerJest"
+          }.toMap()
+        }
+      }
+    }
+  }
+}
+
+facts {
+  ["version emits"] {
+    ws.rendered["version"] == 4
+  }
+  ["component option values pass through"] {
+    local opts = ws.rendered["components"]["PropertiesComponent"]["options"]
+    opts["nodejs_package_manager_path"]["value"] == "pnpm"
+  }
+  ["component children render as JSON intermediate"] {
+    local run = ws.rendered["components"]["RunManager"]
+    run["children"][0]["tag"] == "configuration"
+    run["children"][0]["attrs"]["name"] == "Test"
+  }
+}

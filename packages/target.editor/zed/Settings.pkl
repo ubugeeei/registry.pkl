@@ -1,0 +1,234 @@
+/// A typed authoring surface for `~/.config/zed/settings.json`.
+///
+/// Models the commonly tuned Zed settings: theme, font, tab/format,
+/// language overrides, project search excludes, LSP toggles, AI/assistant
+/// config. Forwards the rest via `extra`.
+///
+/// Reference: https://zed.dev/docs/configuring-zed
+module target.editor.zed.Settings
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias Theme = String|Mapping<String, String>
+
+class FontFeatures {
+  calt: Boolean? = null
+  liga: Boolean? = null
+  ss01: Boolean? = null
+  extra: Mapping<String, Boolean> = new Mapping {}
+}
+
+class TerminalSettings {
+  shell: (String|Mapping<String, Any>)? = null
+  font_family: String? = null
+  font_size: Int? = null
+  working_directory: String? = null
+  blinking: ("off"|"on"|"terminal_controlled")? = null
+  copy_on_select: Boolean? = null
+  env: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class LanguageSettings {
+  tab_size: Int? = null
+  hard_tabs: Boolean? = null
+  soft_wrap: ("none"|"preferred_line_length"|"editor_width"|"bounded")? = null
+  preferred_line_length: Int? = null
+  format_on_save: ("on"|"off"|Mapping<String, Any>)? = null
+  formatter: (String|Mapping<String, Any>|Listing<Mapping<String, Any>>)? = null
+  enable_language_server: Boolean? = null
+  language_servers: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Assistant {
+  version: String? = null
+  default_model: Mapping<String, String>? = null
+  enabled: Boolean? = null
+  button: Boolean? = null
+  default_open_ai_model: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+theme: Theme? = null
+buffer_font_family: String? = null
+buffer_font_features: FontFeatures? = null
+buffer_font_size: Int? = null
+ui_font_family: String? = null
+ui_font_size: Int? = null
+vim_mode: Boolean? = null
+relative_line_numbers: Boolean? = null
+show_whitespaces: ("all"|"none"|"selection"|"boundary")? = null
+tab_size: Int? = null
+hard_tabs: Boolean? = null
+soft_wrap: ("none"|"preferred_line_length"|"editor_width"|"bounded")? = null
+preferred_line_length: Int? = null
+format_on_save: ("on"|"off"|Mapping<String, Any>)? = null
+ensure_final_newline_on_save: Boolean? = null
+remove_trailing_whitespace_on_save: Boolean? = null
+project_panel: Mapping<String, Any>? = null
+terminal: TerminalSettings? = null
+languages: Mapping<String, LanguageSettings> = new Mapping {}
+lsp: Mapping<String, Mapping<String, Any>> = new Mapping {}
+file_types: Mapping<String, Listing<String>> = new Mapping {}
+file_scan_exclusions: Listing<String> = new Listing {}
+assistant: Assistant? = null
+inlay_hints: Mapping<String, Any>? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderFontFeatures(value: FontFeatures) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.calt != null) { ["calt"] = value.calt }
+      when (value.liga != null) { ["liga"] = value.liga }
+      when (value.ss01 != null) { ["ss01"] = value.ss01 }
+    },
+    value.extra,
+  )
+
+local function renderTheme(value: Theme) =
+  if (value is Mapping) value.toMap() else value
+
+local function renderTerminal(value: TerminalSettings) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.shell != null) {
+        ["shell"] = if (value.shell is Mapping) value.shell.toMap() else value.shell
+      }
+      when (value.font_family != null) {
+        ["font_family"] = value.font_family
+      }
+      when (value.font_size != null) { ["font_size"] = value.font_size }
+      when (value.working_directory != null) {
+        ["working_directory"] = value.working_directory
+      }
+      when (value.blinking != null) { ["blinking"] = value.blinking }
+      when (value.copy_on_select != null) {
+        ["copy_on_select"] = value.copy_on_select
+      }
+      when (!value.env.toMap().isEmpty) {
+        ["env"] = value.env.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderLang(value: LanguageSettings) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.tab_size != null) { ["tab_size"] = value.tab_size }
+      when (value.hard_tabs != null) { ["hard_tabs"] = value.hard_tabs }
+      when (value.soft_wrap != null) { ["soft_wrap"] = value.soft_wrap }
+      when (value.preferred_line_length != null) {
+        ["preferred_line_length"] = value.preferred_line_length
+      }
+      when (value.format_on_save != null) {
+        ["format_on_save"] =
+          if (value.format_on_save is Mapping) value.format_on_save.toMap()
+          else value.format_on_save
+      }
+      when (value.formatter != null) {
+        ["formatter"] =
+          if (value.formatter is Listing)
+            value.formatter.toList().map((it) -> it.toMap())
+          else if (value.formatter is Mapping) value.formatter.toMap()
+          else value.formatter
+      }
+      when (value.enable_language_server != null) {
+        ["enable_language_server"] = value.enable_language_server
+      }
+      when (!value.language_servers.toList().isEmpty) {
+        ["language_servers"] = value.language_servers.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderAssistant(value: Assistant) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.version != null) { ["version"] = value.version }
+      when (value.default_model != null) {
+        ["default_model"] = value.default_model.toMap()
+      }
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+      when (value.button != null) { ["button"] = value.button }
+      when (value.default_open_ai_model != null) {
+        ["default_open_ai_model"] = value.default_open_ai_model
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (theme != null) { ["theme"] = renderTheme(theme) }
+      when (buffer_font_family != null) {
+        ["buffer_font_family"] = buffer_font_family
+      }
+      when (buffer_font_features != null) {
+        ["buffer_font_features"] = renderFontFeatures(buffer_font_features)
+      }
+      when (buffer_font_size != null) {
+        ["buffer_font_size"] = buffer_font_size
+      }
+      when (ui_font_family != null) { ["ui_font_family"] = ui_font_family }
+      when (ui_font_size != null) { ["ui_font_size"] = ui_font_size }
+      when (vim_mode != null) { ["vim_mode"] = vim_mode }
+      when (relative_line_numbers != null) {
+        ["relative_line_numbers"] = relative_line_numbers
+      }
+      when (show_whitespaces != null) {
+        ["show_whitespaces"] = show_whitespaces
+      }
+      when (tab_size != null) { ["tab_size"] = tab_size }
+      when (hard_tabs != null) { ["hard_tabs"] = hard_tabs }
+      when (soft_wrap != null) { ["soft_wrap"] = soft_wrap }
+      when (preferred_line_length != null) {
+        ["preferred_line_length"] = preferred_line_length
+      }
+      when (format_on_save != null) {
+        ["format_on_save"] =
+          if (format_on_save is Mapping) format_on_save.toMap()
+          else format_on_save
+      }
+      when (ensure_final_newline_on_save != null) {
+        ["ensure_final_newline_on_save"] = ensure_final_newline_on_save
+      }
+      when (remove_trailing_whitespace_on_save != null) {
+        ["remove_trailing_whitespace_on_save"] =
+          remove_trailing_whitespace_on_save
+      }
+      when (project_panel != null) {
+        ["project_panel"] = project_panel.toMap()
+      }
+      when (terminal != null) { ["terminal"] = renderTerminal(terminal) }
+      when (!languages.toMap().isEmpty) {
+        ["languages"] = languages.toMap()
+          .mapValues((_, l) -> renderLang(l))
+      }
+      when (!lsp.toMap().isEmpty) {
+        ["lsp"] = lsp.toMap().mapValues((_, m) -> m.toMap())
+      }
+      when (!file_types.toMap().isEmpty) {
+        ["file_types"] = file_types.toMap()
+          .mapValues((_, l) -> l.toList())
+      }
+      when (!file_scan_exclusions.toList().isEmpty) {
+        ["file_scan_exclusions"] = file_scan_exclusions.toList()
+      }
+      when (assistant != null) {
+        ["assistant"] = renderAssistant(assistant)
+      }
+      when (inlay_hints != null) {
+        ["inlay_hints"] = inlay_hints.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}
