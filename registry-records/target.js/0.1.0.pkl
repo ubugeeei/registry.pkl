@@ -1,0 +1,43 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.js"
+version = "0.1.0"
+ecosystem = "javascript"
+
+targets {
+  "package.json"
+  "tsconfig.json"
+  "biome.json"
+  ".prettierrc"
+  ".oxlintrc.json"
+  ".oxfmtrc.json"
+  "pnpm-workspace.yaml"
+  "turbo.json"
+  "renovate.json"
+  ".eslintrc.json"
+  ".babelrc.json"
+  ".swcrc"
+  "postcss.config.json"
+  "tailwind.config.json"
+  ".stylelintrc.json"
+  ".lintstagedrc.json"
+  "lefthook.yml"
+  ".husky/pre-commit"
+  "nx.json"
+  "lerna.json"
+  "knip.json"
+}
+
+formats {
+  "json"
+  "yaml"
+  "text"
+}
+
+tags {
+  "typescript"
+  "monorepo"
+  "tooling"
+}
+
+description = "Typed Pkl modules for JavaScript, TypeScript, and monorepo tooling."

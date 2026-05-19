@@ -1,0 +1,23 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.go"
+version = "0.1.0"
+ecosystem = "go"
+
+targets {
+  ".golangci.yml"
+  ".goreleaser.yml"
+}
+
+formats {
+  "yaml"
+}
+
+tags {
+  "go"
+  "golang"
+  "golangci-lint"
+  "goreleaser"
+}
+
+description = "Typed Pkl modules for Go linting and release tooling."

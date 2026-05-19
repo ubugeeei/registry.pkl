@@ -1,0 +1,34 @@
+{
+  "name": "target.lint",
+  "version": "0.1.0",
+  "packageUri": "package://pkg.registry.invalid/target.lint@0.1.0",
+  "metadataUrl": "https://ubugeeei.github.io/registry.pkl/registry/target.lint/0.1.0.json",
+  "packageZipUrl": "https://github.com/ubugeeei/registry.pkl/releases/download/target.lint@0.1.0/target.lint@0.1.0.zip",
+  "packageZipSha256Url": "https://github.com/ubugeeei/registry.pkl/releases/download/target.lint@0.1.0/target.lint@0.1.0.zip.sha256",
+  "docsUrl": "https://ubugeeei.github.io/registry.pkl/packages/target-lint/",
+  "ecosystem": "lint",
+  "firstParty": true,
+  "targets": [
+    ".markdownlint.json",
+    "commitlint.config.json",
+    ".gitleaks.toml"
+  ],
+  "formats": [
+    "json",
+    "toml"
+  ],
+  "tags": [
+    "lint",
+    "commitlint",
+    "gitleaks",
+    "markdownlint"
+  ],
+  "maintainers": [
+    "ubugeeei"
+  ],
+  "description": "Typed Pkl modules for cross-language linting tools.",
+  "source": {
+    "repo": "https://github.com/ubugeeei/registry.pkl",
+    "directory": "packages/target.lint"
+  }
+}

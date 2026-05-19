@@ -1,0 +1,29 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.env"
+version = "0.1.0"
+ecosystem = "env"
+
+targets {
+  "mise.toml"
+  ".tool-versions"
+  ".prototools"
+  "deno.json"
+  "wrangler.toml"
+  ".nvmrc"
+  ".envrc"
+}
+
+formats {
+  "toml"
+  "json"
+  "text"
+}
+
+tags {
+  "toolchain"
+  "runtime"
+  "environment"
+}
+
+description = "Typed Pkl modules for environment and toolchain managers."

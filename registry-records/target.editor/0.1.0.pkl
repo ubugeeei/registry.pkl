@@ -1,0 +1,31 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.editor"
+version = "0.1.0"
+ecosystem = "editor"
+
+targets {
+  ".vscode/settings.json"
+  ".vscode/extensions.json"
+  ".editorconfig"
+  ".devcontainer/devcontainer.json"
+  ".config/zed/settings.json"
+  ".config/helix/config.toml"
+  "*.sublime-project"
+  "init.lua"
+  ".idea/workspace.xml"
+}
+
+formats {
+  "json"
+  "toml"
+  "text"
+}
+
+tags {
+  "vscode"
+  "editor"
+  "ide"
+}
+
+description = "Typed Pkl modules for editor and workspace configuration."

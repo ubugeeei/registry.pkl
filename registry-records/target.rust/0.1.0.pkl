@@ -1,0 +1,26 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.rust"
+version = "0.1.0"
+ecosystem = "rust"
+
+targets {
+  "Cargo.toml"
+  "rustfmt.toml"
+  "clippy.toml"
+  "rust-toolchain.toml"
+  "deny.toml"
+  "bacon.toml"
+}
+
+formats {
+  "toml"
+}
+
+tags {
+  "cargo"
+  "clippy"
+  "rust"
+}
+
+description = "Typed Pkl modules for Cargo and Rust lint configuration."

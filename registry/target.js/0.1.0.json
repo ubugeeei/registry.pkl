@@ -18,11 +18,23 @@
     "pnpm-workspace.yaml",
     "turbo.json",
     "renovate.json",
-    ".eslintrc.json"
+    ".eslintrc.json",
+    ".babelrc.json",
+    ".swcrc",
+    "postcss.config.json",
+    "tailwind.config.json",
+    ".stylelintrc.json",
+    ".lintstagedrc.json",
+    "lefthook.yml",
+    ".husky/pre-commit",
+    "nx.json",
+    "lerna.json",
+    "knip.json"
   ],
   "formats": [
     "json",
-    "yaml"
+    "yaml",
+    "text"
   ],
   "tags": [
     "typescript",
@@ -36,6 +48,5 @@
   "source": {
     "repo": "https://github.com/ubugeeei/registry.pkl",
     "directory": "packages/target.js"
-  },
-  "releasedAt": "2026-05-19T00:00:00Z"
+  }
 }

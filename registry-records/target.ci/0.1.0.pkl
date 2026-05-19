@@ -1,0 +1,28 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.ci"
+version = "0.1.0"
+ecosystem = "ci"
+
+targets {
+  ".github/workflows/*.yml"
+  ".github/dependabot.yml"
+  ".gitlab-ci.yml"
+  ".circleci/config.yml"
+  ".drone.yml"
+  ".woodpecker.yml"
+  ".buildkite/pipeline.yml"
+  "azure-pipelines.yml"
+}
+
+formats {
+  "yaml"
+}
+
+tags {
+  "ci"
+  "actions"
+  "pipelines"
+}
+
+description = "Typed Pkl modules for CI and pipeline configuration across major platforms."

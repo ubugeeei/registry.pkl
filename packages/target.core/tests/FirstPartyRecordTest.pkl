@@ -1,0 +1,66 @@
+/// Tests for the `target.core.FirstPartyRecord` convenience helper.
+amends "pkl:test"
+
+import "../FirstPartyRecord.pkl"
+
+local rec = (FirstPartyRecord) {
+  family = "target.js"
+  version = "0.1.0"
+  ecosystem = "javascript"
+  targets {
+    "package.json"
+  }
+  formats {
+    "json"
+  }
+  description = "Typed JS tooling."
+}
+
+local renamed = (FirstPartyRecord) {
+  family = "target.js"
+  version = "0.1.0"
+  ecosystem = "javascript"
+  targets { "package.json" }
+  formats { "json" }
+  owner = "example-fork"
+  repo = "registry.pkl"
+}
+
+facts {
+  ["name is derived from family"] {
+    rec.rendered["name"] == "target.js"
+  }
+  ["packageUri uses family@version"] {
+    rec.rendered["packageUri"] == "package://pkg.registry.invalid/target.js@0.1.0"
+  }
+  ["metadataUrl points at the GH pages registry/ path"] {
+    rec.rendered["metadataUrl"]
+      == "https://ubugeeei.github.io/registry.pkl/registry/target.js/0.1.0.json"
+  }
+  ["packageZipUrl is the GitHub Releases artifact"] {
+    rec.rendered["packageZipUrl"]
+      == "https://github.com/ubugeeei/registry.pkl/releases/download/target.js@0.1.0/target.js@0.1.0.zip"
+  }
+  ["packageZipSha256Url appends .sha256"] {
+    rec.rendered["packageZipSha256Url"]
+      == "https://github.com/ubugeeei/registry.pkl/releases/download/target.js@0.1.0/target.js@0.1.0.zip.sha256"
+  }
+  ["docsUrl converts dots to dashes for the slug"] {
+    rec.rendered["docsUrl"]
+      == "https://ubugeeei.github.io/registry.pkl/packages/target-js/"
+  }
+  ["source.directory is packages/<family>"] {
+    rec.rendered["source"]["directory"] == "packages/target.js"
+  }
+  ["firstParty is true by default"] {
+    rec.rendered["firstParty"] == true
+  }
+  ["maintainers contains the owner"] {
+    rec.rendered["maintainers"] == List("ubugeeei")
+  }
+  ["fork owner threads through repoUrl + maintainers"] {
+    renamed.rendered["source"]["repo"]
+      == "https://github.com/example-fork/registry.pkl"
+    renamed.rendered["maintainers"] == List("example-fork")
+  }
+}

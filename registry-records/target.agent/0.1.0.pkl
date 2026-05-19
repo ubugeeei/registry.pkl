@@ -1,0 +1,35 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.agent"
+version = "0.1.0"
+ecosystem = "agent"
+
+targets {
+  ".cursor/mcp.json"
+  ".vscode/mcp.json"
+  ".claude/mcp.json"
+  ".claude/settings.json"
+  ".codeium/config.json"
+  ".codex/config.toml"
+  ".windsurf/mcp.json"
+  ".aider.conf.yml"
+  ".continue/config.json"
+  ".sourcegraph/cody.json"
+  ".openhands/config.toml"
+  ".gemini/config.json"
+}
+
+formats {
+  "json"
+  "yaml"
+  "toml"
+}
+
+tags {
+  "ai"
+  "mcp"
+  "copilot"
+  "agent"
+}
+
+description = "Typed Pkl modules for AI agent and MCP-oriented configuration."

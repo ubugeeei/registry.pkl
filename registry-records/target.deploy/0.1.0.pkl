@@ -1,0 +1,28 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.deploy"
+version = "0.1.0"
+ecosystem = "deploy"
+
+targets {
+  "vercel.json"
+  "netlify.toml"
+  "fly.toml"
+  "render.yaml"
+}
+
+formats {
+  "json"
+  "toml"
+  "yaml"
+}
+
+tags {
+  "deploy"
+  "vercel"
+  "netlify"
+  "fly"
+  "render"
+}
+
+description = "Typed Pkl modules for the most common deployment platforms."

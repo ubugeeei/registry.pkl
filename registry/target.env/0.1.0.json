@@ -1,0 +1,38 @@
+{
+  "name": "target.env",
+  "version": "0.1.0",
+  "packageUri": "package://pkg.registry.invalid/target.env@0.1.0",
+  "metadataUrl": "https://ubugeeei.github.io/registry.pkl/registry/target.env/0.1.0.json",
+  "packageZipUrl": "https://github.com/ubugeeei/registry.pkl/releases/download/target.env@0.1.0/target.env@0.1.0.zip",
+  "packageZipSha256Url": "https://github.com/ubugeeei/registry.pkl/releases/download/target.env@0.1.0/target.env@0.1.0.zip.sha256",
+  "docsUrl": "https://ubugeeei.github.io/registry.pkl/packages/target-env/",
+  "ecosystem": "env",
+  "firstParty": true,
+  "targets": [
+    "mise.toml",
+    ".tool-versions",
+    ".prototools",
+    "deno.json",
+    "wrangler.toml",
+    ".nvmrc",
+    ".envrc"
+  ],
+  "formats": [
+    "toml",
+    "json",
+    "text"
+  ],
+  "tags": [
+    "toolchain",
+    "runtime",
+    "environment"
+  ],
+  "maintainers": [
+    "ubugeeei"
+  ],
+  "description": "Typed Pkl modules for environment and toolchain managers.",
+  "source": {
+    "repo": "https://github.com/ubugeeei/registry.pkl",
+    "directory": "packages/target.env"
+  }
+}
