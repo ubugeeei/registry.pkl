@@ -1,0 +1,55 @@
+/// Tests for `target.agent.openhands.OpenHands` rendering.
+amends "pkl:test"
+
+import "../openhands/OpenHands.pkl"
+
+local config = (OpenHands) {
+  core = new OpenHands.CoreConfig {
+    workspace_base = "/workspace"
+    max_iterations = 250
+    default_agent = "CodeActAgent"
+    runtime = "docker"
+  }
+  llm = new OpenHands.LlmConfig {
+    model = "anthropic/claude-3-5-sonnet-20241022"
+    apiKey = "$ANTHROPIC_API_KEY"
+    maxInputTokens = 200000
+    maxOutputTokens = 4096
+    temperature = 0.0
+  }
+  agent = new OpenHands.AgentConfig {
+    enable_browsing = true
+    enable_jupyter = true
+    disabled_microagents { "experimental" }
+  }
+  sandbox = new OpenHands.SandboxConfig {
+    base_container_image = "nikolaik/python-nodejs:python3.12-nodejs22"
+    timeout = 600
+    enable_auto_lint = true
+  }
+}
+
+facts {
+  ["llm.model maps from camelCase"] {
+    config.rendered["llm"]["model"] == "anthropic/claude-3-5-sonnet-20241022"
+  }
+  ["llm uses api_key + max_input_tokens snake_case keys"] {
+    config.rendered["llm"]["api_key"] == "$ANTHROPIC_API_KEY"
+    config.rendered["llm"]["max_input_tokens"] == 200000
+  }
+  ["core scalar passes through"] {
+    config.rendered["core"]["workspace_base"] == "/workspace"
+    config.rendered["core"]["max_iterations"] == 250
+  }
+  ["agent enable_browsing emits snake_case"] {
+    config.rendered["agent"]["enable_browsing"] == true
+    config.rendered["agent"]["enable_jupyter"] == true
+  }
+  ["agent disabled_microagents flattens"] {
+    config.rendered["agent"]["disabled_microagents"] == List("experimental")
+  }
+  ["sandbox.base_container_image passes through"] {
+    config.rendered["sandbox"]["base_container_image"]
+      == "nikolaik/python-nodejs:python3.12-nodejs22"
+  }
+}

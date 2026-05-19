@@ -1,0 +1,96 @@
+amends "@target.agent/continue/Continue.pkl"
+
+models {
+  new Model {
+    title = "Claude Sonnet 4.5"
+    provider = "anthropic"
+    model = "claude-sonnet-4-5"
+    apiKey = "$ANTHROPIC_API_KEY"
+    contextLength = 200000
+    completionOptions = new CompletionOptions {
+      temperature = 0.0
+      maxTokens = 4096
+    }
+  }
+  new Model {
+    title = "Claude Opus 4.7"
+    provider = "anthropic"
+    model = "claude-opus-4-7"
+    apiKey = "$ANTHROPIC_API_KEY"
+    contextLength = 1000000
+  }
+  new Model {
+    title = "GPT-4o"
+    provider = "openai"
+    model = "gpt-4o"
+    apiKey = "$OPENAI_API_KEY"
+    contextLength = 128000
+  }
+}
+
+tabAutocompleteModel = new Model {
+  title = "Codestral"
+  provider = "mistral"
+  model = "codestral-latest"
+  apiKey = "$MISTRAL_API_KEY"
+}
+
+embeddingsProvider = new Embeddings {
+  provider = "openai"
+  model = "text-embedding-3-large"
+  apiKey = "$OPENAI_API_KEY"
+}
+
+slashCommands {
+  new SlashCommand {
+    name = "test"
+    description = "Generate unit tests for highlighted code"
+    step = "GenerateTests"
+  }
+  new SlashCommand {
+    name = "comment"
+    description = "Document highlighted code"
+    step = "CommentCodeCommand"
+  }
+  new SlashCommand {
+    name = "share"
+    description = "Export current chat as markdown"
+    step = "ShareCommand"
+  }
+}
+
+contextProviders {
+  new ContextProvider {
+    name = "diff"
+  }
+  new ContextProvider {
+    name = "open"
+    params {
+      ["onlyPinned"] = false
+    }
+  }
+  new ContextProvider {
+    name = "codebase"
+    params {
+      ["nRetrieve"] = 30
+      ["nFinal"] = 10
+    }
+  }
+  new ContextProvider {
+    name = "tree"
+  }
+  new ContextProvider {
+    name = "terminal"
+  }
+}
+
+tabAutocompleteOptions = new TabAutocomplete {
+  useCache = true
+  useFileSuffix = true
+  maxPromptTokens = 4096
+  debounceDelay = 350
+  multilineCompletions = "auto"
+  useOtherFiles = true
+}
+
+allowAnonymousTelemetry = false

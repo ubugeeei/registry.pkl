@@ -1,0 +1,78 @@
+/// Tests for `target.agent.continue.Continue` rendering.
+amends "pkl:test"
+
+import "../continue/Continue.pkl"
+
+local config = (Continue) {
+  models {
+    new Continue.Model {
+      title = "Claude Sonnet"
+      provider = "anthropic"
+      model = "claude-3-5-sonnet-20241022"
+      apiKey = "$ANTHROPIC_API_KEY"
+      contextLength = 200000
+      completionOptions = new Continue.CompletionOptions {
+        temperature = 0.0
+        maxTokens = 4096
+      }
+    }
+  }
+  tabAutocompleteModel = new Continue.Model {
+    title = "Codestral"
+    provider = "mistral"
+    model = "codestral-latest"
+  }
+  embeddingsProvider = new Continue.Embeddings {
+    provider = "openai"
+    model = "text-embedding-3-large"
+  }
+  slashCommands {
+    new Continue.SlashCommand {
+      name = "test"
+      description = "Generate tests"
+      step = "GenerateTests"
+    }
+  }
+  contextProviders {
+    new Continue.ContextProvider {
+      name = "diff"
+    }
+    new Continue.ContextProvider {
+      name = "open"
+      params {
+        ["onlyPinned"] = true
+      }
+    }
+  }
+  allowAnonymousTelemetry = false
+}
+
+facts {
+  ["model entry emits required fields"] {
+    local m = config.rendered["models"][0]
+    m["title"] == "Claude Sonnet"
+    m["provider"] == "anthropic"
+    m["model"] == "claude-3-5-sonnet-20241022"
+    m["contextLength"] == 200000
+  }
+  ["completion options nest under completionOptions"] {
+    local m = config.rendered["models"][0]
+    m["completionOptions"]["temperature"] == 0.0
+    m["completionOptions"]["maxTokens"] == 4096
+  }
+  ["tabAutocompleteModel emits as model object"] {
+    config.rendered["tabAutocompleteModel"]["title"] == "Codestral"
+  }
+  ["embeddingsProvider emits provider+model"] {
+    config.rendered["embeddingsProvider"]["provider"] == "openai"
+    config.rendered["embeddingsProvider"]["model"] == "text-embedding-3-large"
+  }
+  ["context provider with params renders params block"] {
+    local p = config.rendered["contextProviders"][1]
+    p["name"] == "open"
+    p["params"] == Map("onlyPinned", true)
+  }
+  ["allowAnonymousTelemetry passes through"] {
+    config.rendered["allowAnonymousTelemetry"] == false
+  }
+}

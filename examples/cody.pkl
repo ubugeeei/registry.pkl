@@ -1,0 +1,42 @@
+amends "@target.agent/cody/Cody.pkl"
+
+serverEndpoint = "https://sourcegraph.com"
+codebase = "github.com/ubugeeei/registry.pkl"
+autocompleteEnabled = true
+autocompleteProvider = "anthropic"
+autocompleteModel = "claude-3-5-sonnet-20241022"
+codeActionsEnabled = true
+commandCodeLenses = true
+
+chatPreInstruction = """
+You are reviewing code in a Pkl-first config registry. Prefer:
+- typed Pkl modules over raw JSON
+- shared renderers (pkl.toml) over ad-hoc emitters
+- semantic versioning per family
+"""
+
+experimental {
+  ["foldingRanges"] = "lsp"
+  ["tracing"] = false
+}
+
+commands {
+  ["explain"] = new Command {
+    description = "Explain the selected code"
+    prompt = "Explain the following code: {{selection}}"
+    mode = "ask"
+  }
+  ["test"] = new Command {
+    description = "Generate unit tests"
+    prompt = "Generate Vitest unit tests for: {{selection}}"
+    mode = "ask"
+    context {
+      ["currentFile"] = true
+    }
+  }
+  ["refactor"] = new Command {
+    description = "Refactor selection per project conventions"
+    prompt = "Refactor: {{selection}}"
+    mode = "edit"
+  }
+}

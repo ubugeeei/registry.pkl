@@ -1,0 +1,109 @@
+/// A typed authoring surface for Sourcegraph Cody's `.vscode/cody.json`
+/// or per-workspace settings overrides.
+///
+/// Reference: https://sourcegraph.com/docs/cody
+module target.agent.cody.Cody
+
+import "@target.core/Maps.pkl" as Maps
+
+class Command {
+  description: String? = null
+  prompt: String
+  context: Mapping<String, Any> = new Mapping {}
+  mode: ("ask"|"insert"|"edit")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+/// `cody.serverEndpoint` — Sourcegraph instance URL.
+serverEndpoint: String? = null
+
+/// `cody.accessToken` — token for the Sourcegraph instance.
+accessToken: String? = null
+
+/// `cody.autocomplete.enabled`.
+autocompleteEnabled: Boolean? = null
+
+/// `cody.autocomplete.provider`.
+autocompleteProvider: ("anthropic"|"fireworks"|"experimental-ollama"|"unstable-openai")? = null
+
+/// `cody.autocomplete.advanced.model`.
+autocompleteModel: String? = null
+
+/// `cody.chat.preInstruction`.
+chatPreInstruction: String? = null
+
+/// `cody.codebase` — repo identifier for context resolution.
+codebase: String? = null
+
+/// `cody.codeActions.enabled`.
+codeActionsEnabled: Boolean? = null
+
+/// `cody.experimental.foldingRanges` and other experimental flags.
+experimental: Mapping<String, Any> = new Mapping {}
+
+/// `cody.commandCodeLenses`.
+commandCodeLenses: Boolean? = null
+
+/// Custom commands (rendered under `cody.commands`).
+commands: Mapping<String, Command> = new Mapping {}
+
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderCommand(value: Command) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.description != null) {
+        ["description"] = value.description
+      }
+      ["prompt"] = value.prompt
+      when (!value.context.toMap().isEmpty) {
+        ["context"] = value.context.toMap()
+      }
+      when (value.mode != null) { ["mode"] = value.mode }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (serverEndpoint != null) {
+        ["cody.serverEndpoint"] = serverEndpoint
+      }
+      when (accessToken != null) { ["cody.accessToken"] = accessToken }
+      when (autocompleteEnabled != null) {
+        ["cody.autocomplete.enabled"] = autocompleteEnabled
+      }
+      when (autocompleteProvider != null) {
+        ["cody.autocomplete.provider"] = autocompleteProvider
+      }
+      when (autocompleteModel != null) {
+        ["cody.autocomplete.advanced.model"] = autocompleteModel
+      }
+      when (chatPreInstruction != null) {
+        ["cody.chat.preInstruction"] = chatPreInstruction
+      }
+      when (codebase != null) { ["cody.codebase"] = codebase }
+      when (codeActionsEnabled != null) {
+        ["cody.codeActions.enabled"] = codeActionsEnabled
+      }
+      when (!experimental.toMap().isEmpty) {
+        for (k, v in experimental) {
+          ["cody.experimental.\(k)"] = v
+        }
+      }
+      when (commandCodeLenses != null) {
+        ["cody.commandCodeLenses"] = commandCodeLenses
+      }
+      when (!commands.toMap().isEmpty) {
+        ["cody.commands"] = commands.toMap()
+          .mapValues((_, c) -> renderCommand(c))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

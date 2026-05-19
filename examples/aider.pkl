@@ -1,0 +1,33 @@
+amends "@target.agent/aider/Aider.pkl"
+
+model = "claude-3-5-sonnet-20241022"
+weakModel = "claude-3-5-haiku-20241022"
+editFormat = "diff"
+darkMode = true
+codeTheme = "monokai"
+streamMode = true
+mapTokens = 1024
+autoCommits = false
+dirtyCommits = false
+attributeAuthor = true
+
+`read` {
+  "CONVENTIONS.md"
+  "AGENTS.md"
+}
+
+lint = new Lint {
+  lint_cmds {
+    ["typescript"] = "pnpm tsc --noEmit"
+    ["javascript"] = "pnpm eslint"
+    ["python"] = "ruff check"
+    ["rust"] = "cargo clippy -- -D warnings"
+  }
+}
+
+testCmd = "pnpm test"
+autoTest = false
+yes = false
+verbose = false
+checkUpdate = true
+suggestShellCommands = true
