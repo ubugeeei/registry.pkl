@@ -1,0 +1,66 @@
+/// A typed authoring surface for `devbox.json` (jetpack-io/devbox).
+module target.container.devbox.Devbox
+
+import "@target.core/Maps.pkl" as Maps
+
+class ScriptEntry {
+  /// String form: a single command. List form: multiple shell lines.
+  steps: String|Listing<String>
+}
+
+class ShellHooks {
+  initHook: (String|Listing<String>)? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+packages: Listing<String> = new Listing {}
+env: Mapping<String, String> = new Mapping {}
+shell: ShellHooks? = null
+scripts: Mapping<String, String|ScriptEntry> = new Mapping {}
+include: Listing<String> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderShell(value: ShellHooks) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.initHook != null) {
+        ["init_hook"] =
+          if (value.initHook is Listing) value.initHook.toList() else value.initHook
+      }
+    },
+    value.extra,
+  )
+
+local function renderScript(value: String|ScriptEntry) =
+  if (value is String)
+    value
+  else if (value.steps is Listing)
+    value.steps.toList()
+  else
+    value.steps
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (!packages.toList().isEmpty) {
+        ["packages"] = packages.toList()
+      }
+      when (!env.toMap().isEmpty) { ["env"] = env.toMap() }
+      when (shell != null) { ["shell"] = renderShell(shell) }
+      when (!scripts.toMap().isEmpty) {
+        ["scripts"] =
+          scripts.toMap().mapValues((_, v) -> renderScript(v))
+      }
+      when (!include.toList().isEmpty) {
+        ["include"] = include.toList()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

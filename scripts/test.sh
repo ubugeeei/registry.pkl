@@ -14,6 +14,8 @@ FAMILIES=(
   target.agent
   target.ci
   target.python
+  target.lint
+  target.container
 )
 
 failed=0

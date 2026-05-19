@@ -1,0 +1,68 @@
+/// Tests for `target.container.docker_compose.Compose` rendering.
+amends "pkl:test"
+
+import "../docker-compose/Compose.pkl"
+
+local stack = (Compose) {
+  name = "demo"
+  services {
+    ["api"] = new Compose.Service {
+      image = "node:24"
+      ports {
+        "3000:3000"
+      }
+      environment = new Mapping<String, Compose.EnvValue> {
+        ["NODE_ENV"] = "production"
+      }
+      dependsOn = new Mapping<String, Compose.DependsOn> {
+        ["db"] = new Compose.DependsOn {
+          condition = "service_healthy"
+        }
+      }
+      healthcheck = new Compose.Healthcheck {
+        test = new Listing<String> { "CMD"; "true" }
+        interval = "5s"
+        retries = 3
+      }
+      restart = "unless-stopped"
+    }
+    ["db"] = new Compose.Service {
+      image = "postgres:17"
+      volumes {
+        "db-data:/var/lib/postgresql/data"
+      }
+    }
+  }
+  volumes {
+    ["db-data"] = new Compose.VolumeSpec {
+      driver = "local"
+    }
+  }
+}
+
+facts {
+  ["service image and ports pass through"] {
+    local api = stack.rendered["services"]["api"]
+    api["image"] == "node:24"
+    api["ports"] == List("3000:3000")
+  }
+  ["mapping environment renders as map"] {
+    stack.rendered["services"]["api"]["environment"]["NODE_ENV"] == "production"
+  }
+  ["mapping depends_on renders with condition"] {
+    local dep = stack.rendered["services"]["api"]["depends_on"]["db"]
+    dep["condition"] == "service_healthy"
+  }
+  ["healthcheck listing test stays a list"] {
+    local hc = stack.rendered["services"]["api"]["healthcheck"]
+    hc["test"] == List("CMD", "true")
+    hc["interval"] == "5s"
+    hc["retries"] == 3
+  }
+  ["restart policy passes through"] {
+    stack.rendered["services"]["api"]["restart"] == "unless-stopped"
+  }
+  ["volumes section renders"] {
+    stack.rendered["volumes"]["db-data"]["driver"] == "local"
+  }
+}

@@ -1,0 +1,47 @@
+/// Tests for `target.container.devbox.Devbox` rendering.
+amends "pkl:test"
+
+import "../devbox/Devbox.pkl"
+
+local config = (Devbox) {
+  packages {
+    "nodejs@24"
+    "pnpm@10"
+  }
+  env {
+    ["FOO"] = "bar"
+  }
+  shell = new Devbox.ShellHooks {
+    initHook = new Listing<String> {
+      "echo hello"
+    }
+  }
+  scripts {
+    ["build"] = "pnpm build"
+    ["lint"] = new Devbox.ScriptEntry {
+      steps = new Listing<String> {
+        "pkl eval -m . root-files.pkl"
+        "pnpm check"
+      }
+    }
+  }
+}
+
+facts {
+  ["packages list emits"] {
+    config.rendered["packages"] == List("nodejs@24", "pnpm@10")
+  }
+  ["env map emits"] {
+    config.rendered["env"]["FOO"] == "bar"
+  }
+  ["shell.init_hook listing renames to snake_case"] {
+    config.rendered["shell"]["init_hook"] == List("echo hello")
+  }
+  ["string scripts stay strings"] {
+    config.rendered["scripts"]["build"] == "pnpm build"
+  }
+  ["listing scripts render as arrays"] {
+    config.rendered["scripts"]["lint"] ==
+      List("pkl eval -m . root-files.pkl", "pnpm check")
+  }
+}

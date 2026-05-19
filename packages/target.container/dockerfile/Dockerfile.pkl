@@ -1,0 +1,82 @@
+/// A typed authoring surface for `Dockerfile` (and `Containerfile`).
+///
+/// Dockerfiles are line-oriented text, not structured data. This module
+/// gives every directive a typed shape and joins them into the final
+/// text in the order they appear. Multi-stage builds compose by adding
+/// more `Stage` entries.
+module target.container.dockerfile.Dockerfile
+
+import "@target.core/Maps.pkl" as Maps
+
+class Instruction {
+  /// One of FROM ARG ENV LABEL RUN CMD ENTRYPOINT COPY ADD WORKDIR USER
+  /// EXPOSE VOLUME HEALTHCHECK SHELL STOPSIGNAL ONBUILD ARG.
+  directive: String
+
+  /// The raw argument string written after the directive. For COPY etc.,
+  /// callers can build this with the convenience helpers below.
+  arg: String
+
+  /// Inline comment placed on the line above the instruction.
+  comment: String? = null
+}
+
+class Stage {
+  /// `FROM <image>` value. Required.
+  from: String
+
+  /// Optional `AS <name>` alias for multi-stage builds.
+  asName: String? = null
+
+  /// `--platform=` flag passed to FROM.
+  platform: String? = null
+
+  /// Instructions to emit after FROM. Use the `instr()` helpers in the
+  /// example file to construct entries from typed inputs, or write the
+  /// raw `Instruction` directly.
+  instructions: Listing<Instruction> = new Listing {}
+
+  /// Inline comment placed above the FROM line.
+  comment: String? = null
+}
+
+/// Pinned to `# syntax=` directive emitted at the top of the file.
+syntax: String? = null
+
+/// Optional `# escape=` directive.
+escape: String? = null
+
+/// Stage chain. Multi-stage builds list more than one entry.
+stages: Listing<Stage> = new Listing {}
+
+extra: Listing<String> = new Listing {}
+
+local function renderInstruction(value: Instruction): String =
+  let (lead: String = if (value.comment != null) "# \(value.comment)\n" else "")
+    "\(lead)\(value.directive) \(value.arg)"
+
+local function renderStage(value: Stage): String =
+  let (header: String =
+    let (platform: String = if (value.platform != null) "--platform=\(value.platform) " else "")
+      let (alias: String = if (value.asName != null) " AS \(value.asName)" else "")
+        "FROM \(platform)\(value.from)\(alias)")
+    let (commentLine: String = if (value.comment != null) "# \(value.comment)\n" else "")
+      let (instrLines: List<String> =
+        value.instructions.toList().map((i) -> renderInstruction(i)))
+        (List(commentLine + header) + instrLines).join("\n")
+
+local syntaxLine: List<String> =
+  if (syntax == null) List() else List("# syntax=\(syntax)")
+
+local escapeLine: List<String> =
+  if (escape == null) List() else List("# escape=\(escape)")
+
+hidden rendered: String =
+  let (header: List<String> = syntaxLine + escapeLine)
+    let (stageBlocks: List<String> = stages.toList().map((s) -> renderStage(s)))
+      let (allBlocks: List<String> = List(header.join("\n")).filter((s) -> s != "") + stageBlocks + extra.toList())
+        allBlocks.join("\n\n") + "\n"
+
+output {
+  text = rendered
+}

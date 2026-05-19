@@ -1,0 +1,52 @@
+/// Tests for `target.container.dockerfile.Dockerfile` text rendering.
+amends "pkl:test"
+
+import "../dockerfile/Dockerfile.pkl" as Df
+
+local file = (Df) {
+  syntax = "docker/dockerfile:1.6"
+  stages {
+    new Df.Stage {
+      asName = "build"
+      from = "node:24"
+      instructions {
+        new Df.Instruction { directive = "WORKDIR"; arg = "/app" }
+        new Df.Instruction { directive = "RUN"; arg = "pnpm install" }
+      }
+    }
+  }
+}
+
+facts {
+  ["syntax directive emitted first"] {
+    file.rendered.startsWith("# syntax=docker/dockerfile:1.6\n")
+  }
+  ["FROM line carries AS alias"] {
+    file.rendered.contains("FROM node:24 AS build")
+  }
+  ["instructions appear after FROM"] {
+    file.rendered.contains("WORKDIR /app")
+    file.rendered.contains("RUN pnpm install")
+  }
+  ["file ends with newline"] {
+    file.rendered.endsWith("\n")
+  }
+}
+
+local platform = (Df) {
+  stages {
+    new Df.Stage {
+      from = "alpine:3.20"
+      platform = "linux/amd64"
+      instructions {
+        new Df.Instruction { directive = "CMD"; arg = "[\"sh\"]" }
+      }
+    }
+  }
+}
+
+facts {
+  ["platform flag goes on the FROM line"] {
+    platform.rendered.contains("FROM --platform=linux/amd64 alpine:3.20")
+  }
+}
