@@ -1,0 +1,70 @@
+amends "@target.docs/vitepress/Vitepress.pkl"
+
+title = "registry.pkl"
+description = "typed configuration distribution for the entire toolchain"
+base = "/registry.pkl/"
+cleanUrls = true
+lastUpdated = true
+appearance = "dark"
+
+themeConfig = new ThemeConfig {
+  logo = "/registry-mark.svg"
+  nav {
+    new NavItem {
+      text = "Start"
+      link = "/start/"
+    }
+    new NavItem {
+      text = "Packages"
+      link = "/packages/"
+    }
+    new NavItem {
+      text = "Guides"
+      link = "/guide/"
+    }
+    new NavItem {
+      text = "Reference"
+      link = "/reference/"
+    }
+  }
+  sidebar = new Listing<SidebarItem> {
+    new SidebarItem {
+      text = "Start Here"
+      items {
+        new SidebarItem {
+          text = "Why Pkl"
+          link = "/start/why-pkl"
+        }
+        new SidebarItem {
+          text = "Quickstart"
+          link = "/start/quickstart"
+        }
+      }
+    }
+    new SidebarItem {
+      text = "Packages"
+      collapsed = false
+      items {
+        new SidebarItem {
+          text = "target.js"
+          link = "/packages/target-js"
+        }
+        new SidebarItem {
+          text = "target.rust"
+          link = "/packages/target-rust"
+        }
+      }
+    }
+  }
+  socialLinks {
+    new SocialLink {
+      icon = "github"
+      link = "https://github.com/ubugeeei/registry.pkl"
+    }
+  }
+  outline = 3
+  footer = new FooterConfig {
+    message = "Apache-2.0"
+    copyright = "(c) ubugeeei"
+  }
+}

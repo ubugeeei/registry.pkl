@@ -18,6 +18,7 @@ FAMILIES=(
   target.container
   target.go
   target.deploy
+  target.docs
 )
 
 failed=0

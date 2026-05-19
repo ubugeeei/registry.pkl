@@ -13,4 +13,5 @@ dependencies {
   ["target.container"] = import("./packages/target.container/PklProject")
   ["target.go"] = import("./packages/target.go/PklProject")
   ["target.deploy"] = import("./packages/target.deploy/PklProject")
+  ["target.docs"] = import("./packages/target.docs/PklProject")
 }
