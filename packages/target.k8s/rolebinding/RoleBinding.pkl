@@ -1,0 +1,78 @@
+/// A typed authoring surface for `rbac.authorization.k8s.io/v1.RoleBinding`.
+///
+/// Namespaced binding: ties Subjects to a Role or ClusterRole via roleRef.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#rolebinding-v1-rbac-authorization-k8s-io
+module target.k8s.rolebinding.RoleBinding
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+class Subject {
+  kind: ("User"|"Group"|"ServiceAccount")
+  name: String
+  namespace: String? = null
+  apiGroup: String? = null
+}
+
+class RoleRef {
+  apiGroup: String = "rbac.authorization.k8s.io"
+  kind: ("Role"|"ClusterRole")
+  name: String
+}
+
+apiVersion: String = "rbac.authorization.k8s.io/v1"
+kind: String = "RoleBinding"
+metadata: Pod.ObjectMeta
+subjects: Listing<Subject> = new Listing {}
+roleRef: RoleRef
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderObjectMeta(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSubject(value: Subject) =
+  new Mapping<String, Any> {
+    ["kind"] = value.kind
+    ["name"] = value.name
+    when (value.namespace != null) { ["namespace"] = value.namespace }
+    when (value.apiGroup != null) { ["apiGroup"] = value.apiGroup }
+  }.toMap()
+
+local function renderRoleRef(value: RoleRef) =
+  new Mapping<String, Any> {
+    ["apiGroup"] = value.apiGroup
+    ["kind"] = value.kind
+    ["name"] = value.name
+  }.toMap()
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderObjectMeta(metadata)
+      when (!subjects.toList().isEmpty) {
+        ["subjects"] = subjects.toList().map((s) -> renderSubject(s))
+      }
+      ["roleRef"] = renderRoleRef(roleRef)
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

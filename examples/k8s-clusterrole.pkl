@@ -1,0 +1,25 @@
+amends "@target.k8s/clusterrole/ClusterRole.pkl"
+
+import "@target.k8s/role/Role.pkl"
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+
+metadata = new Pod.ObjectMeta {
+  name = "registry-cluster-reader"
+}
+
+rules {
+  new Role.PolicyRule {
+    verbs { "get"; "list"; "watch" }
+    apiGroups { "" }
+    resources { "nodes"; "namespaces" }
+  }
+  new Role.PolicyRule {
+    verbs { "get"; "list"; "watch" }
+    apiGroups { "apps" }
+    resources { "*" }
+  }
+  new Role.PolicyRule {
+    verbs { "get" }
+    nonResourceURLs { "/healthz"; "/readyz"; "/metrics" }
+  }
+}

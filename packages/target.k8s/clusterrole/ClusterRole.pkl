@@ -1,0 +1,93 @@
+/// A typed authoring surface for `rbac.authorization.k8s.io/v1.ClusterRole`.
+///
+/// Cluster-scoped role; reuses Role.PolicyRule for the rules list.
+/// Adds aggregationRule for composing roles from labeled selectors.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#clusterrole-v1-rbac-authorization-k8s-io
+module target.k8s.clusterrole.ClusterRole
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../role/Role.pkl"
+import "../deployment/Deployment.pkl" as Dep
+
+class AggregationRule {
+  clusterRoleSelectors: Listing<Dep.LabelSelector> = new Listing {}
+}
+
+apiVersion: String = "rbac.authorization.k8s.io/v1"
+kind: String = "ClusterRole"
+metadata: Pod.ObjectMeta
+rules: Listing<Role.PolicyRule> = new Listing {}
+aggregationRule: AggregationRule? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderObjectMeta(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSelector(value: Dep.LabelSelector) =
+  new Mapping<String, Any> {
+    when (!value.matchLabels.toMap().isEmpty) {
+      ["matchLabels"] = value.matchLabels.toMap()
+    }
+    when (!value.matchExpressions.toList().isEmpty) {
+      ["matchExpressions"] = value.matchExpressions.toList()
+        .map((m) -> m.toMap())
+    }
+  }.toMap()
+
+local function renderRule(value: Role.PolicyRule) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["verbs"] = value.verbs.toList()
+      when (!value.apiGroups.toList().isEmpty) {
+        ["apiGroups"] = value.apiGroups.toList()
+      }
+      when (!value.resources.toList().isEmpty) {
+        ["resources"] = value.resources.toList()
+      }
+      when (!value.resourceNames.toList().isEmpty) {
+        ["resourceNames"] = value.resourceNames.toList()
+      }
+      when (!value.nonResourceURLs.toList().isEmpty) {
+        ["nonResourceURLs"] = value.nonResourceURLs.toList()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderObjectMeta(metadata)
+      when (!rules.toList().isEmpty) {
+        ["rules"] = rules.toList().map((r) -> renderRule(r))
+      }
+      when (aggregationRule != null) {
+        ["aggregationRule"] = new Mapping<String, Any> {
+          ["clusterRoleSelectors"] = aggregationRule.clusterRoleSelectors
+            .toList().map((s) -> renderSelector(s))
+        }.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

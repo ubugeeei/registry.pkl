@@ -1,0 +1,21 @@
+amends "@target.k8s/rolebinding/RoleBinding.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+
+metadata = new Pod.ObjectMeta {
+  name = "registry-reader"
+  namespace = "registry"
+}
+
+subjects {
+  new Subject {
+    kind = "ServiceAccount"
+    name = "registry-api"
+    namespace = "registry"
+  }
+}
+
+roleRef = new RoleRef {
+  kind = "Role"
+  name = "registry-reader"
+}

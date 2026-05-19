@@ -1,0 +1,27 @@
+amends "@target.k8s/role/Role.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+
+metadata = new Pod.ObjectMeta {
+  name = "registry-reader"
+  namespace = "registry"
+  labels { ["app"] = "registry-api" }
+}
+
+rules {
+  new PolicyRule {
+    verbs { "get"; "list"; "watch" }
+    apiGroups { "" }
+    resources { "configmaps"; "secrets"; "services" }
+  }
+  new PolicyRule {
+    verbs { "get"; "list"; "watch" }
+    apiGroups { "apps" }
+    resources { "deployments"; "statefulsets" }
+  }
+  new PolicyRule {
+    verbs { "create"; "update"; "patch"; "delete" }
+    apiGroups { "" }
+    resources { "events" }
+  }
+}
