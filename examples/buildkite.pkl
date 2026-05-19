@@ -1,0 +1,59 @@
+amends "@target.ci/buildkite/Buildkite.pkl"
+
+env {
+  ["CI"] = "true"
+  ["PNPM_VERSION"] = "9.0.0"
+}
+
+agents {
+  ["queue"] = "default"
+}
+
+steps {
+  new CommandStep {
+    label = ":hammer: Install"
+    key = "install"
+    command = "pnpm install --frozen-lockfile"
+    retry = new Retry {
+      automatic = new Listing<Mapping<String, Any>> {
+        new Mapping<String, Any> {
+          ["exit_status"] = -1
+          ["limit"] = 2
+        }
+      }
+    }
+  }
+  new CommandStep {
+    label = ":eslint: Lint"
+    key = "lint"
+    command = "pnpm lint"
+    dependsOn { "install" }
+  }
+  new CommandStep {
+    label = ":vitest: Test"
+    key = "test"
+    command = "pnpm test"
+    parallelism = 4
+    dependsOn { "install" }
+    artifactPaths {
+      "coverage/**"
+    }
+  }
+  new WaitStep {
+    wait = "~"
+    continue_on_failure = false
+  }
+  new BlockStep {
+    block = ":rocket: Promote to production"
+    prompt = "Approve release to production?"
+    blocked_state = "passed"
+    key = "approve-prod"
+  }
+  new CommandStep {
+    label = ":package: Deploy"
+    key = "deploy"
+    command = "pnpm deploy"
+    dependsOn { "approve-prod" }
+    branches = "main"
+  }
+}

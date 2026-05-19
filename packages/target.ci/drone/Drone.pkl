@@ -1,0 +1,203 @@
+/// A typed authoring surface for Drone's `.drone.yml`.
+///
+/// Reference: https://docs.drone.io/pipeline/overview/
+module target.ci.drone.Drone
+
+import "@target.core/Maps.pkl" as Maps
+
+class Step {
+  name: String
+  image: String
+  commands: Listing<String> = new Listing {}
+  environment: Mapping<String, String|Mapping<String, String>> = new Mapping {}
+  failure: ("always"|"ignore"|"never")? = null
+  detach: Boolean? = null
+  privileged: Boolean? = null
+  pull: ("always"|"if-not-exists"|"never")? = null
+  user: String? = null
+  volumes: Listing<Mapping<String, Any>> = new Listing {}
+  `when`: Mapping<String, Any>? = null
+  depends_on: Listing<String> = new Listing {}
+  settings: Mapping<String, Any> = new Mapping {}
+  resources: Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Trigger {
+  branch: (String|Listing<String>|Mapping<String, Any>)? = null
+  event: (String|Listing<String>|Mapping<String, Any>)? = null
+  ref: (String|Listing<String>|Mapping<String, Any>)? = null
+  status: (String|Listing<String>|Mapping<String, Any>)? = null
+  cron: (String|Listing<String>)? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Workspace {
+  path: String
+  base: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Volume {
+  name: String
+  host: Mapping<String, String>? = null
+  temp: Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Node {
+  exclusive: Boolean? = null
+  selector: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+kind: ("pipeline"|"secret"|"signature") = "pipeline"
+type: ("docker"|"exec"|"kubernetes"|"ssh"|"digitalocean"|"macstadium")? = "docker"
+name: String
+clone: Mapping<String, Any>? = null
+trigger: Trigger? = null
+workspace: Workspace? = null
+volumes: Listing<Volume> = new Listing {}
+steps: Listing<Step> = new Listing {}
+services: Listing<Step> = new Listing {}
+node: Node? = null
+platform: Mapping<String, String>? = null
+depends_on: Listing<String> = new Listing {}
+imagePullSecrets: Listing<String> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderStep(value: Step) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = value.name
+      ["image"] = value.image
+      when (!value.commands.toList().isEmpty) {
+        ["commands"] = value.commands.toList()
+      }
+      when (!value.environment.toMap().isEmpty) {
+        ["environment"] = value.environment.toMap()
+          .mapValues((_, v) -> if (v is Mapping) v.toMap() else v)
+      }
+      when (value.failure != null) { ["failure"] = value.failure }
+      when (value.detach != null) { ["detach"] = value.detach }
+      when (value.privileged != null) {
+        ["privileged"] = value.privileged
+      }
+      when (value.pull != null) { ["pull"] = value.pull }
+      when (value.user != null) { ["user"] = value.user }
+      when (!value.volumes.toList().isEmpty) {
+        ["volumes"] = value.volumes.toList().map((m) -> m.toMap())
+      }
+      when (value.`when` != null) {
+        ["when"] = value.`when`.toMap()
+      }
+      when (!value.depends_on.toList().isEmpty) {
+        ["depends_on"] = value.depends_on.toList()
+      }
+      when (!value.settings.toMap().isEmpty) {
+        ["settings"] = value.settings.toMap()
+      }
+      when (value.resources != null) {
+        ["resources"] = value.resources.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderTriggerValue(value: String|Listing<String>|Mapping<String, Any>) =
+  if (value is Listing) value.toList()
+  else if (value is Mapping) value.toMap()
+  else value
+
+local function renderTrigger(value: Trigger) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.branch != null) {
+        ["branch"] = renderTriggerValue(value.branch)
+      }
+      when (value.event != null) {
+        ["event"] = renderTriggerValue(value.event)
+      }
+      when (value.ref != null) {
+        ["ref"] = renderTriggerValue(value.ref)
+      }
+      when (value.status != null) {
+        ["status"] = renderTriggerValue(value.status)
+      }
+      when (value.cron != null) {
+        ["cron"] = if (value.cron is Listing) value.cron.toList() else value.cron
+      }
+    },
+    value.extra,
+  )
+
+local function renderWorkspace(value: Workspace) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["path"] = value.path
+      when (value.base != null) { ["base"] = value.base }
+    },
+    value.extra,
+  )
+
+local function renderVolume(value: Volume) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = value.name
+      when (value.host != null) { ["host"] = value.host.toMap() }
+      when (value.temp != null) { ["temp"] = value.temp.toMap() }
+    },
+    value.extra,
+  )
+
+local function renderNode(value: Node) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.exclusive != null) {
+        ["exclusive"] = value.exclusive
+      }
+      when (!value.selector.toMap().isEmpty) {
+        ["selector"] = value.selector.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["kind"] = kind
+      when (type != null) { ["type"] = type }
+      ["name"] = name
+      when (clone != null) { ["clone"] = clone.toMap() }
+      when (trigger != null) { ["trigger"] = renderTrigger(trigger) }
+      when (workspace != null) {
+        ["workspace"] = renderWorkspace(workspace)
+      }
+      when (!volumes.toList().isEmpty) {
+        ["volumes"] = volumes.toList().map((v) -> renderVolume(v))
+      }
+      when (!steps.toList().isEmpty) {
+        ["steps"] = steps.toList().map((s) -> renderStep(s))
+      }
+      when (!services.toList().isEmpty) {
+        ["services"] = services.toList().map((s) -> renderStep(s))
+      }
+      when (node != null) { ["node"] = renderNode(node) }
+      when (platform != null) {
+        ["platform"] = platform.toMap()
+      }
+      when (!depends_on.toList().isEmpty) {
+        ["depends_on"] = depends_on.toList()
+      }
+      when (!imagePullSecrets.toList().isEmpty) {
+        ["image_pull_secrets"] = imagePullSecrets.toList()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

@@ -1,0 +1,51 @@
+amends "@target.ci/drone/Drone.pkl"
+
+name = "default"
+
+trigger = new Trigger {
+  branch = new Listing<String> { "main"; "release/*" }
+  event = new Listing<String> { "push"; "pull_request" }
+}
+
+steps {
+  new Step {
+    name = "install"
+    image = "node:20"
+    commands {
+      "corepack enable"
+      "pnpm install --frozen-lockfile"
+    }
+  }
+  new Step {
+    name = "lint"
+    image = "node:20"
+    commands { "pnpm lint" }
+    depends_on { "install" }
+  }
+  new Step {
+    name = "test"
+    image = "node:20"
+    commands { "pnpm test" }
+    depends_on { "install" }
+  }
+  new Step {
+    name = "build"
+    image = "node:20"
+    commands { "pnpm build" }
+    depends_on { "lint"; "test" }
+  }
+  new Step {
+    name = "publish"
+    image = "plugins/npm"
+    settings {
+      ["token"] = new Mapping<String, String> {
+        ["from_secret"] = "npm_token"
+      }.toMap()
+      ["folder"] = "dist"
+    }
+    depends_on { "build" }
+    `when` = new Mapping<String, Any> {
+      ["event"] = "tag"
+    }
+  }
+}

@@ -1,0 +1,55 @@
+/// Tests for `target.ci.woodpecker.Woodpecker` rendering.
+amends "pkl:test"
+
+import "../woodpecker/Woodpecker.pkl"
+
+local config = (Woodpecker) {
+  `when` = new Woodpecker.WhenBlock {
+    event = new Listing<String> { "push"; "pull_request" }
+  }
+  matrix {
+    ["NODE_VERSION"] = new Listing<String> { "20"; "22" }
+  }
+  steps {
+    ["build"] = new Woodpecker.Step {
+      image = "node:${NODE_VERSION}"
+      commands {
+        "pnpm install"
+        "pnpm build"
+      }
+    }
+    ["test"] = new Woodpecker.Step {
+      image = "node:${NODE_VERSION}"
+      commands { "pnpm test" }
+      depends_on { "build" }
+    }
+  }
+  services {
+    ["postgres"] = new Woodpecker.Service {
+      image = "postgres:16"
+      environment {
+        ["POSTGRES_PASSWORD"] = "postgres"
+      }
+    }
+  }
+}
+
+facts {
+  ["top-level when emits event listing"] {
+    config.rendered["when"]["event"] == List("push", "pull_request")
+  }
+  ["matrix listings flatten"] {
+    config.rendered["matrix"]["NODE_VERSION"] == List("20", "22")
+  }
+  ["step image + commands + depends_on emit"] {
+    local t = config.rendered["steps"]["test"]
+    t["image"] == "node:${NODE_VERSION}"
+    t["commands"] == List("pnpm test")
+    t["depends_on"] == List("build")
+  }
+  ["service image + env emit"] {
+    local s = config.rendered["services"]["postgres"]
+    s["image"] == "postgres:16"
+    s["environment"] == Map("POSTGRES_PASSWORD", "postgres")
+  }
+}

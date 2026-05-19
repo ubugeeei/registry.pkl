@@ -1,0 +1,48 @@
+/// Tests for `target.ci.drone.Drone` rendering.
+amends "pkl:test"
+
+import "../drone/Drone.pkl"
+
+local config = (Drone) {
+  kind = "pipeline"
+  type = "docker"
+  name = "default"
+  trigger = new Drone.Trigger {
+    branch = new Listing<String> { "main"; "release/*" }
+    event = new Listing<String> { "push"; "pull_request" }
+  }
+  steps {
+    new Drone.Step {
+      name = "install"
+      image = "node:20"
+      commands {
+        "pnpm install"
+      }
+    }
+    new Drone.Step {
+      name = "test"
+      image = "node:20"
+      commands { "pnpm test" }
+      depends_on { "install" }
+    }
+  }
+}
+
+facts {
+  ["kind + type + name pass through"] {
+    config.rendered["kind"] == "pipeline"
+    config.rendered["type"] == "docker"
+    config.rendered["name"] == "default"
+  }
+  ["trigger branch and event flatten listings"] {
+    config.rendered["trigger"]["branch"] == List("main", "release/*")
+    config.rendered["trigger"]["event"] == List("push", "pull_request")
+  }
+  ["steps render with commands + depends_on"] {
+    local s = config.rendered["steps"][1]
+    s["name"] == "test"
+    s["image"] == "node:20"
+    s["commands"] == List("pnpm test")
+    s["depends_on"] == List("install")
+  }
+}

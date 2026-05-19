@@ -1,0 +1,337 @@
+/// A typed authoring surface for `.circleci/config.yml`.
+///
+/// Covers the most-frequently-used pipeline shape: version 2.1 with
+/// orbs, parameters, executors, jobs (with steps), commands, and
+/// workflows. `extra` escape hatches everywhere for less-common fields.
+///
+/// Reference: https://circleci.com/docs/configuration-reference/
+module target.ci.circleci.CircleCi
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias Step = String|Mapping<String, Any>
+
+class DockerImage {
+  image: String
+  name: String? = null
+  auth: Mapping<String, String>? = null
+  user: String? = null
+  command: (String|Listing<String>)? = null
+  entrypoint: (String|Listing<String>)? = null
+  environment: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class MachineExecutor {
+  image: String? = null
+  dockerLayerCaching: Boolean? = null
+  resourceClass: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class MacosExecutor {
+  xcode: String? = null
+  resourceClass: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Executor {
+  docker: Listing<DockerImage> = new Listing {}
+  machine: MachineExecutor? = null
+  macos: MacosExecutor? = null
+  resourceClass: String? = null
+  workingDirectory: String? = null
+  environment: Mapping<String, String> = new Mapping {}
+  shell: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Parameter {
+  type: ("string"|"boolean"|"integer"|"enum"|"executor"|"steps"|"env_var_name")
+  default: Any? = null
+  description: String? = null
+  values: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Job {
+  docker: Listing<DockerImage> = new Listing {}
+  machine: MachineExecutor? = null
+  macos: MacosExecutor? = null
+  executor: (String|Mapping<String, Any>)? = null
+  resourceClass: String? = null
+  parameters: Mapping<String, Parameter> = new Mapping {}
+  environment: Mapping<String, String> = new Mapping {}
+  parallelism: Int? = null
+  shell: String? = null
+  workingDirectory: String? = null
+  circleciIpRanges: Boolean? = null
+  steps: Listing<Step> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Command {
+  description: String? = null
+  parameters: Mapping<String, Parameter> = new Mapping {}
+  steps: Listing<Step> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class WorkflowJob {
+  name: String? = null
+  requires: Listing<String> = new Listing {}
+  context: (String|Listing<String>)? = null
+  type: ("approval")? = null
+  filters: Mapping<String, Any>? = null
+  matrix: Mapping<String, Any>? = null
+  parameters: Mapping<String, Any> = new Mapping {}
+  preSteps: Listing<Step> = new Listing {}
+  postSteps: Listing<Step> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Workflow {
+  jobs: Listing<String|Mapping<String, WorkflowJob>> = new Listing {}
+  triggers: Listing<Mapping<String, Any>> = new Listing {}
+  `when`: (String|Mapping<String, Any>)? = null
+  unless: (String|Mapping<String, Any>)? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+version: Float = 2.1
+orbs: Mapping<String, String> = new Mapping {}
+parameters: Mapping<String, Parameter> = new Mapping {}
+executors: Mapping<String, Executor> = new Mapping {}
+commands: Mapping<String, Command> = new Mapping {}
+jobs: Mapping<String, Job> = new Mapping {}
+workflows: Mapping<String, Workflow> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderDocker(value: DockerImage) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["image"] = value.image
+      when (value.name != null) { ["name"] = value.name }
+      when (value.auth != null) { ["auth"] = value.auth.toMap() }
+      when (value.user != null) { ["user"] = value.user }
+      when (value.command != null) {
+        ["command"] = if (value.command is Listing) value.command.toList() else value.command
+      }
+      when (value.entrypoint != null) {
+        ["entrypoint"] = if (value.entrypoint is Listing) value.entrypoint.toList() else value.entrypoint
+      }
+      when (!value.environment.toMap().isEmpty) {
+        ["environment"] = value.environment.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderMachine(value: MachineExecutor) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.image != null) { ["image"] = value.image }
+      when (value.dockerLayerCaching != null) {
+        ["docker_layer_caching"] = value.dockerLayerCaching
+      }
+      when (value.resourceClass != null) {
+        ["resource_class"] = value.resourceClass
+      }
+    },
+    value.extra,
+  )
+
+local function renderMacos(value: MacosExecutor) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.xcode != null) { ["xcode"] = value.xcode }
+      when (value.resourceClass != null) {
+        ["resource_class"] = value.resourceClass
+      }
+    },
+    value.extra,
+  )
+
+local function renderExecutor(value: Executor) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.docker.toList().isEmpty) {
+        ["docker"] = value.docker.toList().map((d) -> renderDocker(d))
+      }
+      when (value.machine != null) {
+        ["machine"] = renderMachine(value.machine)
+      }
+      when (value.macos != null) {
+        ["macos"] = renderMacos(value.macos)
+      }
+      when (value.resourceClass != null) {
+        ["resource_class"] = value.resourceClass
+      }
+      when (value.workingDirectory != null) {
+        ["working_directory"] = value.workingDirectory
+      }
+      when (!value.environment.toMap().isEmpty) {
+        ["environment"] = value.environment.toMap()
+      }
+      when (value.shell != null) { ["shell"] = value.shell }
+    },
+    value.extra,
+  )
+
+local function renderParameter(value: Parameter) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["type"] = value.type
+      when (value.default != null) { ["default"] = value.default }
+      when (value.description != null) {
+        ["description"] = value.description
+      }
+      when (!value.values.toList().isEmpty) {
+        ["values"] = value.values.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderStep(value: Step) =
+  if (value is Mapping) value.toMap() else value
+
+local function renderJob(value: Job) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.docker.toList().isEmpty) {
+        ["docker"] = value.docker.toList().map((d) -> renderDocker(d))
+      }
+      when (value.machine != null) {
+        ["machine"] = renderMachine(value.machine)
+      }
+      when (value.macos != null) {
+        ["macos"] = renderMacos(value.macos)
+      }
+      when (value.executor != null) {
+        ["executor"] = if (value.executor is Mapping) value.executor.toMap() else value.executor
+      }
+      when (value.resourceClass != null) {
+        ["resource_class"] = value.resourceClass
+      }
+      when (!value.parameters.toMap().isEmpty) {
+        ["parameters"] = value.parameters.toMap()
+          .mapValues((_, p) -> renderParameter(p))
+      }
+      when (!value.environment.toMap().isEmpty) {
+        ["environment"] = value.environment.toMap()
+      }
+      when (value.parallelism != null) {
+        ["parallelism"] = value.parallelism
+      }
+      when (value.shell != null) { ["shell"] = value.shell }
+      when (value.workingDirectory != null) {
+        ["working_directory"] = value.workingDirectory
+      }
+      when (value.circleciIpRanges != null) {
+        ["circleci_ip_ranges"] = value.circleciIpRanges
+      }
+      ["steps"] = value.steps.toList().map((s) -> renderStep(s))
+    },
+    value.extra,
+  )
+
+local function renderCommand(value: Command) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.description != null) {
+        ["description"] = value.description
+      }
+      when (!value.parameters.toMap().isEmpty) {
+        ["parameters"] = value.parameters.toMap()
+          .mapValues((_, p) -> renderParameter(p))
+      }
+      ["steps"] = value.steps.toList().map((s) -> renderStep(s))
+    },
+    value.extra,
+  )
+
+local function renderWorkflowJob(value: WorkflowJob) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (!value.requires.toList().isEmpty) {
+        ["requires"] = value.requires.toList()
+      }
+      when (value.context != null) {
+        ["context"] = if (value.context is Listing) value.context.toList() else value.context
+      }
+      when (value.type != null) { ["type"] = value.type }
+      when (value.filters != null) {
+        ["filters"] = value.filters.toMap()
+      }
+      when (value.matrix != null) {
+        ["matrix"] = value.matrix.toMap()
+      }
+      when (!value.parameters.toMap().isEmpty) {
+        ["parameters"] = value.parameters.toMap()
+      }
+      when (!value.preSteps.toList().isEmpty) {
+        ["pre-steps"] = value.preSteps.toList().map((s) -> renderStep(s))
+      }
+      when (!value.postSteps.toList().isEmpty) {
+        ["post-steps"] = value.postSteps.toList().map((s) -> renderStep(s))
+      }
+    },
+    value.extra,
+  )
+
+local function renderWorkflowJobEntry(value: String|Mapping<String, WorkflowJob>) =
+  if (value is String) value
+  else value.toMap().mapValues((_, j) -> renderWorkflowJob(j))
+
+local function renderWorkflow(value: Workflow) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["jobs"] = value.jobs.toList().map((j) -> renderWorkflowJobEntry(j))
+      when (!value.triggers.toList().isEmpty) {
+        ["triggers"] = value.triggers.toList().map((m) -> m.toMap())
+      }
+      when (value.`when` != null) {
+        ["when"] = if (value.`when` is Mapping) value.`when`.toMap() else value.`when`
+      }
+      when (value.unless != null) {
+        ["unless"] = if (value.unless is Mapping) value.unless.toMap() else value.unless
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["version"] = version
+      when (!orbs.toMap().isEmpty) { ["orbs"] = orbs.toMap() }
+      when (!parameters.toMap().isEmpty) {
+        ["parameters"] = parameters.toMap()
+          .mapValues((_, p) -> renderParameter(p))
+      }
+      when (!executors.toMap().isEmpty) {
+        ["executors"] = executors.toMap()
+          .mapValues((_, e) -> renderExecutor(e))
+      }
+      when (!commands.toMap().isEmpty) {
+        ["commands"] = commands.toMap()
+          .mapValues((_, c) -> renderCommand(c))
+      }
+      when (!jobs.toMap().isEmpty) {
+        ["jobs"] = jobs.toMap()
+          .mapValues((_, j) -> renderJob(j))
+      }
+      when (!workflows.toMap().isEmpty) {
+        ["workflows"] = workflows.toMap()
+          .mapValues((_, w) -> renderWorkflow(w))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

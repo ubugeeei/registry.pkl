@@ -1,0 +1,110 @@
+amends "@target.ci/azurePipelines/AzurePipelines.pkl"
+
+name = "$(Date:yyyyMMdd)$(Rev:.r)"
+
+trigger = new TriggerBlock {
+  branches = new TriggerBranches {
+    include {
+      "main"
+      "release/*"
+    }
+    exclude {
+      "experimental/*"
+    }
+  }
+  paths = new TriggerBranches {
+    exclude {
+      "docs/**"
+      "*.md"
+    }
+  }
+}
+
+pr = new TriggerBlock {
+  branches = new TriggerBranches {
+    include { "main" }
+  }
+}
+
+variables = new Mapping<String, Any> {
+  ["NODE_VERSION"] = "20.10.0"
+  ["PNPM_VERSION"] = "9.0.0"
+}
+
+pool = new Pool {
+  vmImage = "ubuntu-latest"
+}
+
+stages {
+  new Stage {
+    stage = "Build"
+    displayName = "Build & Test"
+    jobs {
+      new Job {
+        job = "build"
+        displayName = "Build"
+        strategy = new Strategy {
+          matrix {
+            ["Node20"] = new Mapping<String, Any> {
+              ["NODE_VERSION"] = "20.10.0"
+            }
+            ["Node22"] = new Mapping<String, Any> {
+              ["NODE_VERSION"] = "22.0.0"
+            }
+          }
+        }
+        steps {
+          new Step {
+            task = "NodeTool@0"
+            displayName = "Install Node"
+            inputs {
+              ["versionSpec"] = "$(NODE_VERSION)"
+            }
+          }
+          new Step {
+            script = "corepack enable && pnpm install --frozen-lockfile"
+            displayName = "Install deps"
+          }
+          new Step {
+            script = "pnpm build"
+            displayName = "Build"
+          }
+          new Step {
+            script = "pnpm test"
+            displayName = "Test"
+          }
+          new Step {
+            task = "PublishTestResults@2"
+            displayName = "Publish test results"
+            condition = "succeededOrFailed()"
+            inputs {
+              ["testResultsFormat"] = "JUnit"
+              ["testResultsFiles"] = "**/junit.xml"
+            }
+          }
+        }
+      }
+    }
+  }
+  new Stage {
+    stage = "Deploy"
+    displayName = "Deploy to Production"
+    dependsOn = "Build"
+    condition = "and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))"
+    jobs {
+      new Job {
+        job = "deploy"
+        displayName = "Deploy"
+        steps {
+          new Step {
+            script = "pnpm deploy"
+            displayName = "Deploy"
+            env {
+              ["AZURE_TOKEN"] = "$(AZURE_TOKEN)"
+            }
+          }
+        }
+      }
+    }
+  }
+}

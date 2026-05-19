@@ -1,0 +1,55 @@
+amends "@target.ci/woodpecker/Woodpecker.pkl"
+
+`when` = new WhenBlock {
+  event = new Listing<String> { "push"; "pull_request"; "tag" }
+}
+
+labels {
+  ["repo"] = "registry.pkl"
+}
+
+variables {
+  ["node_image"] = "node:20"
+}
+
+matrix {
+  ["NODE_VERSION"] = new Listing<String> { "20"; "22" }
+}
+
+steps {
+  ["install"] = new Step {
+    image = "node:${NODE_VERSION}"
+    commands {
+      "corepack enable"
+      "pnpm install --frozen-lockfile"
+    }
+  }
+  ["lint"] = new Step {
+    image = "node:${NODE_VERSION}"
+    commands { "pnpm lint" }
+    depends_on { "install" }
+  }
+  ["test"] = new Step {
+    image = "node:${NODE_VERSION}"
+    commands { "pnpm test" }
+    depends_on { "install" }
+    `when` = new WhenBlock {
+      event = new Listing<String> { "push"; "pull_request" }
+    }
+  }
+  ["build"] = new Step {
+    image = "node:${NODE_VERSION}"
+    commands { "pnpm build" }
+    depends_on { "lint"; "test" }
+  }
+}
+
+services {
+  ["postgres"] = new Service {
+    image = "postgres:16"
+    environment {
+      ["POSTGRES_PASSWORD"] = "postgres"
+      ["POSTGRES_DB"] = "registry_test"
+    }
+  }
+}
