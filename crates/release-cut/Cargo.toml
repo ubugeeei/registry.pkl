@@ -1,0 +1,24 @@
+[package]
+name = "release-cut"
+version = "0.1.0"
+description = "Cut a first-party release of a target.* family in one command."
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "release-cut"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true
