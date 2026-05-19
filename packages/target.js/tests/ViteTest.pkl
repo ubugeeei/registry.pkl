@@ -1,0 +1,50 @@
+/// Tests for `target.js.vite.Vite` rendering.
+amends "pkl:test"
+
+import "../vite/Vite.pkl"
+
+local config = (Vite) {
+  root = "src"
+  base = "/registry/"
+  appType = "spa"
+  build = new Vite.BuildOptions {
+    outDir = "dist"
+    sourcemap = "hidden"
+    minify = "esbuild"
+    target = new Listing<String> { "es2022"; "edge99" }
+  }
+  server = new Vite.ServerOptions {
+    port = 4173
+    strictPort = true
+    host = "0.0.0.0"
+  }
+  resolve = new Vite.Resolve {
+    alias = new Mapping<String, String> {
+      ["@"] = "./src"
+    }
+    extensions = new Listing<String> { ".ts"; ".tsx"; ".js" }
+  }
+}
+
+facts {
+  ["scalars pass through"] {
+    config.rendered["root"] == "src"
+    config.rendered["base"] == "/registry/"
+    config.rendered["appType"] == "spa"
+  }
+  ["build options"] {
+    config.rendered["build"]["outDir"] == "dist"
+    config.rendered["build"]["sourcemap"] == "hidden"
+    config.rendered["build"]["minify"] == "esbuild"
+    config.rendered["build"]["target"] == List("es2022", "edge99")
+  }
+  ["server options"] {
+    config.rendered["server"]["port"] == 4173
+    config.rendered["server"]["strictPort"] == true
+    config.rendered["server"]["host"] == "0.0.0.0"
+  }
+  ["resolve alias as map"] {
+    config.rendered["resolve"]["alias"] == Map("@", "./src")
+    config.rendered["resolve"]["extensions"] == List(".ts", ".tsx", ".js")
+  }
+}

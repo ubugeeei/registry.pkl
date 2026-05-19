@@ -1,0 +1,40 @@
+amends "@target.js/vite/Vite.pkl"
+
+root = "src"
+base = "/registry/"
+appType = "spa"
+publicDir = "public"
+
+resolve = new Resolve {
+  alias = new Mapping<String, String> {
+    ["@"] = "./src"
+    ["~"] = "./src"
+  }
+  extensions = new Listing<String> { ".ts"; ".tsx"; ".js"; ".jsx"; ".json" }
+}
+
+server = new ServerOptions {
+  port = 4173
+  strictPort = true
+  host = "0.0.0.0"
+  `open` = false
+}
+
+build = new BuildOptions {
+  outDir = "../dist/docs"
+  emptyOutDir = true
+  sourcemap = "hidden"
+  minify = "esbuild"
+  target = new Listing<String> { "es2022"; "edge99"; "firefox111"; "chrome111" }
+  reportCompressedSize = true
+  chunkSizeWarningLimit = 1024
+}
+
+css = new Css {
+  devSourcemap = true
+  transformer = "postcss"
+}
+
+define = new Mapping<String, Any> {
+  ["__APP_VERSION__"] = "\"0.1.0\""
+}

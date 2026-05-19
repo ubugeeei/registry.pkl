@@ -1,0 +1,54 @@
+/// Tests for `target.js.rollup.Rollup` rendering.
+amends "pkl:test"
+
+import "../rollup/Rollup.pkl"
+
+local single = (Rollup) {
+  input = "src/index.ts"
+  outputs = new Rollup.OutputOptions {
+    file = "dist/bundle.js"
+    format = "es"
+    sourcemap = true
+  }
+}
+
+local multi = (Rollup) {
+  input = new Mapping<String, String> {
+    ["main"] = "src/index.ts"
+    ["worker"] = "src/worker.ts"
+  }
+  outputs = new Listing<Rollup.OutputOptions> {
+    new Rollup.OutputOptions {
+      dir = "dist/es"
+      format = "es"
+      entryFileNames = "[name].mjs"
+    }
+    new Rollup.OutputOptions {
+      dir = "dist/cjs"
+      format = "cjs"
+      entryFileNames = "[name].cjs"
+    }
+  }
+  `external` = new Listing<String> { "react"; "react-dom" }
+}
+
+facts {
+  ["input string passes through"] {
+    single.rendered["input"] == "src/index.ts"
+  }
+  ["single OutputOptions becomes object"] {
+    single.rendered["output"]["file"] == "dist/bundle.js"
+    single.rendered["output"]["format"] == "es"
+    single.rendered["output"]["sourcemap"] == true
+  }
+  ["input map passes through"] {
+    multi.rendered["input"] == Map("main", "src/index.ts", "worker", "src/worker.ts")
+  }
+  ["multi OutputOptions becomes list"] {
+    multi.rendered["output"][0]["format"] == "es"
+    multi.rendered["output"][1]["format"] == "cjs"
+  }
+  ["external list emits"] {
+    multi.rendered["external"] == List("react", "react-dom")
+  }
+}

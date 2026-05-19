@@ -1,0 +1,274 @@
+/// A typed authoring surface for `vite.config.json`.
+///
+/// Vite reads its config from a JS file by default, but it also accepts
+/// a JSON form when invoked with `--config vite.config.json`. This
+/// module covers the JSON-friendly subset most teams override.
+///
+/// Reference: https://vite.dev/config/
+module target.js.vite.Vite
+
+import "@target.core/Maps.pkl" as Maps
+
+class ServerOptions {
+  host: (String|Boolean)? = null
+  port: Int? = null
+  strictPort: Boolean? = null
+  https: (Boolean|Mapping<String, Any>)? = null
+  `open`: (Boolean|String)? = null
+  proxy: Mapping<String, Any> = new Mapping {}
+  cors: (Boolean|Mapping<String, Any>)? = null
+  headers: Mapping<String, String> = new Mapping {}
+  hmr: (Boolean|Mapping<String, Any>)? = null
+  watch: Mapping<String, Any>? = null
+  middlewareMode: (Boolean|"html"|"ssr")? = null
+  fs: Mapping<String, Any>? = null
+  origin: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class BuildOptions {
+  target: (String|Listing<String>)? = null
+  outDir: String? = null
+  assetsDir: String? = null
+  assetsInlineLimit: Int? = null
+  cssCodeSplit: Boolean? = null
+  sourcemap: (Boolean|"inline"|"hidden")? = null
+  minify: (Boolean|"esbuild"|"terser")? = null
+  rollupOptions: Mapping<String, Any> = new Mapping {}
+  lib: Mapping<String, Any>? = null
+  emptyOutDir: Boolean? = null
+  manifest: (Boolean|String)? = null
+  ssrManifest: (Boolean|String)? = null
+  ssr: (Boolean|String)? = null
+  reportCompressedSize: Boolean? = null
+  chunkSizeWarningLimit: Int? = null
+  watch: Mapping<String, Any>? = null
+  modulePreload: (Boolean|Mapping<String, Any>)? = null
+  cssTarget: (String|Listing<String>)? = null
+  cssMinify: (Boolean|"esbuild"|"lightningcss")? = null
+  copyPublicDir: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Resolve {
+  alias: (Mapping<String, String>|Listing<Mapping<String, Any>>)? = null
+  dedupe: Listing<String> = new Listing {}
+  conditions: Listing<String> = new Listing {}
+  mainFields: Listing<String> = new Listing {}
+  extensions: Listing<String> = new Listing {}
+  preserveSymlinks: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Css {
+  modules: (Boolean|Mapping<String, Any>)? = null
+  postcss: (String|Mapping<String, Any>)? = null
+  preprocessorOptions: Mapping<String, Any>? = null
+  devSourcemap: Boolean? = null
+  transformer: ("postcss"|"lightningcss")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+root: String? = null
+base: String? = null
+mode: String? = null
+publicDir: (String|Boolean)? = null
+cacheDir: String? = null
+envPrefix: (String|Listing<String>)? = null
+envDir: String? = null
+appType: ("spa"|"mpa"|"custom")? = null
+logLevel: ("info"|"warn"|"error"|"silent")? = null
+clearScreen: Boolean? = null
+define: Mapping<String, Any> = new Mapping {}
+plugins: Listing<String|Mapping<String, Any>> = new Listing {}
+server: ServerOptions? = null
+preview: Mapping<String, Any>? = null
+build: BuildOptions? = null
+resolve: Resolve? = null
+css: Css? = null
+json: Mapping<String, Any>? = null
+esbuild: (Boolean|Mapping<String, Any>)? = null
+optimizeDeps: Mapping<String, Any>? = null
+ssr: Mapping<String, Any>? = null
+worker: Mapping<String, Any>? = null
+experimental: Mapping<String, Any>? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderStringOrList(value: String|Listing<String>) =
+  if (value is Listing) value.toList() else value
+
+local function renderServer(value: ServerOptions) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.host != null) { ["host"] = value.host }
+      when (value.port != null) { ["port"] = value.port }
+      when (value.strictPort != null) { ["strictPort"] = value.strictPort }
+      when (value.https != null) {
+        ["https"] = if (value.https is Mapping) value.https.toMap() else value.https
+      }
+      when (value.`open` != null) { ["open"] = value.`open` }
+      when (!value.proxy.toMap().isEmpty) { ["proxy"] = value.proxy.toMap() }
+      when (value.cors != null) {
+        ["cors"] = if (value.cors is Mapping) value.cors.toMap() else value.cors
+      }
+      when (!value.headers.toMap().isEmpty) {
+        ["headers"] = value.headers.toMap()
+      }
+      when (value.hmr != null) {
+        ["hmr"] = if (value.hmr is Mapping) value.hmr.toMap() else value.hmr
+      }
+      when (value.watch != null) { ["watch"] = value.watch.toMap() }
+      when (value.middlewareMode != null) {
+        ["middlewareMode"] = value.middlewareMode
+      }
+      when (value.fs != null) { ["fs"] = value.fs.toMap() }
+      when (value.origin != null) { ["origin"] = value.origin }
+    },
+    value.extra,
+  )
+
+local function renderBuild(value: BuildOptions) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.target != null) {
+        ["target"] = renderStringOrList(value.target)
+      }
+      when (value.outDir != null) { ["outDir"] = value.outDir }
+      when (value.assetsDir != null) { ["assetsDir"] = value.assetsDir }
+      when (value.assetsInlineLimit != null) {
+        ["assetsInlineLimit"] = value.assetsInlineLimit
+      }
+      when (value.cssCodeSplit != null) {
+        ["cssCodeSplit"] = value.cssCodeSplit
+      }
+      when (value.sourcemap != null) { ["sourcemap"] = value.sourcemap }
+      when (value.minify != null) { ["minify"] = value.minify }
+      when (!value.rollupOptions.toMap().isEmpty) {
+        ["rollupOptions"] = value.rollupOptions.toMap()
+      }
+      when (value.lib != null) { ["lib"] = value.lib.toMap() }
+      when (value.emptyOutDir != null) {
+        ["emptyOutDir"] = value.emptyOutDir
+      }
+      when (value.manifest != null) { ["manifest"] = value.manifest }
+      when (value.ssrManifest != null) {
+        ["ssrManifest"] = value.ssrManifest
+      }
+      when (value.ssr != null) { ["ssr"] = value.ssr }
+      when (value.reportCompressedSize != null) {
+        ["reportCompressedSize"] = value.reportCompressedSize
+      }
+      when (value.chunkSizeWarningLimit != null) {
+        ["chunkSizeWarningLimit"] = value.chunkSizeWarningLimit
+      }
+      when (value.watch != null) { ["watch"] = value.watch.toMap() }
+      when (value.modulePreload != null) {
+        ["modulePreload"] = if (value.modulePreload is Mapping) value.modulePreload.toMap() else value.modulePreload
+      }
+      when (value.cssTarget != null) {
+        ["cssTarget"] = renderStringOrList(value.cssTarget)
+      }
+      when (value.cssMinify != null) {
+        ["cssMinify"] = value.cssMinify
+      }
+      when (value.copyPublicDir != null) {
+        ["copyPublicDir"] = value.copyPublicDir
+      }
+    },
+    value.extra,
+  )
+
+local function renderResolve(value: Resolve) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.alias != null) {
+        ["alias"] = if (value.alias is Listing) value.alias.toList().map((m) -> m.toMap()) else value.alias.toMap()
+      }
+      when (!value.dedupe.toList().isEmpty) {
+        ["dedupe"] = value.dedupe.toList()
+      }
+      when (!value.conditions.toList().isEmpty) {
+        ["conditions"] = value.conditions.toList()
+      }
+      when (!value.mainFields.toList().isEmpty) {
+        ["mainFields"] = value.mainFields.toList()
+      }
+      when (!value.extensions.toList().isEmpty) {
+        ["extensions"] = value.extensions.toList()
+      }
+      when (value.preserveSymlinks != null) {
+        ["preserveSymlinks"] = value.preserveSymlinks
+      }
+    },
+    value.extra,
+  )
+
+local function renderCss(value: Css) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.modules != null) {
+        ["modules"] = if (value.modules is Mapping) value.modules.toMap() else value.modules
+      }
+      when (value.postcss != null) {
+        ["postcss"] = if (value.postcss is Mapping) value.postcss.toMap() else value.postcss
+      }
+      when (value.preprocessorOptions != null) {
+        ["preprocessorOptions"] = value.preprocessorOptions.toMap()
+      }
+      when (value.devSourcemap != null) {
+        ["devSourcemap"] = value.devSourcemap
+      }
+      when (value.transformer != null) {
+        ["transformer"] = value.transformer
+      }
+    },
+    value.extra,
+  )
+
+local function renderPlugin(value: String|Mapping<String, Any>) =
+  if (value is Mapping) value.toMap() else value
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (root != null) { ["root"] = root }
+      when (base != null) { ["base"] = base }
+      when (mode != null) { ["mode"] = mode }
+      when (publicDir != null) { ["publicDir"] = publicDir }
+      when (cacheDir != null) { ["cacheDir"] = cacheDir }
+      when (envPrefix != null) {
+        ["envPrefix"] = renderStringOrList(envPrefix)
+      }
+      when (envDir != null) { ["envDir"] = envDir }
+      when (appType != null) { ["appType"] = appType }
+      when (logLevel != null) { ["logLevel"] = logLevel }
+      when (clearScreen != null) { ["clearScreen"] = clearScreen }
+      when (!define.toMap().isEmpty) { ["define"] = define.toMap() }
+      when (!plugins.toList().isEmpty) {
+        ["plugins"] = plugins.toList().map((p) -> renderPlugin(p))
+      }
+      when (server != null) { ["server"] = renderServer(server) }
+      when (preview != null) { ["preview"] = preview.toMap() }
+      when (build != null) { ["build"] = renderBuild(build) }
+      when (resolve != null) { ["resolve"] = renderResolve(resolve) }
+      when (css != null) { ["css"] = renderCss(css) }
+      when (json != null) { ["json"] = json.toMap() }
+      when (esbuild != null) {
+        ["esbuild"] = if (esbuild is Mapping) esbuild.toMap() else esbuild
+      }
+      when (optimizeDeps != null) { ["optimizeDeps"] = optimizeDeps.toMap() }
+      when (ssr != null) { ["ssr"] = ssr.toMap() }
+      when (worker != null) { ["worker"] = worker.toMap() }
+      when (experimental != null) {
+        ["experimental"] = experimental.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

@@ -1,0 +1,205 @@
+/// A typed authoring surface for `rollup.config.json`.
+///
+/// Rollup's documented config is a JS module, but Rollup will read a
+/// `rollup.config.json` when invoked with `--config rollup.config.json`.
+/// This module covers the JSON-shaped subset.
+///
+/// Reference: https://rollupjs.org/configuration-options/
+module target.js.rollup.Rollup
+
+import "@target.core/Maps.pkl" as Maps
+
+class OutputOptions {
+  file: String? = null
+  dir: String? = null
+  format: ("amd"|"cjs"|"es"|"iife"|"system"|"umd")? = null
+  name: String? = null
+  globals: Mapping<String, String> = new Mapping {}
+  entryFileNames: String? = null
+  chunkFileNames: String? = null
+  assetFileNames: String? = null
+  sourcemap: (Boolean|"inline"|"hidden")? = null
+  sourcemapExcludeSources: Boolean? = null
+  sourcemapFile: String? = null
+  banner: String? = null
+  footer: String? = null
+  intro: String? = null
+  outro: String? = null
+  exports: ("default"|"named"|"none"|"auto")? = null
+  extend: Boolean? = null
+  inlineDynamicImports: Boolean? = null
+  manualChunks: Mapping<String, Listing<String>> = new Mapping {}
+  hoistTransitiveImports: Boolean? = null
+  paths: Mapping<String, String> = new Mapping {}
+  generatedCode: (String|Mapping<String, Any>)? = null
+  externalLiveBindings: Boolean? = null
+  esModule: (Boolean|"if-default-prop")? = null
+  freeze: Boolean? = null
+  interop: (String|Mapping<String, Any>)? = null
+  minifyInternalExports: Boolean? = null
+  noConflict: Boolean? = null
+  preserveModules: Boolean? = null
+  preserveModulesRoot: String? = null
+  preferConst: Boolean? = null
+  strict: Boolean? = null
+  systemNullSetters: Boolean? = null
+  validate: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+input: (String|Listing<String>|Mapping<String, String>)
+outputs: (OutputOptions|Listing<OutputOptions>)
+`external`: (Listing<String>|Listing<Mapping<String, Any>>)? = null
+plugins: Listing<String|Mapping<String, Any>> = new Listing {}
+context: String? = null
+moduleContext: (Mapping<String, String>|String)? = null
+treeshake: (Boolean|String|Mapping<String, Any>)? = null
+preserveEntrySignatures: ("strict"|"allow-extension"|"exports-only"|Boolean)? = null
+strictDeprecations: Boolean? = null
+maxParallelFileOps: Int? = null
+cache: (Boolean|Mapping<String, Any>)? = null
+logLevel: ("silent"|"warn"|"info"|"debug")? = null
+makeAbsoluteExternalsRelative: (Boolean|"ifRelativeSource")? = null
+perf: Boolean? = null
+shimMissingExports: Boolean? = null
+watch: (Boolean|Mapping<String, Any>)? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderInput(value: String|Listing<String>|Mapping<String, String>) =
+  if (value is Listing) value.toList()
+  else if (value is Mapping) value.toMap()
+  else value
+
+local function renderOutput(value: OutputOptions) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.file != null) { ["file"] = value.file }
+      when (value.dir != null) { ["dir"] = value.dir }
+      when (value.format != null) { ["format"] = value.format }
+      when (value.name != null) { ["name"] = value.name }
+      when (!value.globals.toMap().isEmpty) {
+        ["globals"] = value.globals.toMap()
+      }
+      when (value.entryFileNames != null) {
+        ["entryFileNames"] = value.entryFileNames
+      }
+      when (value.chunkFileNames != null) {
+        ["chunkFileNames"] = value.chunkFileNames
+      }
+      when (value.assetFileNames != null) {
+        ["assetFileNames"] = value.assetFileNames
+      }
+      when (value.sourcemap != null) { ["sourcemap"] = value.sourcemap }
+      when (value.sourcemapExcludeSources != null) {
+        ["sourcemapExcludeSources"] = value.sourcemapExcludeSources
+      }
+      when (value.sourcemapFile != null) {
+        ["sourcemapFile"] = value.sourcemapFile
+      }
+      when (value.banner != null) { ["banner"] = value.banner }
+      when (value.footer != null) { ["footer"] = value.footer }
+      when (value.intro != null) { ["intro"] = value.intro }
+      when (value.outro != null) { ["outro"] = value.outro }
+      when (value.exports != null) { ["exports"] = value.exports }
+      when (value.extend != null) { ["extend"] = value.extend }
+      when (value.inlineDynamicImports != null) {
+        ["inlineDynamicImports"] = value.inlineDynamicImports
+      }
+      when (!value.manualChunks.toMap().isEmpty) {
+        ["manualChunks"] = value.manualChunks.toMap()
+          .mapValues((_, l) -> l.toList())
+      }
+      when (value.hoistTransitiveImports != null) {
+        ["hoistTransitiveImports"] = value.hoistTransitiveImports
+      }
+      when (!value.paths.toMap().isEmpty) {
+        ["paths"] = value.paths.toMap()
+      }
+      when (value.generatedCode != null) {
+        ["generatedCode"] = if (value.generatedCode is Mapping) value.generatedCode.toMap() else value.generatedCode
+      }
+      when (value.externalLiveBindings != null) {
+        ["externalLiveBindings"] = value.externalLiveBindings
+      }
+      when (value.esModule != null) { ["esModule"] = value.esModule }
+      when (value.freeze != null) { ["freeze"] = value.freeze }
+      when (value.interop != null) {
+        ["interop"] = if (value.interop is Mapping) value.interop.toMap() else value.interop
+      }
+      when (value.minifyInternalExports != null) {
+        ["minifyInternalExports"] = value.minifyInternalExports
+      }
+      when (value.noConflict != null) { ["noConflict"] = value.noConflict }
+      when (value.preserveModules != null) {
+        ["preserveModules"] = value.preserveModules
+      }
+      when (value.preserveModulesRoot != null) {
+        ["preserveModulesRoot"] = value.preserveModulesRoot
+      }
+      when (value.preferConst != null) {
+        ["preferConst"] = value.preferConst
+      }
+      when (value.strict != null) { ["strict"] = value.strict }
+      when (value.systemNullSetters != null) {
+        ["systemNullSetters"] = value.systemNullSetters
+      }
+      when (value.validate != null) { ["validate"] = value.validate }
+    },
+    value.extra,
+  )
+
+local function renderPlugin(value: String|Mapping<String, Any>) =
+  if (value is Mapping) value.toMap() else value
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["input"] = renderInput(input)
+      ["output"] = if (outputs is Listing) outputs.toList().map((o) -> renderOutput(o))
+        else renderOutput(outputs)
+      when (`external` != null) {
+        ["external"] = `external`.toList().map((e) ->
+          if (e is Mapping) e.toMap() else e
+        )
+      }
+      when (!plugins.toList().isEmpty) {
+        ["plugins"] = plugins.toList().map((p) -> renderPlugin(p))
+      }
+      when (context != null) { ["context"] = context }
+      when (moduleContext != null) {
+        ["moduleContext"] = if (moduleContext is Mapping) moduleContext.toMap() else moduleContext
+      }
+      when (treeshake != null) {
+        ["treeshake"] = if (treeshake is Mapping) treeshake.toMap() else treeshake
+      }
+      when (preserveEntrySignatures != null) {
+        ["preserveEntrySignatures"] = preserveEntrySignatures
+      }
+      when (strictDeprecations != null) {
+        ["strictDeprecations"] = strictDeprecations
+      }
+      when (maxParallelFileOps != null) {
+        ["maxParallelFileOps"] = maxParallelFileOps
+      }
+      when (cache != null) {
+        ["cache"] = if (cache is Mapping) cache.toMap() else cache
+      }
+      when (logLevel != null) { ["logLevel"] = logLevel }
+      when (makeAbsoluteExternalsRelative != null) {
+        ["makeAbsoluteExternalsRelative"] = makeAbsoluteExternalsRelative
+      }
+      when (perf != null) { ["perf"] = perf }
+      when (shimMissingExports != null) {
+        ["shimMissingExports"] = shimMissingExports
+      }
+      when (watch != null) {
+        ["watch"] = if (watch is Mapping) watch.toMap() else watch
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

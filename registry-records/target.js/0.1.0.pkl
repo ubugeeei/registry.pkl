@@ -26,6 +26,9 @@ targets {
   "nx.json"
   "lerna.json"
   "knip.json"
+  "vite.config.json"
+  "rollup.config.json"
+  "esbuild.config.json"
 }
 
 formats {
