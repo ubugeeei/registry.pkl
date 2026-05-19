@@ -1,0 +1,26 @@
+amends "@target.k8s/clusterrolebinding/ClusterRoleBinding.pkl"
+
+import "@target.k8s/rolebinding/RoleBinding.pkl" as Rb
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+
+metadata = new Pod.ObjectMeta {
+  name = "registry-cluster-reader"
+}
+
+subjects {
+  new Rb.Subject {
+    kind = "ServiceAccount"
+    name = "registry-api"
+    namespace = "registry"
+  }
+  new Rb.Subject {
+    kind = "Group"
+    name = "system:authenticated"
+    apiGroup = "rbac.authorization.k8s.io"
+  }
+}
+
+roleRef = new Rb.RoleRef {
+  kind = "ClusterRole"
+  name = "registry-cluster-reader"
+}

@@ -1,0 +1,81 @@
+/// A typed authoring surface for `rbac.authorization.k8s.io/v1.Role`.
+///
+/// PolicyRule is shared between Role and ClusterRole.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#role-v1-rbac-authorization-k8s-io
+module target.k8s.role.Role
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+class PolicyRule {
+  verbs: Listing<String>
+  apiGroups: Listing<String> = new Listing {}
+  resources: Listing<String> = new Listing {}
+  resourceNames: Listing<String> = new Listing {}
+  nonResourceURLs: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: String = "rbac.authorization.k8s.io/v1"
+kind: String = "Role"
+metadata: Pod.ObjectMeta
+rules: Listing<PolicyRule>
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderObjectMeta(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderRule(value: PolicyRule) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["verbs"] = value.verbs.toList()
+      when (!value.apiGroups.toList().isEmpty) {
+        ["apiGroups"] = value.apiGroups.toList()
+      }
+      when (!value.resources.toList().isEmpty) {
+        ["resources"] = value.resources.toList()
+      }
+      when (!value.resourceNames.toList().isEmpty) {
+        ["resourceNames"] = value.resourceNames.toList()
+      }
+      when (!value.nonResourceURLs.toList().isEmpty) {
+        ["nonResourceURLs"] = value.nonResourceURLs.toList()
+      }
+    },
+    value.extra,
+  )
+
+/// Helper exported for ClusterRole / RoleBinding / ClusterRoleBinding so
+/// they don't need to duplicate the renderer.
+hidden renderPolicyRule = (rule: PolicyRule) -> renderRule(rule)
+
+hidden renderMeta = (m: Pod.ObjectMeta) -> renderObjectMeta(m)
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderObjectMeta(metadata)
+      ["rules"] = rules.toList().map((r) -> renderRule(r))
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

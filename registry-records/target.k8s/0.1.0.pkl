@@ -20,6 +20,11 @@ targets {
   "networkpolicy.yaml"
   "secret.yaml"
   "persistentvolumeclaim.yaml"
+  "role.yaml"
+  "clusterrole.yaml"
+  "rolebinding.yaml"
+  "clusterrolebinding.yaml"
+  "serviceaccount.yaml"
 }
 
 formats {

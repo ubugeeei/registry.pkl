@@ -1,0 +1,46 @@
+/// Tests for `target.k8s.rolebinding.RoleBinding` rendering.
+amends "pkl:test"
+
+import "../rolebinding/RoleBinding.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+local rb = (RoleBinding) {
+  metadata = new Pod.ObjectMeta {
+    name = "registry-reader"
+    namespace = "registry"
+  }
+  subjects {
+    new RoleBinding.Subject {
+      kind = "ServiceAccount"
+      name = "registry-api"
+      namespace = "registry"
+    }
+    new RoleBinding.Subject {
+      kind = "Group"
+      name = "registry-readers"
+      apiGroup = "rbac.authorization.k8s.io"
+    }
+  }
+  roleRef = new RoleBinding.RoleRef {
+    kind = "Role"
+    name = "registry-reader"
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    rb.rendered["apiVersion"] == "rbac.authorization.k8s.io/v1"
+    rb.rendered["kind"] == "RoleBinding"
+  }
+  ["subjects carry kind/name/namespace"] {
+    local s = rb.rendered["subjects"][0]
+    s["kind"] == "ServiceAccount"
+    s["name"] == "registry-api"
+    s["namespace"] == "registry"
+  }
+  ["roleRef defaults to rbac.authorization apiGroup"] {
+    rb.rendered["roleRef"]["apiGroup"] == "rbac.authorization.k8s.io"
+    rb.rendered["roleRef"]["kind"] == "Role"
+    rb.rendered["roleRef"]["name"] == "registry-reader"
+  }
+}

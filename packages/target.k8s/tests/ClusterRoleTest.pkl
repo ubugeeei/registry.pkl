@@ -1,0 +1,47 @@
+/// Tests for `target.k8s.clusterrole.ClusterRole` rendering.
+amends "pkl:test"
+
+import "../clusterrole/ClusterRole.pkl"
+import "../role/Role.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../deployment/Deployment.pkl" as Dep
+
+local cr = (ClusterRole) {
+  metadata = new Pod.ObjectMeta {
+    name = "registry-admin"
+  }
+  rules {
+    new Role.PolicyRule {
+      verbs { "*" }
+      apiGroups { "*" }
+      resources { "*" }
+    }
+  }
+}
+
+local aggregated = (ClusterRole) {
+  metadata = new Pod.ObjectMeta { name = "monitoring" }
+  aggregationRule = new ClusterRole.AggregationRule {
+    clusterRoleSelectors {
+      new Dep.LabelSelector {
+        matchLabels { ["rbac.example.com/aggregate-to-monitoring"] = "true" }
+      }
+    }
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    cr.rendered["apiVersion"] == "rbac.authorization.k8s.io/v1"
+    cr.rendered["kind"] == "ClusterRole"
+  }
+  ["wildcard rule"] {
+    cr.rendered["rules"][0]["verbs"] == List("*")
+    cr.rendered["rules"][0]["apiGroups"] == List("*")
+    cr.rendered["rules"][0]["resources"] == List("*")
+  }
+  ["aggregationRule emits clusterRoleSelectors"] {
+    local sel = aggregated.rendered["aggregationRule"]["clusterRoleSelectors"][0]
+    sel["matchLabels"] == Map("rbac.example.com/aggregate-to-monitoring", "true")
+  }
+}

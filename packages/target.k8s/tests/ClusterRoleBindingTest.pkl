@@ -1,0 +1,35 @@
+/// Tests for `target.k8s.clusterrolebinding.ClusterRoleBinding` rendering.
+amends "pkl:test"
+
+import "../clusterrolebinding/ClusterRoleBinding.pkl"
+import "../rolebinding/RoleBinding.pkl" as Rb
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+local crb = (ClusterRoleBinding) {
+  metadata = new Pod.ObjectMeta {
+    name = "registry-admin"
+  }
+  subjects {
+    new Rb.Subject {
+      kind = "ServiceAccount"
+      name = "registry-admin"
+      namespace = "registry"
+    }
+  }
+  roleRef = new Rb.RoleRef {
+    kind = "ClusterRole"
+    name = "registry-admin"
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    crb.rendered["apiVersion"] == "rbac.authorization.k8s.io/v1"
+    crb.rendered["kind"] == "ClusterRoleBinding"
+  }
+  ["subject + roleRef"] {
+    crb.rendered["subjects"][0]["kind"] == "ServiceAccount"
+    crb.rendered["roleRef"]["kind"] == "ClusterRole"
+    crb.rendered["roleRef"]["name"] == "registry-admin"
+  }
+}

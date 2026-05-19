@@ -1,0 +1,41 @@
+/// Tests for `target.k8s.role.Role` rendering.
+amends "pkl:test"
+
+import "../role/Role.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+local role = (Role) {
+  metadata = new Pod.ObjectMeta {
+    name = "registry-reader"
+    namespace = "registry"
+  }
+  rules {
+    new Role.PolicyRule {
+      verbs { "get"; "list"; "watch" }
+      apiGroups { "" }
+      resources { "configmaps"; "secrets" }
+    }
+    new Role.PolicyRule {
+      verbs { "get" }
+      apiGroups { "apps" }
+      resources { "deployments" }
+      resourceNames { "registry-api" }
+    }
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    role.rendered["apiVersion"] == "rbac.authorization.k8s.io/v1"
+    role.rendered["kind"] == "Role"
+  }
+  ["rules render verbs / resources lists"] {
+    local r = role.rendered["rules"][0]
+    r["verbs"] == List("get", "list", "watch")
+    r["apiGroups"] == List("")
+    r["resources"] == List("configmaps", "secrets")
+  }
+  ["resourceNames narrows the rule"] {
+    role.rendered["rules"][1]["resourceNames"] == List("registry-api")
+  }
+}

@@ -23,7 +23,12 @@
     "ingress.yaml",
     "networkpolicy.yaml",
     "secret.yaml",
-    "persistentvolumeclaim.yaml"
+    "persistentvolumeclaim.yaml",
+    "role.yaml",
+    "clusterrole.yaml",
+    "rolebinding.yaml",
+    "clusterrolebinding.yaml",
+    "serviceaccount.yaml"
   ],
   "formats": [
     "yaml"

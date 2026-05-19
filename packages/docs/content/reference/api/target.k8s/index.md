@@ -9,6 +9,8 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 
 ## Modules
 
+- [`target.k8s.clusterrole.ClusterRole`](./clusterrole/ClusterRole.html)
+- [`target.k8s.clusterrolebinding.ClusterRoleBinding`](./clusterrolebinding/ClusterRoleBinding.html)
 - [`target.k8s.configmap.ConfigMap`](./configmap/ConfigMap.html)
 - [`target.k8s.cronjob.CronJob`](./cronjob/CronJob.html)
 - [`target.k8s.daemonset.DaemonSet`](./daemonset/DaemonSet.html)
@@ -21,6 +23,9 @@ Auto-generated from the Pkl module sources. One section per shipped module.
 - [`target.k8s.networkpolicy.NetworkPolicy`](./networkpolicy/NetworkPolicy.html)
 - [`target.k8s.persistentvolumeclaim.PersistentVolumeClaim`](./persistentvolumeclaim/PersistentVolumeClaim.html)
 - [`target.k8s.podtemplate.PodTemplate`](./podtemplate/PodTemplate.html)
+- [`target.k8s.role.Role`](./role/Role.html)
+- [`target.k8s.rolebinding.RoleBinding`](./rolebinding/RoleBinding.html)
 - [`target.k8s.secret.Secret`](./secret/Secret.html)
 - [`target.k8s.service.Service`](./service/Service.html)
+- [`target.k8s.serviceaccount.ServiceAccount`](./serviceaccount/ServiceAccount.html)
 - [`target.k8s.statefulset.StatefulSet`](./statefulset/StatefulSet.html)
