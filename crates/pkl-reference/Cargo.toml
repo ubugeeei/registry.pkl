@@ -1,0 +1,24 @@
+[package]
+name = "pkl-reference"
+version = "0.1.0"
+description = "Extract a markdown reference page from typed Pkl module sources."
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "pkl-reference"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true
