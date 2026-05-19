@@ -1,0 +1,37 @@
+amends "@target.js/tailwind/Tailwind.pkl"
+
+content {
+  "./src/**/*.{ts,tsx,vue,svelte}"
+  "./pages/**/*.tsx"
+  "./public/index.html"
+}
+
+darkMode = "class"
+
+theme = new Theme {
+  extend {
+    ["colors"] = new Mapping<String, Any> {
+      ["brand"] = new Mapping<String, String> {
+        ["50"] = "#eff6ff"
+        ["500"] = "#3b82f6"
+        ["900"] = "#1e3a8a"
+      }.toMap()
+    }.toMap()
+    ["fontFamily"] = new Mapping<String, Any> {
+      ["sans"] = new Listing<String> { "Inter"; "ui-sans-serif" }.toList()
+    }.toMap()
+    ["spacing"] = new Mapping<String, String> {
+      ["18"] = "4.5rem"
+    }.toMap()
+  }
+}
+
+plugins {
+  "@tailwindcss/forms"
+  "@tailwindcss/typography"
+  "@tailwindcss/aspect-ratio"
+}
+
+future {
+  ["hoverOnlyWhenSupported"] = true
+}

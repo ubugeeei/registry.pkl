@@ -1,0 +1,51 @@
+/// Tests for `target.js.stylelint.Stylelint` rendering.
+amends "pkl:test"
+
+import "../stylelint/Stylelint.pkl"
+
+local config = (Stylelint) {
+  `extends` = "stylelint-config-standard"
+  plugins {
+    "stylelint-order"
+  }
+  rules {
+    ["color-hex-length"] = "short"
+    ["no-empty-source"] = null
+    ["max-nesting-depth"] = 3
+    ["selector-class-pattern"] = new Listing<Any> {
+      "^[a-z][a-zA-Z0-9]+$"
+      new Mapping<String, Any> { ["message"] = "use camelCase" }.toMap()
+    }
+    ["block-no-empty"] = true
+  }
+  overrides {
+    new Stylelint.OverrideEntry {
+      files = "**/*.scss"
+      customSyntax = "postcss-scss"
+      rules {
+        ["scss/at-rule-no-unknown"] = true
+      }
+    }
+  }
+}
+
+facts {
+  ["string extends passes through"] {
+    config.rendered["extends"] == "stylelint-config-standard"
+  }
+  ["null rule disables"] {
+    config.rendered["rules"]["no-empty-source"] == null
+  }
+  ["integer rule renders as number"] {
+    config.rendered["rules"]["max-nesting-depth"] == 3
+  }
+  ["listing rule renders as [primary, options] tuple"] {
+    config.rendered["rules"]["selector-class-pattern"]
+      == List("^[a-z][a-zA-Z0-9]+$", Map("message", "use camelCase"))
+  }
+  ["overrides nest customSyntax + rules"] {
+    config.rendered["overrides"][0]["files"] == "**/*.scss"
+    config.rendered["overrides"][0]["customSyntax"] == "postcss-scss"
+    config.rendered["overrides"][0]["rules"]["scss/at-rule-no-unknown"] == true
+  }
+}

@@ -1,0 +1,42 @@
+/// Tests for `target.js.postcss.Postcss` rendering.
+amends "pkl:test"
+
+import "../postcss/Postcss.pkl"
+
+local listForm = (Postcss) {
+  plugins {
+    "autoprefixer"
+    new Postcss.PluginEntry {
+      name = "cssnano"
+      options {
+        ["preset"] = "default"
+      }
+    }
+  }
+  map = true
+}
+
+local mapForm = (Postcss) {
+  pluginMap {
+    ["autoprefixer"] = new Mapping<String, Any> {}
+    ["cssnano"] = new Mapping<String, Any> {
+      ["preset"] = "advanced"
+    }
+  }
+}
+
+facts {
+  ["bare string plugin stays as string"] {
+    listForm.rendered["plugins"][0] == "autoprefixer"
+  }
+  ["plugin with options becomes [name, options] tuple"] {
+    listForm.rendered["plugins"][1] == List("cssnano", Map("preset", "default"))
+  }
+  ["boolean map passes through"] {
+    listForm.rendered["map"] == true
+  }
+  ["pluginMap overrides plugin list form"] {
+    mapForm.rendered["plugins"]["cssnano"]["preset"] == "advanced"
+    mapForm.rendered["plugins"]["autoprefixer"] == Map()
+  }
+}

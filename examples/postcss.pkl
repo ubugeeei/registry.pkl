@@ -1,0 +1,23 @@
+amends "@target.js/postcss/Postcss.pkl"
+
+plugins {
+  "postcss-import"
+  "tailwindcss"
+  "autoprefixer"
+  new PluginEntry {
+    name = "cssnano"
+    options {
+      ["preset"] = new Mapping<String, Any> {
+        ["name"] = "default"
+        ["discardComments"] = new Mapping<String, Any> {
+          ["removeAll"] = true
+        }.toMap()
+      }.toMap()
+    }
+  }
+}
+
+map = new Mapping<String, Any> {
+  ["inline"] = false
+  ["annotation"] = true
+}
