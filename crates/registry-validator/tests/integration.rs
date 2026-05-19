@@ -41,17 +41,26 @@ fn valid_record(name: &str, version: &str) -> String {
 #[test]
 fn valid_record_passes() {
     let tmp = tempfile::tempdir().expect("tmp");
-    let path = write_record(tmp.path(), "target.js", "0.1.0", &valid_record("target.js", "0.1.0"));
+    let path = write_record(
+        tmp.path(),
+        "target.js",
+        "0.1.0",
+        &valid_record("target.js", "0.1.0"),
+    );
     assert!(validate_file(&path).is_empty());
 }
 
 #[test]
 fn invalid_semver_rejected() {
     let tmp = tempfile::tempdir().expect("tmp");
-    let body = valid_record("target.js", "0.1.0").replace(r#""version": "0.1.0""#, r#""version": "v0.1.0""#);
+    let body = valid_record("target.js", "0.1.0")
+        .replace(r#""version": "0.1.0""#, r#""version": "v0.1.0""#);
     let path = write_record(tmp.path(), "target.js", "0.1.0", &body);
     let issues = validate_file(&path);
-    assert!(issues.iter().any(|i| i.message.contains("SemVer")), "expected semver issue, got {issues:?}");
+    assert!(
+        issues.iter().any(|i| i.message.contains("SemVer")),
+        "expected semver issue, got {issues:?}"
+    );
 }
 
 #[test]
@@ -69,7 +78,8 @@ fn missing_package_uri_match_rejected() {
 #[test]
 fn unknown_format_rejected() {
     let tmp = tempfile::tempdir().expect("tmp");
-    let body = valid_record("target.js", "0.1.0").replace(r#""formats": ["json"]"#, r#""formats": ["binary"]"#);
+    let body = valid_record("target.js", "0.1.0")
+        .replace(r#""formats": ["json"]"#, r#""formats": ["binary"]"#);
     let path = write_record(tmp.path(), "target.js", "0.1.0", &body);
     let issues = validate_file(&path);
     assert!(issues.iter().any(|i| i.message.contains("binary")));
@@ -86,7 +96,9 @@ fn unknown_field_rejected_as_json_error() {
     );
     let path = write_record(tmp.path(), "target.js", "0.1.0", &body);
     let issues = validate_file(&path);
-    assert!(issues.iter().any(|i| i.message.contains("invalid JSON") || i.message.contains("extraneous")));
+    assert!(issues
+        .iter()
+        .any(|i| i.message.contains("invalid JSON") || i.message.contains("extraneous")));
 }
 
 #[test]
@@ -96,14 +108,26 @@ fn wrong_path_rejected() {
     // Place under target.k8s/0.1.0.json — mismatched
     let path = write_record(tmp.path(), "target.k8s", "0.1.0", &body);
     let issues = validate_file(&path);
-    assert!(issues.iter().any(|i| i.message.contains("file path must end")));
+    assert!(issues
+        .iter()
+        .any(|i| i.message.contains("file path must end")));
 }
 
 #[test]
 fn validate_tree_walks_subdirs() {
     let tmp = tempfile::tempdir().expect("tmp");
-    write_record(tmp.path(), "target.js", "0.1.0", &valid_record("target.js", "0.1.0"));
-    write_record(tmp.path(), "target.rust", "0.2.0", &valid_record("target.rust", "0.2.0"));
+    write_record(
+        tmp.path(),
+        "target.js",
+        "0.1.0",
+        &valid_record("target.js", "0.1.0"),
+    );
+    write_record(
+        tmp.path(),
+        "target.rust",
+        "0.2.0",
+        &valid_record("target.rust", "0.2.0"),
+    );
     let report = validate_tree(tmp.path());
     assert_eq!(report.validated, 2);
     assert!(report.ok(), "unexpected issues: {:?}", report.issues);
