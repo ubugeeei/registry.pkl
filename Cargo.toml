@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "crates/registry-validator",
+    "crates/release-cut",
     "crates/search-index",
 ]
 
