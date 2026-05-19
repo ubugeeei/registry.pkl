@@ -1,0 +1,332 @@
+/// A typed authoring surface for `wrangler.toml`.
+///
+/// Cloudflare Wrangler reads its worker config from `wrangler.toml`. This
+/// module models the top-level worker shape plus the most commonly used
+/// binding tables (KV, R2, D1, queues, durable objects, vars, secrets).
+module target.env.wrangler.Wrangler
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class KvNamespace {
+  binding: String
+  id: String? = null
+  preview_id: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class R2Bucket {
+  binding: String
+  bucket_name: String
+  preview_bucket_name: String? = null
+  jurisdiction: ("eu"|"fedramp")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class D1Database {
+  binding: String
+  database_name: String
+  database_id: String
+  preview_database_id: String? = null
+  migrations_dir: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class QueueProducer {
+  binding: String
+  queue: String
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class QueueConsumer {
+  queue: String
+  max_batch_size: Int? = null
+  max_batch_timeout: Int? = null
+  max_retries: Int? = null
+  dead_letter_queue: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class DurableObjectBinding {
+  name: String
+  class_name: String
+  script_name: String? = null
+  environment: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Migration {
+  tag: String
+  new_classes: Listing<String> = new Listing {}
+  renamed_classes: Listing<Mapping<String, String>> = new Listing {}
+  deleted_classes: Listing<String> = new Listing {}
+  transferred_classes: Listing<Mapping<String, String>> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Triggers {
+  crons: Listing<String> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Build {
+  command: String? = null
+  cwd: String? = null
+  watch_dir: (String|Listing<String>)? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Limits {
+  cpu_ms: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Env {
+  name: String? = null
+  routes: Listing<String> = new Listing {}
+  vars: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+name: String
+main: String? = null
+compatibility_date: String? = null
+compatibility_flags: Listing<String> = new Listing {}
+workers_dev: Boolean? = null
+preview_urls: Boolean? = null
+account_id: String? = null
+routes: Listing<String|Mapping<String, Any>> = new Listing {}
+route: String? = null
+node_compat: Boolean? = null
+no_bundle: Boolean? = null
+minify: Boolean? = null
+keep_vars: Boolean? = null
+logpush: Boolean? = null
+placement: Mapping<String, String>? = null
+limits: Limits? = null
+build: Build? = null
+triggers: Triggers? = null
+vars: Mapping<String, String> = new Mapping {}
+kv_namespaces: Listing<KvNamespace> = new Listing {}
+r2_buckets: Listing<R2Bucket> = new Listing {}
+d1_databases: Listing<D1Database> = new Listing {}
+queues: Mapping<String, Any>? = null
+queueProducers: Listing<QueueProducer> = new Listing {}
+queueConsumers: Listing<QueueConsumer> = new Listing {}
+durable_objects: Listing<DurableObjectBinding> = new Listing {}
+migrations: Listing<Migration> = new Listing {}
+env: Mapping<String, Env> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderKv(value: KvNamespace) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["binding"] = value.binding
+      when (value.id != null) { ["id"] = value.id }
+      when (value.preview_id != null) { ["preview_id"] = value.preview_id }
+    },
+    value.extra,
+  )
+
+local function renderR2(value: R2Bucket) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["binding"] = value.binding
+      ["bucket_name"] = value.bucket_name
+      when (value.preview_bucket_name != null) {
+        ["preview_bucket_name"] = value.preview_bucket_name
+      }
+      when (value.jurisdiction != null) {
+        ["jurisdiction"] = value.jurisdiction
+      }
+    },
+    value.extra,
+  )
+
+local function renderD1(value: D1Database) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["binding"] = value.binding
+      ["database_name"] = value.database_name
+      ["database_id"] = value.database_id
+      when (value.preview_database_id != null) {
+        ["preview_database_id"] = value.preview_database_id
+      }
+      when (value.migrations_dir != null) {
+        ["migrations_dir"] = value.migrations_dir
+      }
+    },
+    value.extra,
+  )
+
+local function renderProducer(value: QueueProducer) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["binding"] = value.binding
+      ["queue"] = value.queue
+    },
+    value.extra,
+  )
+
+local function renderConsumer(value: QueueConsumer) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["queue"] = value.queue
+      when (value.max_batch_size != null) {
+        ["max_batch_size"] = value.max_batch_size
+      }
+      when (value.max_batch_timeout != null) {
+        ["max_batch_timeout"] = value.max_batch_timeout
+      }
+      when (value.max_retries != null) {
+        ["max_retries"] = value.max_retries
+      }
+      when (value.dead_letter_queue != null) {
+        ["dead_letter_queue"] = value.dead_letter_queue
+      }
+    },
+    value.extra,
+  )
+
+local function renderDo(value: DurableObjectBinding) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = value.name
+      ["class_name"] = value.class_name
+      when (value.script_name != null) {
+        ["script_name"] = value.script_name
+      }
+      when (value.environment != null) {
+        ["environment"] = value.environment
+      }
+    },
+    value.extra,
+  )
+
+local function renderMigration(value: Migration) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["tag"] = value.tag
+      when (!value.new_classes.toList().isEmpty) {
+        ["new_classes"] = value.new_classes.toList()
+      }
+      when (!value.renamed_classes.toList().isEmpty) {
+        ["renamed_classes"] = value.renamed_classes.toList().map((m) -> m.toMap())
+      }
+      when (!value.deleted_classes.toList().isEmpty) {
+        ["deleted_classes"] = value.deleted_classes.toList()
+      }
+      when (!value.transferred_classes.toList().isEmpty) {
+        ["transferred_classes"] = value.transferred_classes.toList().map((m) -> m.toMap())
+      }
+    },
+    value.extra,
+  )
+
+local function renderRoutes(items: Listing<String|Mapping<String, Any>>) =
+  items.toList().map((it) -> if (it is Mapping) it.toMap() else it)
+
+local function renderEnv(value: Env) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (!value.routes.toList().isEmpty) {
+        ["routes"] = value.routes.toList()
+      }
+      when (!value.vars.toMap().isEmpty) {
+        ["vars"] = value.vars.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = name
+      when (main != null) { ["main"] = main }
+      when (compatibility_date != null) {
+        ["compatibility_date"] = compatibility_date
+      }
+      when (!compatibility_flags.toList().isEmpty) {
+        ["compatibility_flags"] = compatibility_flags.toList()
+      }
+      when (workers_dev != null) { ["workers_dev"] = workers_dev }
+      when (preview_urls != null) { ["preview_urls"] = preview_urls }
+      when (account_id != null) { ["account_id"] = account_id }
+      when (!routes.toList().isEmpty) {
+        ["routes"] = renderRoutes(routes)
+      }
+      when (route != null) { ["route"] = route }
+      when (node_compat != null) { ["node_compat"] = node_compat }
+      when (no_bundle != null) { ["no_bundle"] = no_bundle }
+      when (minify != null) { ["minify"] = minify }
+      when (keep_vars != null) { ["keep_vars"] = keep_vars }
+      when (logpush != null) { ["logpush"] = logpush }
+      when (placement != null) { ["placement"] = placement.toMap() }
+      when (limits != null) {
+        ["limits"] = Maps.withExtra(
+          new Mapping<String, Any> {
+            when (limits.cpu_ms != null) { ["cpu_ms"] = limits.cpu_ms }
+          },
+          limits.extra,
+        )
+      }
+      when (build != null) {
+        ["build"] = Maps.withExtra(
+          new Mapping<String, Any> {
+            when (build.command != null) { ["command"] = build.command }
+            when (build.cwd != null) { ["cwd"] = build.cwd }
+            when (build.watch_dir != null) {
+              ["watch_dir"] = if (build.watch_dir is Listing) build.watch_dir.toList() else build.watch_dir
+            }
+          },
+          build.extra,
+        )
+      }
+      when (triggers != null) {
+        ["triggers"] = Maps.withExtra(
+          new Mapping<String, Any> {
+            when (!triggers.crons.toList().isEmpty) {
+              ["crons"] = triggers.crons.toList()
+            }
+          },
+          triggers.extra,
+        )
+      }
+      when (!vars.toMap().isEmpty) { ["vars"] = vars.toMap() }
+      when (!kv_namespaces.toList().isEmpty) {
+        ["kv_namespaces"] = kv_namespaces.toList().map((k) -> renderKv(k))
+      }
+      when (!r2_buckets.toList().isEmpty) {
+        ["r2_buckets"] = r2_buckets.toList().map((r) -> renderR2(r))
+      }
+      when (!d1_databases.toList().isEmpty) {
+        ["d1_databases"] = d1_databases.toList().map((d) -> renderD1(d))
+      }
+      when (queues != null) { ["queues"] = queues.toMap() }
+      when (!queueProducers.toList().isEmpty) {
+        ["queues.producers"] = queueProducers.toList().map((p) -> renderProducer(p))
+      }
+      when (!queueConsumers.toList().isEmpty) {
+        ["queues.consumers"] = queueConsumers.toList().map((c) -> renderConsumer(c))
+      }
+      when (!durable_objects.toList().isEmpty) {
+        ["durable_objects"] = new Mapping<String, Any> {
+          ["bindings"] = durable_objects.toList().map((d) -> renderDo(d))
+        }.toMap()
+      }
+      when (!migrations.toList().isEmpty) {
+        ["migrations"] = migrations.toList().map((m) -> renderMigration(m))
+      }
+      when (!env.toMap().isEmpty) {
+        ["env"] = env.toMap().mapValues((_, e) -> renderEnv(e))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}

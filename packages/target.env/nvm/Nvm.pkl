@@ -1,0 +1,23 @@
+/// A typed authoring surface for `.nvmrc`.
+///
+/// `.nvmrc` is a single-line file containing a Node.js version string
+/// (or alias like "lts/*"). This module models that scalar plus an
+/// optional leading comment block, since nvm tolerates `#`-prefixed
+/// comment lines.
+module target.env.nvm.Nvm
+
+/// Node version or alias (e.g. "20.10.0", "lts/*", "node").
+version: String
+
+/// Leading `#`-prefixed comment lines to write before the version.
+comments: Listing<String> = new Listing {}
+
+local commentLines: List<String> =
+  comments.toList().map((c) -> "# " + c)
+
+hidden rendered: String =
+  (commentLines + List(version)).join("\n") + "\n"
+
+output {
+  text = rendered
+}

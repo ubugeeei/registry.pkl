@@ -1,0 +1,67 @@
+/// A typed authoring surface for `.envrc`.
+///
+/// direnv `.envrc` is a Bash script. This module exposes the common
+/// patterns — env vars, layout shorthands, path manipulations, watch
+/// declarations — as structured fields so the generated script remains
+/// readable and reviewable, while leaving an `extra` body escape hatch
+/// for arbitrary Bash.
+module target.env.direnv.Direnv
+
+/// Optional shebang. direnv runs `.envrc` under Bash regardless, so this
+/// is purely cosmetic — useful for editors that key off the shebang for
+/// syntax highlighting.
+shebang: String? = null
+
+/// `layout <name>` directives applied in order.
+///
+/// Examples: "python3", "node", "go", "rust", "ruby".
+layouts: Listing<String> = new Listing {}
+
+/// Environment variables (rendered as `export KEY=value` lines).
+env: Mapping<String, String> = new Mapping {}
+
+/// PATH prepends. Each entry becomes `PATH_add <dir>`.
+pathAdd: Listing<String> = new Listing {}
+
+/// File / directory paths to watch — `watch_file <path>` per entry.
+watch: Listing<String> = new Listing {}
+
+/// `source_env <path>` directives (load another .envrc).
+sourceEnv: Listing<String> = new Listing {}
+
+/// `source_up [filename]` — load an .envrc from a parent directory.
+sourceUp: Boolean = false
+
+/// `use flake` shorthand for nix flake integration.
+useFlake: Boolean = false
+
+/// `dotenv [path]` — load a .env file (path is optional).
+dotenv: (Boolean|String)? = null
+
+/// Trailing raw lines appended after the structured directives.
+body: Listing<String> = new Listing {}
+
+local lines: List<String> =
+  new Listing<String> {
+    when (shebang != null) { shebang!! }
+    for (layout in layouts) { "layout " + layout }
+    when (useFlake) { "use flake" }
+    when (sourceUp) { "source_up" }
+    when (dotenv != null) {
+      if (dotenv is Boolean) (if (dotenv) "dotenv" else "")
+      else "dotenv " + (dotenv as String)
+    }
+    for (path in sourceEnv) { "source_env " + path }
+    for (dir in pathAdd) { "PATH_add " + dir }
+    for (key, value in env) { "export \(key)=\(value)" }
+    for (path in watch) { "watch_file " + path }
+    for (line in body) { line }
+  }
+    .toList()
+    .filter((s) -> s != "")
+
+hidden rendered: String = lines.join("\n") + "\n"
+
+output {
+  text = rendered
+}

@@ -1,0 +1,27 @@
+/// Tests for `target.env.nvm.Nvm` rendering.
+amends "pkl:test"
+
+import "../nvm/Nvm.pkl"
+
+local pinned = (Nvm) {
+  version = "20.10.0"
+}
+
+local alias = (Nvm) {
+  version = "lts/*"
+  comments {
+    "use latest LTS"
+  }
+}
+
+facts {
+  ["bare version emits as single line"] {
+    pinned.rendered == "20.10.0\n"
+  }
+  ["alias passes through verbatim"] {
+    alias.rendered.contains("lts/*\n")
+  }
+  ["comment lines precede the version"] {
+    alias.rendered.startsWith("# use latest LTS\n")
+  }
+}

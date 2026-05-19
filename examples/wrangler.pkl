@@ -1,0 +1,85 @@
+amends "@target.env/wrangler/Wrangler.pkl"
+
+name = "registry-api"
+main = "src/worker.ts"
+compatibility_date = "2024-05-01"
+compatibility_flags {
+  "nodejs_compat"
+}
+workers_dev = true
+
+vars {
+  ["LOG_LEVEL"] = "info"
+  ["REGION"] = "auto"
+}
+
+kv_namespaces {
+  new KvNamespace {
+    binding = "CACHE"
+    id = "abc123def456"
+    preview_id = "preview-cache-id"
+  }
+}
+
+r2_buckets {
+  new R2Bucket {
+    binding = "PACKAGES"
+    bucket_name = "registry-packages"
+    preview_bucket_name = "registry-packages-preview"
+  }
+}
+
+d1_databases {
+  new D1Database {
+    binding = "DB"
+    database_name = "registry-prod"
+    database_id = "d1-database-id"
+    migrations_dir = "migrations"
+  }
+}
+
+queueProducers {
+  new QueueProducer {
+    binding = "INDEX_QUEUE"
+    queue = "registry-indexing"
+  }
+}
+
+queueConsumers {
+  new QueueConsumer {
+    queue = "registry-indexing"
+    max_batch_size = 50
+    max_batch_timeout = 30
+    max_retries = 3
+    dead_letter_queue = "registry-indexing-dlq"
+  }
+}
+
+triggers = new Triggers {
+  crons {
+    "0 */6 * * *"
+    "0 0 * * 0"
+  }
+}
+
+limits = new Limits {
+  cpu_ms = 50
+}
+
+env {
+  ["staging"] = new Env {
+    name = "registry-api-staging"
+    routes {
+      "staging.registry.pkl/api/*"
+    }
+    vars {
+      ["LOG_LEVEL"] = "debug"
+    }
+  }
+  ["preview"] = new Env {
+    name = "registry-api-preview"
+    vars {
+      ["LOG_LEVEL"] = "debug"
+    }
+  }
+}

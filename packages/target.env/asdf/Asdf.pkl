@@ -1,0 +1,31 @@
+/// A typed authoring surface for `.tool-versions`.
+///
+/// asdf's tool-versions file is a line-oriented format: one entry per
+/// language plugin, each value either a single version or a space-
+/// separated fallback list. This module models that shape and renders
+/// as the text format asdf actually reads.
+module target.env.asdf.Asdf
+
+/// Plugin → version(s). The first version is the primary; later versions
+/// are fallbacks (asdf reads them in order when resolving).
+tools: Mapping<String, String|Listing<String>> = new Mapping {}
+
+/// Trailing comment lines appended to the file. Each entry becomes one
+/// `# <text>` line. Useful for documenting why a pin exists.
+comments: Listing<String> = new Listing {}
+
+local function renderVersions(value: String|Listing<String>) =
+  if (value is Listing) value.toList().join(" ") else value
+
+local commentLines: List<String> =
+  comments.toList().map((c) -> "# " + c)
+
+local toolLines: List<String> =
+  tools.toMap().entries
+    .map((entry) -> "\(entry.key) \(renderVersions(entry.value))")
+
+hidden rendered: String = (commentLines + toolLines).join("\n") + "\n"
+
+output {
+  text = rendered
+}

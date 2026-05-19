@@ -1,0 +1,31 @@
+amends "@target.env/proto/Proto.pkl"
+
+tools {
+  ["node"] = "20.10.0"
+  ["pnpm"] = "9.0.0"
+  ["rust"] = "1.78.0"
+  ["go"] = "1.22.0"
+}
+
+plugins {
+  ["zig"] = "github:moonrepo/proto-zig"
+  ["bun"] = "github:moonrepo/proto-bun"
+}
+
+toolSettings {
+  ["node"] = new ToolSettings {
+    aliases {
+      ["lts"] = "20"
+      ["next"] = "21"
+    }
+    default_version = "20.10.0"
+  }
+}
+
+settings = new Settings {
+  autoCleanInstall = true
+  autoInstall = true
+  detectStrategy = "prefer-prototools"
+  pinLatest = "local"
+  telemetry = false
+}
