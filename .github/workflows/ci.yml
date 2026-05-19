@@ -118,3 +118,43 @@ jobs:
 
       - name: Test
         run: cargo test --release --workspace
+
+  rust-coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-coverage-${{ hashFiles('**/Cargo.lock', '**/*.rs') }}
+          restore-keys: |
+            ${{ runner.os }}-coverage-
+
+      - name: Generate coverage (lcov + summary)
+        run: |
+          cargo llvm-cov --workspace --lcov --output-path coverage.lcov
+          cargo llvm-cov report --summary-only --workspace | tee coverage-summary.txt
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-coverage
+          path: |
+            coverage.lcov
+            coverage-summary.txt
+          retention-days: 14
