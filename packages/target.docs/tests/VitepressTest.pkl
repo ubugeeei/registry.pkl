@@ -1,0 +1,68 @@
+/// Tests for `target.docs.vitepress.Vitepress` rendering.
+amends "pkl:test"
+
+import "../vitepress/Vitepress.pkl"
+
+local cfg = (Vitepress) {
+  title = "registry.pkl"
+  description = "typed configuration registry"
+  base = "/registry.pkl/"
+  cleanUrls = true
+  themeConfig = new Vitepress.ThemeConfig {
+    nav {
+      new Vitepress.NavItem {
+        text = "Guides"
+        link = "/guide/"
+      }
+    }
+    sidebar = new Listing<Vitepress.SidebarItem> {
+      new Vitepress.SidebarItem {
+        text = "Start"
+        items {
+          new Vitepress.SidebarItem {
+            text = "Quickstart"
+            link = "/start/quickstart"
+          }
+        }
+      }
+    }
+    socialLinks {
+      new Vitepress.SocialLink {
+        icon = "github"
+        link = "https://github.com/ubugeeei/registry.pkl"
+      }
+    }
+    outline = 3
+    footer = new Vitepress.FooterConfig {
+      message = "MIT"
+    }
+  }
+}
+
+facts {
+  ["title and base pass through"] {
+    cfg.rendered["title"] == "registry.pkl"
+    cfg.rendered["base"] == "/registry.pkl/"
+  }
+  ["nav renders with text and link"] {
+    local nav = cfg.rendered["themeConfig"]["nav"][0]
+    nav["text"] == "Guides"
+    nav["link"] == "/guide/"
+  }
+  ["sidebar list nests"] {
+    local sb = cfg.rendered["themeConfig"]["sidebar"][0]
+    sb["text"] == "Start"
+    sb["items"][0]["link"] == "/start/quickstart"
+  }
+  ["socialLinks render"] {
+    local s = cfg.rendered["themeConfig"]["socialLinks"][0]
+    s["icon"] == "github"
+    s["link"] == "https://github.com/ubugeeei/registry.pkl"
+  }
+  ["outline integer passes through"] {
+    cfg.rendered["themeConfig"]["outline"] == 3
+  }
+  ["footer message passes through"] {
+    cfg.rendered["themeConfig"]["footer"]["message"] == "MIT"
+  }
+}

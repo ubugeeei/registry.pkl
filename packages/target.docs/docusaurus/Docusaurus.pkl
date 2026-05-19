@@ -1,0 +1,252 @@
+/// A typed authoring surface for `docusaurus.config.json` (JSON projection).
+module target.docs.docusaurus.Docusaurus
+
+import "@target.core/Maps.pkl" as Maps
+
+class NavbarItem {
+  type: String? = null
+  label: String? = null
+  to: String? = null
+  href: String? = null
+  position: ("left"|"right")? = null
+  className: String? = null
+  activeBasePath: String? = null
+  docId: String? = null
+  sidebarId: String? = null
+  items: Listing<NavbarItem> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class FooterLink {
+  label: String? = null
+  to: String? = null
+  href: String? = null
+  html: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class FooterLinkGroup {
+  title: String? = null
+  items: Listing<FooterLink> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Footer {
+  style: ("light"|"dark")? = null
+  logo: Mapping<String, Any> = new Mapping {}
+  copyright: String? = null
+  links: Listing<FooterLinkGroup> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Navbar {
+  title: String? = null
+  logo: Mapping<String, Any> = new Mapping {}
+  hideOnScroll: Boolean? = null
+  items: Listing<NavbarItem> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ThemeConfig {
+  navbar: Navbar? = null
+  footer: Footer? = null
+  prism: Mapping<String, Any> = new Mapping {}
+  colorMode: Mapping<String, Any> = new Mapping {}
+  algolia: Mapping<String, Any> = new Mapping {}
+  announcementBar: Mapping<String, Any> = new Mapping {}
+  metadata: Listing<Mapping<String, String>> = new Listing {}
+  image: String? = null
+  tableOfContents: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+title: String? = null
+tagline: String? = null
+url: String? = null
+baseUrl: String? = null
+favicon: String? = null
+organizationName: String? = null
+projectName: String? = null
+deploymentBranch: String? = null
+trailingSlash: Boolean? = null
+onBrokenLinks: ("ignore"|"log"|"warn"|"throw")? = null
+onBrokenMarkdownLinks: ("ignore"|"log"|"warn"|"throw")? = null
+onDuplicateRoutes: ("ignore"|"log"|"warn"|"throw")? = null
+i18n: Mapping<String, Any> = new Mapping {}
+themes: Listing<Any> = new Listing {}
+plugins: Listing<Any> = new Listing {}
+presets: Listing<Any> = new Listing {}
+themeConfig: ThemeConfig? = null
+customFields: Mapping<String, Any> = new Mapping {}
+markdown: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderNavbarItem(value: NavbarItem) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.type != null) { ["type"] = value.type }
+      when (value.label != null) { ["label"] = value.label }
+      when (value.to != null) { ["to"] = value.to }
+      when (value.href != null) { ["href"] = value.href }
+      when (value.position != null) { ["position"] = value.position }
+      when (value.className != null) {
+        ["className"] = value.className
+      }
+      when (value.activeBasePath != null) {
+        ["activeBasePath"] = value.activeBasePath
+      }
+      when (value.docId != null) { ["docId"] = value.docId }
+      when (value.sidebarId != null) {
+        ["sidebarId"] = value.sidebarId
+      }
+      when (!value.items.toList().isEmpty) {
+        ["items"] = value.items.toList().map((i) -> renderNavbarItem(i))
+      }
+    },
+    value.extra,
+  )
+
+local function renderFooterLink(value: FooterLink) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.label != null) { ["label"] = value.label }
+      when (value.to != null) { ["to"] = value.to }
+      when (value.href != null) { ["href"] = value.href }
+      when (value.html != null) { ["html"] = value.html }
+    },
+    value.extra,
+  )
+
+local function renderFooterGroup(value: FooterLinkGroup) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.title != null) { ["title"] = value.title }
+      when (!value.items.toList().isEmpty) {
+        ["items"] = value.items.toList().map((l) -> renderFooterLink(l))
+      }
+    },
+    value.extra,
+  )
+
+local function renderFooter(value: Footer) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.style != null) { ["style"] = value.style }
+      when (!value.logo.toMap().isEmpty) {
+        ["logo"] = value.logo.toMap()
+      }
+      when (value.copyright != null) {
+        ["copyright"] = value.copyright
+      }
+      when (!value.links.toList().isEmpty) {
+        ["links"] = value.links.toList().map((g) -> renderFooterGroup(g))
+      }
+    },
+    value.extra,
+  )
+
+local function renderNavbar(value: Navbar) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.title != null) { ["title"] = value.title }
+      when (!value.logo.toMap().isEmpty) {
+        ["logo"] = value.logo.toMap()
+      }
+      when (value.hideOnScroll != null) {
+        ["hideOnScroll"] = value.hideOnScroll
+      }
+      when (!value.items.toList().isEmpty) {
+        ["items"] = value.items.toList().map((i) -> renderNavbarItem(i))
+      }
+    },
+    value.extra,
+  )
+
+local function renderTheme(value: ThemeConfig) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.navbar != null) {
+        ["navbar"] = renderNavbar(value.navbar)
+      }
+      when (value.footer != null) {
+        ["footer"] = renderFooter(value.footer)
+      }
+      when (!value.prism.toMap().isEmpty) {
+        ["prism"] = value.prism.toMap()
+      }
+      when (!value.colorMode.toMap().isEmpty) {
+        ["colorMode"] = value.colorMode.toMap()
+      }
+      when (!value.algolia.toMap().isEmpty) {
+        ["algolia"] = value.algolia.toMap()
+      }
+      when (!value.announcementBar.toMap().isEmpty) {
+        ["announcementBar"] = value.announcementBar.toMap()
+      }
+      when (!value.metadata.toList().isEmpty) {
+        ["metadata"] = value.metadata.toList().map((m) -> m.toMap())
+      }
+      when (value.image != null) { ["image"] = value.image }
+      when (!value.tableOfContents.toMap().isEmpty) {
+        ["tableOfContents"] = value.tableOfContents.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (title != null) { ["title"] = title }
+      when (tagline != null) { ["tagline"] = tagline }
+      when (url != null) { ["url"] = url }
+      when (baseUrl != null) { ["baseUrl"] = baseUrl }
+      when (favicon != null) { ["favicon"] = favicon }
+      when (organizationName != null) {
+        ["organizationName"] = organizationName
+      }
+      when (projectName != null) {
+        ["projectName"] = projectName
+      }
+      when (deploymentBranch != null) {
+        ["deploymentBranch"] = deploymentBranch
+      }
+      when (trailingSlash != null) {
+        ["trailingSlash"] = trailingSlash
+      }
+      when (onBrokenLinks != null) {
+        ["onBrokenLinks"] = onBrokenLinks
+      }
+      when (onBrokenMarkdownLinks != null) {
+        ["onBrokenMarkdownLinks"] = onBrokenMarkdownLinks
+      }
+      when (onDuplicateRoutes != null) {
+        ["onDuplicateRoutes"] = onDuplicateRoutes
+      }
+      when (!i18n.toMap().isEmpty) { ["i18n"] = i18n.toMap() }
+      when (!themes.toList().isEmpty) {
+        ["themes"] = themes.toList()
+      }
+      when (!plugins.toList().isEmpty) {
+        ["plugins"] = plugins.toList()
+      }
+      when (!presets.toList().isEmpty) {
+        ["presets"] = presets.toList()
+      }
+      when (themeConfig != null) {
+        ["themeConfig"] = renderTheme(themeConfig)
+      }
+      when (!customFields.toMap().isEmpty) {
+        ["customFields"] = customFields.toMap()
+      }
+      when (!markdown.toMap().isEmpty) {
+        ["markdown"] = markdown.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

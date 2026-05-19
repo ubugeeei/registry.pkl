@@ -1,0 +1,215 @@
+/// A typed authoring surface for `typedoc.json`.
+module target.docs.typedoc.Typedoc
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias EntryPointStrategy = "resolve"|"expand"|"packages"|"merge"|"legacy-packages"
+typealias Theme = "default"|String
+typealias Visibility = "always"|"limited"|"never"|"hidden"
+typealias SortMode = "source-order"|"alphabetical"|"alphabetical-ignoring-documents"|"enum-value-ascending"|"enum-value-descending"|"enum-member-source-order"|"static-first"|"instance-first"|"visibility"|"required-first"|"kind"|"external-last"|"documents-first"|"documents-last"
+
+`$schema`: String? = null
+entryPoints: Listing<String> = new Listing {}
+entryPointStrategy: EntryPointStrategy? = null
+`out`: String? = null
+json: String? = null
+pretty: Boolean? = null
+hideGenerator: Boolean? = null
+disableSources: Boolean? = null
+gitRevision: String? = null
+gitRemote: String? = null
+readme: String? = null
+exclude: Listing<String> = new Listing {}
+externalPattern: Listing<String> = new Listing {}
+excludeExternals: Boolean? = null
+excludeNotDocumented: Boolean? = null
+excludePrivate: Boolean? = null
+excludeProtected: Boolean? = null
+excludeReferences: Boolean? = null
+excludeInternal: Boolean? = null
+excludeCategories: Listing<String> = new Listing {}
+plugin: Listing<String> = new Listing {}
+theme: Theme? = null
+lightHighlightTheme: String? = null
+darkHighlightTheme: String? = null
+highlightLanguages: Listing<String> = new Listing {}
+customCss: String? = null
+markedOptions: Mapping<String, Any> = new Mapping {}
+basePath: String? = null
+name: String? = null
+includeVersion: Boolean? = null
+disableGit: Boolean? = null
+sourceLinkTemplate: String? = null
+gitHubPages: Boolean? = null
+htmlLang: String? = null
+useTsLinkResolution: Boolean? = null
+preserveLinkText: Boolean? = null
+jsDocCompatibility: Mapping<String, Boolean> = new Mapping {}
+suppressCommentWarningsInDeclarationFiles: Boolean? = null
+commentStyle: ("jsdoc"|"block"|"line"|"all")? = null
+useSpecificComment: Boolean? = null
+favicon: String? = null
+sort: Listing<SortMode> = new Listing {}
+groupOrder: Listing<String> = new Listing {}
+categoryOrder: Listing<String> = new Listing {}
+defaultCategory: String? = null
+categorizeByGroup: Boolean? = null
+visibilityFilters: Mapping<String, Boolean> = new Mapping {}
+searchInComments: Boolean? = null
+searchInDocuments: Boolean? = null
+cleanOutputDir: Boolean? = null
+titleLink: String? = null
+navigationLinks: Mapping<String, String> = new Mapping {}
+sidebarLinks: Mapping<String, String> = new Mapping {}
+treatWarningsAsErrors: Boolean? = null
+treatValidationWarningsAsErrors: Boolean? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (!entryPoints.toList().isEmpty) {
+        ["entryPoints"] = entryPoints.toList()
+      }
+      when (entryPointStrategy != null) {
+        ["entryPointStrategy"] = entryPointStrategy
+      }
+      when (`out` != null) { ["out"] = `out` }
+      when (json != null) { ["json"] = json }
+      when (pretty != null) { ["pretty"] = pretty }
+      when (hideGenerator != null) {
+        ["hideGenerator"] = hideGenerator
+      }
+      when (disableSources != null) {
+        ["disableSources"] = disableSources
+      }
+      when (gitRevision != null) { ["gitRevision"] = gitRevision }
+      when (gitRemote != null) { ["gitRemote"] = gitRemote }
+      when (readme != null) { ["readme"] = readme }
+      when (!exclude.toList().isEmpty) {
+        ["exclude"] = exclude.toList()
+      }
+      when (!externalPattern.toList().isEmpty) {
+        ["externalPattern"] = externalPattern.toList()
+      }
+      when (excludeExternals != null) {
+        ["excludeExternals"] = excludeExternals
+      }
+      when (excludeNotDocumented != null) {
+        ["excludeNotDocumented"] = excludeNotDocumented
+      }
+      when (excludePrivate != null) {
+        ["excludePrivate"] = excludePrivate
+      }
+      when (excludeProtected != null) {
+        ["excludeProtected"] = excludeProtected
+      }
+      when (excludeReferences != null) {
+        ["excludeReferences"] = excludeReferences
+      }
+      when (excludeInternal != null) {
+        ["excludeInternal"] = excludeInternal
+      }
+      when (!excludeCategories.toList().isEmpty) {
+        ["excludeCategories"] = excludeCategories.toList()
+      }
+      when (!plugin.toList().isEmpty) {
+        ["plugin"] = plugin.toList()
+      }
+      when (theme != null) { ["theme"] = theme }
+      when (lightHighlightTheme != null) {
+        ["lightHighlightTheme"] = lightHighlightTheme
+      }
+      when (darkHighlightTheme != null) {
+        ["darkHighlightTheme"] = darkHighlightTheme
+      }
+      when (!highlightLanguages.toList().isEmpty) {
+        ["highlightLanguages"] = highlightLanguages.toList()
+      }
+      when (customCss != null) { ["customCss"] = customCss }
+      when (!markedOptions.toMap().isEmpty) {
+        ["markedOptions"] = markedOptions.toMap()
+      }
+      when (basePath != null) { ["basePath"] = basePath }
+      when (name != null) { ["name"] = name }
+      when (includeVersion != null) {
+        ["includeVersion"] = includeVersion
+      }
+      when (disableGit != null) { ["disableGit"] = disableGit }
+      when (sourceLinkTemplate != null) {
+        ["sourceLinkTemplate"] = sourceLinkTemplate
+      }
+      when (gitHubPages != null) {
+        ["gitHubPages"] = gitHubPages
+      }
+      when (htmlLang != null) { ["htmlLang"] = htmlLang }
+      when (useTsLinkResolution != null) {
+        ["useTsLinkResolution"] = useTsLinkResolution
+      }
+      when (preserveLinkText != null) {
+        ["preserveLinkText"] = preserveLinkText
+      }
+      when (!jsDocCompatibility.toMap().isEmpty) {
+        ["jsDocCompatibility"] = jsDocCompatibility.toMap()
+      }
+      when (suppressCommentWarningsInDeclarationFiles != null) {
+        ["suppressCommentWarningsInDeclarationFiles"] =
+          suppressCommentWarningsInDeclarationFiles
+      }
+      when (commentStyle != null) {
+        ["commentStyle"] = commentStyle
+      }
+      when (useSpecificComment != null) {
+        ["useSpecificComment"] = useSpecificComment
+      }
+      when (favicon != null) { ["favicon"] = favicon }
+      when (!sort.toList().isEmpty) {
+        ["sort"] = sort.toList()
+      }
+      when (!groupOrder.toList().isEmpty) {
+        ["groupOrder"] = groupOrder.toList()
+      }
+      when (!categoryOrder.toList().isEmpty) {
+        ["categoryOrder"] = categoryOrder.toList()
+      }
+      when (defaultCategory != null) {
+        ["defaultCategory"] = defaultCategory
+      }
+      when (categorizeByGroup != null) {
+        ["categorizeByGroup"] = categorizeByGroup
+      }
+      when (!visibilityFilters.toMap().isEmpty) {
+        ["visibilityFilters"] = visibilityFilters.toMap()
+      }
+      when (searchInComments != null) {
+        ["searchInComments"] = searchInComments
+      }
+      when (searchInDocuments != null) {
+        ["searchInDocuments"] = searchInDocuments
+      }
+      when (cleanOutputDir != null) {
+        ["cleanOutputDir"] = cleanOutputDir
+      }
+      when (titleLink != null) { ["titleLink"] = titleLink }
+      when (!navigationLinks.toMap().isEmpty) {
+        ["navigationLinks"] = navigationLinks.toMap()
+      }
+      when (!sidebarLinks.toMap().isEmpty) {
+        ["sidebarLinks"] = sidebarLinks.toMap()
+      }
+      when (treatWarningsAsErrors != null) {
+        ["treatWarningsAsErrors"] = treatWarningsAsErrors
+      }
+      when (treatValidationWarningsAsErrors != null) {
+        ["treatValidationWarningsAsErrors"] =
+          treatValidationWarningsAsErrors
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

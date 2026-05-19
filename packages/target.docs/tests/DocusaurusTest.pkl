@@ -1,0 +1,64 @@
+/// Tests for `target.docs.docusaurus.Docusaurus` rendering.
+amends "pkl:test"
+
+import "../docusaurus/Docusaurus.pkl"
+
+local cfg = (Docusaurus) {
+  title = "Docs"
+  url = "https://example.invalid"
+  baseUrl = "/"
+  organizationName = "example"
+  projectName = "docs"
+  onBrokenLinks = "throw"
+  themeConfig = new Docusaurus.ThemeConfig {
+    navbar = new Docusaurus.Navbar {
+      title = "Docs"
+      items {
+        new Docusaurus.NavbarItem {
+          type = "docSidebar"
+          sidebarId = "tutorial"
+          position = "left"
+          label = "Tutorial"
+        }
+      }
+    }
+    footer = new Docusaurus.Footer {
+      style = "dark"
+      copyright = "(c) example"
+      links {
+        new Docusaurus.FooterLinkGroup {
+          title = "Docs"
+          items {
+            new Docusaurus.FooterLink {
+              label = "Intro"
+              to = "/docs/intro"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+facts {
+  ["scalars pass through"] {
+    cfg.rendered["title"] == "Docs"
+    cfg.rendered["url"] == "https://example.invalid"
+    cfg.rendered["baseUrl"] == "/"
+  }
+  ["onBrokenLinks enum passes through"] {
+    cfg.rendered["onBrokenLinks"] == "throw"
+  }
+  ["navbar item carries position"] {
+    local item = cfg.rendered["themeConfig"]["navbar"]["items"][0]
+    item["type"] == "docSidebar"
+    item["sidebarId"] == "tutorial"
+    item["position"] == "left"
+  }
+  ["footer link group renders"] {
+    local group = cfg.rendered["themeConfig"]["footer"]["links"][0]
+    group["title"] == "Docs"
+    group["items"][0]["label"] == "Intro"
+    group["items"][0]["to"] == "/docs/intro"
+  }
+}
