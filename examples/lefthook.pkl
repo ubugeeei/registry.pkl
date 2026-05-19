@@ -1,0 +1,41 @@
+amends "@target.js/lefthook/Lefthook.pkl"
+
+minVersion = "1.7.0"
+skipOutput {
+  "meta"
+  "success"
+}
+
+hooks {
+  ["pre-commit"] = new Hook {
+    parallel = true
+    commands {
+      ["lint"] = new Command {
+        run = "pnpm eslint --fix {staged_files}"
+        glob = "*.{ts,tsx,js,jsx}"
+        stageFixed = true
+      }
+      ["format"] = new Command {
+        run = "pnpm prettier --write {staged_files}"
+        glob = "*.{md,json,yml,yaml}"
+        stageFixed = true
+      }
+    }
+  }
+  ["commit-msg"] = new Hook {
+    commands {
+      ["commitlint"] = new Command {
+        run = "pnpm commitlint --edit {1}"
+      }
+    }
+  }
+  ["pre-push"] = new Hook {
+    piped = true
+    commands {
+      ["test"] = new Command {
+        run = "pnpm test"
+        tags { "pre-push" }
+      }
+    }
+  }
+}

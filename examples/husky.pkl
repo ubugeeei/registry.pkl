@@ -1,0 +1,5 @@
+amends "@target.js/husky/Husky.pkl"
+
+body {
+  "pnpm lint-staged"
+}

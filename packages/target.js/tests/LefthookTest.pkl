@@ -1,0 +1,57 @@
+/// Tests for `target.js.lefthook.Lefthook` rendering.
+amends "pkl:test"
+
+import "../lefthook/Lefthook.pkl"
+
+local config = (Lefthook) {
+  minVersion = "1.7.0"
+  skipOutput {
+    "meta"
+    "success"
+  }
+  hooks {
+    ["pre-commit"] = new Lefthook.Hook {
+      parallel = true
+      commands {
+        ["lint"] = new Lefthook.Command {
+          run = "pnpm eslint {staged_files}"
+          glob = "*.{ts,tsx}"
+          tags { "frontend" }
+          stageFixed = true
+        }
+        ["format"] = new Lefthook.Command {
+          run = "pnpm prettier --write {staged_files}"
+          glob = "*.{md,json}"
+        }
+      }
+    }
+    ["commit-msg"] = new Lefthook.Hook {
+      commands {
+        ["commitlint"] = new Lefthook.Command {
+          run = "pnpm commitlint --edit {1}"
+        }
+      }
+    }
+  }
+}
+
+facts {
+  ["min_version emits snake_case"] {
+    config.rendered["min_version"] == "1.7.0"
+  }
+  ["skip_output forwards as list"] {
+    config.rendered["skip_output"] == List("meta", "success")
+  }
+  ["pre-commit lint command renders glob + tags + stage_fixed"] {
+    local lint = config.rendered["pre-commit"]["commands"]["lint"]
+    lint["run"] == "pnpm eslint {staged_files}"
+    lint["glob"] == "*.{ts,tsx}"
+    lint["tags"] == List("frontend")
+    lint["stage_fixed"] == true
+  }
+  ["multiple hooks coexist"] {
+    config.rendered["pre-commit"]["parallel"] == true
+    config.rendered["commit-msg"]["commands"]["commitlint"]["run"]
+      == "pnpm commitlint --edit {1}"
+  }
+}

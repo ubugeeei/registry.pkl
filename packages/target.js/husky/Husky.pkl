@@ -1,0 +1,41 @@
+/// A typed authoring surface for `.husky/` git hook scripts.
+///
+/// Husky v9+ replaces the legacy `package.json` `husky` block with raw
+/// shell scripts under `.husky/`. Each hook is a tiny shell file that
+/// husky installs into `.git/hooks`. This module models a single hook
+/// script — render it once per file with the appropriate output path.
+///
+/// Example: `examples/husky.pkl` renders a pre-commit script.
+module target.js.husky.Husky
+
+/// Optional shebang. Husky v9 documents that hooks no longer need a shebang,
+/// but legacy v8 scripts and CI tooling may still expect one.
+shebang: String? = null
+
+/// Body of the hook script. Each entry is a single shell line.
+///
+/// husky v9 deprecated the legacy `. "$(dirname -- "$0")/_/husky.sh"`
+/// preamble — set `legacy = true` if you still need it for v8.
+body: Listing<String> = new Listing {}
+
+/// Render the v8 husky.sh preamble. Defaults to `false` for v9 compatibility.
+legacy: Boolean = false
+
+local lines: List<String> =
+  new Listing<String> {
+    when (shebang != null) {
+      shebang!!
+    }
+    when (legacy) {
+      "#!/usr/bin/env sh"
+      ". \"$(dirname -- \"$0\")/_/husky.sh\""
+      ""
+    }
+    for (line in body) { line }
+  }.toList()
+
+hidden rendered: String = lines.join("\n") + "\n"
+
+output {
+  text = rendered
+}

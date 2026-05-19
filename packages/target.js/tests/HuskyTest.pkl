@@ -1,0 +1,42 @@
+/// Tests for `target.js.husky.Husky` rendering.
+amends "pkl:test"
+
+import "../husky/Husky.pkl"
+
+local v9 = (Husky) {
+  body {
+    "pnpm lint-staged"
+  }
+}
+
+local v8 = (Husky) {
+  legacy = true
+  body {
+    "pnpm test"
+  }
+}
+
+local withShebang = (Husky) {
+  shebang = "#!/usr/bin/env bash"
+  body {
+    "set -euo pipefail"
+    "pnpm typecheck"
+  }
+}
+
+facts {
+  ["v9 hooks are plain bodies"] {
+    v9.rendered == "pnpm lint-staged\n"
+  }
+  ["legacy v8 preamble emits when requested"] {
+    v8.rendered.contains("#!/usr/bin/env sh")
+    v8.rendered.contains(". \"$(dirname -- \"$0\")/_/husky.sh\"")
+    v8.rendered.endsWith("pnpm test\n")
+  }
+  ["explicit shebang appears first"] {
+    withShebang.rendered.startsWith("#!/usr/bin/env bash\n")
+  }
+  ["body lines preserve order"] {
+    withShebang.rendered.contains("set -euo pipefail\npnpm typecheck\n")
+  }
+}
