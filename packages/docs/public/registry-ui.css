@@ -995,3 +995,173 @@ article > ol > li::before {
     border-top: 0;
   }
 }
+
+/* ============================================================
+ * Search overlay — Cmd/Ctrl+K and `/` open a global package search.
+ * Powered by the static registry-search.json the search-index crate
+ * writes to dist/docs/.
+ * ============================================================ */
+
+.registry-search-open {
+  overflow: hidden;
+}
+
+.registry-search {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: start center;
+  padding: 7vh 1.5rem 0;
+}
+
+.registry-search[hidden] {
+  display: none;
+}
+
+.registry-search__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 7, 10, 0.55);
+  backdrop-filter: blur(8px);
+}
+
+.registry-search__panel {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  background: var(--reg-surface, #fff);
+  color: var(--reg-ink, #0a1014);
+  border: 1px solid var(--reg-line-strong, rgba(10, 16, 20, 0.28));
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(4, 7, 10, 0.35);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+[data-theme="dark"] .registry-search__panel {
+  background: var(--reg-paper, #0a1014);
+  color: var(--reg-paper, #f5f7f6);
+}
+
+.registry-search__input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--reg-line, rgba(10, 16, 20, 0.12));
+  border-radius: 8px;
+}
+
+.registry-search__input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  color: inherit;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+}
+
+.registry-search__hint {
+  font-family: var(--reg-font-mono, monospace);
+  font-size: 0.7rem;
+  color: var(--reg-quiet, #8a929a);
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--reg-line, rgba(10, 16, 20, 0.12));
+  border-radius: 4px;
+}
+
+.registry-search__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 52vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.registry-search__hit {
+  border-radius: 6px;
+}
+
+.registry-search__hit.is-active,
+.registry-search__hit:hover {
+  background: var(--reg-surface-raised, #eceeed);
+}
+
+[data-theme="dark"] .registry-search__hit.is-active,
+[data-theme="dark"] .registry-search__hit:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.registry-search__link {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.5rem 0.75rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.registry-search__name {
+  font-weight: 600;
+}
+
+.registry-search__version {
+  color: var(--reg-quiet, #8a929a);
+  font-family: var(--reg-font-mono, monospace);
+  font-size: 0.85em;
+}
+
+.registry-search__eco {
+  font-size: 0.75em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--reg-accent, #0e8a78);
+}
+
+.registry-search__desc {
+  grid-column: 1 / -1;
+  color: var(--reg-muted, #566069);
+  font-size: 0.9em;
+}
+
+.registry-search__targets {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.registry-search__targets code {
+  font-size: 0.75em;
+  padding: 0.05rem 0.3rem;
+  background: var(--reg-surface-raised, #eceeed);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .registry-search__targets code {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.registry-search__empty {
+  padding: 1.25rem 0.75rem;
+  color: var(--reg-muted, #566069);
+  font-size: 0.95em;
+}
+
+@media (max-width: 640px) {
+  .registry-search {
+    padding: 3vh 0.75rem 0;
+  }
+  .registry-search__panel {
+    padding: 0.75rem;
+  }
+}

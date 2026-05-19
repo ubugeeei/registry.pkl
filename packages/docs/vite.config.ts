@@ -87,6 +87,7 @@ export default defineConfig({
               <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
               <link rel="stylesheet" href="${docsBase}registry-ui.css">
               <script defer src="${docsBase}registry-ui.js"></script>
+              <meta name="registry-search-index" data-registry-search-url="${docsBase}registry-search.json">
             `,
             headerAfter: `
               <div class="registry-tabs-shell">
@@ -98,6 +99,9 @@ export default defineConfig({
                   <a href="${docsBase}guide/index.html" data-registry-nav="${docsBase}guide/">Guides</a>
                   <a href="${docsBase}reference/index.html" data-registry-nav="${docsBase}reference/">Reference</a>
                   <a href="${docsBase}architecture/index.html" data-registry-nav="${docsBase}architecture/">Architecture</a>
+                  <a href="#/search" class="registry-tabs__search-link" title="Search (/) or Cmd/Ctrl+K">
+                    Search <kbd>/</kbd>
+                  </a>
                 </nav>
               </div>
             `,
