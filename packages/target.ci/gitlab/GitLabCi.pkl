@@ -1,122 +1,547 @@
 /// A typed authoring surface for `.gitlab-ci.yml`.
+///
+/// Covers the most-frequently-overridden fields in the GitLab CI/CD
+/// reference. Every nested class carries an `extra` escape hatch for
+/// keys not yet enumerated here, but the public surface is wide enough
+/// that `amends "@target.ci/gitlab/GitLabCi.pkl"` covers a real pipeline
+/// without dropping to raw maps.
 module target.ci.gitlab.GitLabCi
 
 import "@target.core/Maps.pkl" as Maps
 
+typealias WhenKind = "on_success"|"on_failure"|"always"|"never"|"manual"|"delayed"
+
 class Rule {
   `if`: String? = null
   changes: Listing<String> = new Listing {}
-  `when`: String? = null
+  exists: Listing<String> = new Listing {}
+  `when`: WhenKind? = null
   allowFailure: Boolean? = null
+  startIn: String? = null
+  variables: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class CacheKeyFiles {
+  files: Listing<String> = new Listing {}
+  prefix: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
 }
 
 class Cache {
-  key: String? = null
+  key: (String|CacheKeyFiles)? = null
   paths: Listing<String> = new Listing {}
-  policy: String? = null
+  untracked: Boolean? = null
+  policy: "pull"|"push"|"pull-push"? = null
+  `when`: "on_success"|"on_failure"|"always"? = null
+  unprotect: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
 }
 
 class Artifacts {
   paths: Listing<String> = new Listing {}
+  exclude: Listing<String> = new Listing {}
   reports: Mapping<String, Any> = new Mapping {}
-  `when`: String? = null
+  name: String? = null
+  expose_as: String? = null
+  untracked: Boolean? = null
+  `when`: "on_success"|"on_failure"|"always"? = null
   expireIn: String? = null
+  publicArtifact: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
 }
+
+class Image {
+  name: String
+  entrypoint: Listing<String> = new Listing {}
+  pullPolicy: ("always"|"if-not-present"|"never"|Listing<String>)? = null
+  dockerUser: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Service {
+  name: String
+  alias: String? = null
+  entrypoint: Listing<String> = new Listing {}
+  command: Listing<String> = new Listing {}
+  variables: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Retry {
+  max: Int
+  `when`: (String|Listing<String>)? = null
+  exitCodes: (Int|Listing<Int>)? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Trigger {
+  project: String? = null
+  branch: String? = null
+  strategy: ("depend")? = null
+  include: (String|Listing<String>|Listing<Mapping<String, Any>>)? = null
+  forward: Mapping<String, Boolean> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Environment {
+  name: String
+  url: String? = null
+  action: "start"|"prepare"|"stop"|"verify"|"access"? = null
+  onStop: String? = null
+  autoStopIn: String? = null
+  kubernetes: Mapping<String, Any> = new Mapping {}
+  deploymentTier: "production"|"staging"|"testing"|"development"|"other"? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Coverage {
+  pattern: String
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Need {
+  job: String
+  artifacts: Boolean? = null
+  optional: Boolean? = null
+  project: String? = null
+  ref: String? = null
+  pipeline: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+typealias NeedRef = String|Need
 
 class Job {
   stage: String? = null
-  image: String? = null
-  script: String|Listing<String>
+  image: (String|Image)? = null
+  script: (String|Listing<String>)? = null
   beforeScript: Listing<String> = new Listing {}
   afterScript: Listing<String> = new Listing {}
-  needs: Listing<String> = new Listing {}
+  needs: Listing<NeedRef> = new Listing {}
   tags: Listing<String> = new Listing {}
-  services: Listing<String> = new Listing {}
+  services: Listing<String|Service> = new Listing {}
   variables: Mapping<String, Any> = new Mapping {}
   rules: Listing<Rule> = new Listing {}
-  cache: Cache? = null
+  only: (Listing<String>|Mapping<String, Any>)? = null
+  except: (Listing<String>|Mapping<String, Any>)? = null
+  cache: (Cache|Listing<Cache>)? = null
   artifacts: Artifacts? = null
   interruptible: Boolean? = null
-  retry: Int? = null
+  retry: (Int|Retry)? = null
+  timeout: String? = null
+  parallel: (Int|Mapping<String, Any>)? = null
+  resourceGroup: String? = null
+  allowFailure: (Boolean|Mapping<String, Any>)? = null
+  trigger: Trigger? = null
+  environment: (String|Environment)? = null
+  coverage: (String|Coverage)? = null
+  dependencies: Listing<String> = new Listing {}
+  `extends`: (String|Listing<String>)? = null
+  `when`: WhenKind? = null
+  startIn: String? = null
+  manualConfirmation: String? = null
+  hooks: Mapping<String, Listing<String>> = new Mapping {}
+  release: Mapping<String, Any> = new Mapping {}
+  pages: Mapping<String, Any> = new Mapping {}
+  identity: String? = null
+  inherit: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class WorkflowRule {
+  `if`: String? = null
+  changes: Listing<String> = new Listing {}
+  exists: Listing<String> = new Listing {}
+  `when`: WhenKind? = null
+  variables: Mapping<String, Any> = new Mapping {}
+  autoCancel: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Workflow {
+  rules: Listing<WorkflowRule> = new Listing {}
+  name: String? = null
+  autoCancel: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Defaults {
+  image: (String|Image)? = null
+  services: Listing<String|Service> = new Listing {}
+  cache: (Cache|Listing<Cache>)? = null
+  beforeScript: Listing<String> = new Listing {}
+  afterScript: Listing<String> = new Listing {}
+  tags: Listing<String> = new Listing {}
+  artifacts: Artifacts? = null
+  retry: (Int|Retry)? = null
+  timeout: String? = null
+  interruptible: Boolean? = null
+  hooks: Mapping<String, Listing<String>> = new Mapping {}
   extra: Mapping<String, Any> = new Mapping {}
 }
 
 stages: Listing<String> = new Listing {}
-include: Listing<String> = new Listing {}
+include: (Listing<String>|Listing<Mapping<String, Any>>)? = null
 variables: Mapping<String, Any> = new Mapping {}
-workflow: Mapping<String, Any> = new Mapping {}
-default: Mapping<String, Any> = new Mapping {}
+workflow: Workflow? = null
+default: Defaults? = null
 jobs: Mapping<String, Job> = new Mapping {}
 extra: Mapping<String, Any> = new Mapping {}
 
 local function renderRule(value: Rule) =
-  new Dynamic {
-    when (value.`if` != null) { ["if"] = value.`if` }
-    when (!value.changes.toList().isEmpty) { ["changes"] = value.changes.toList() }
-    when (value.`when` != null) { ["when"] = value.`when` }
-    when (value.allowFailure != null) {
-      ["allow_failure"] = value.allowFailure
-    }
-  }.toMap()
+  Maps.withExtra(
+    new Dynamic {
+      when (value.`if` != null) { ["if"] = value.`if` }
+      when (!value.changes.toList().isEmpty) { ["changes"] = value.changes.toList() }
+      when (!value.exists.toList().isEmpty) { ["exists"] = value.exists.toList() }
+      when (value.`when` != null) { ["when"] = value.`when` }
+      when (value.allowFailure != null) { ["allow_failure"] = value.allowFailure }
+      when (value.startIn != null) { ["start_in"] = value.startIn }
+      when (!value.variables.toMap().isEmpty) {
+        ["variables"] = value.variables.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderWorkflowRule(value: WorkflowRule) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.`if` != null) { ["if"] = value.`if` }
+      when (!value.changes.toList().isEmpty) { ["changes"] = value.changes.toList() }
+      when (!value.exists.toList().isEmpty) { ["exists"] = value.exists.toList() }
+      when (value.`when` != null) { ["when"] = value.`when` }
+      when (!value.variables.toMap().isEmpty) {
+        ["variables"] = value.variables.toMap()
+      }
+      when (!value.autoCancel.toMap().isEmpty) {
+        ["auto_cancel"] = value.autoCancel.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderCacheKey(value: String|CacheKeyFiles) =
+  if (value is String)
+    value
+  else
+    Maps.withExtra(
+      new Dynamic {
+        when (!value.files.toList().isEmpty) {
+          ["files"] = value.files.toList()
+        }
+        when (value.prefix != null) { ["prefix"] = value.prefix }
+      },
+      value.extra,
+    )
 
 local function renderCache(value: Cache) =
-  new Dynamic {
-    when (value.key != null) { ["key"] = value.key }
-    when (!value.paths.toList().isEmpty) { ["paths"] = value.paths.toList() }
-    when (value.policy != null) { ["policy"] = value.policy }
-  }.toMap()
+  Maps.withExtra(
+    new Dynamic {
+      when (value.key != null) { ["key"] = renderCacheKey(value.key) }
+      when (!value.paths.toList().isEmpty) { ["paths"] = value.paths.toList() }
+      when (value.untracked != null) { ["untracked"] = value.untracked }
+      when (value.policy != null) { ["policy"] = value.policy }
+      when (value.`when` != null) { ["when"] = value.`when` }
+      when (value.unprotect != null) { ["unprotect"] = value.unprotect }
+    },
+    value.extra,
+  )
+
+local function renderImage(value: String|Image) =
+  if (value is String)
+    value
+  else
+    Maps.withExtra(
+      new Dynamic {
+        ["name"] = value.name
+        when (!value.entrypoint.toList().isEmpty) {
+          ["entrypoint"] = value.entrypoint.toList()
+        }
+        when (value.pullPolicy != null) {
+          ["pull_policy"] =
+            if (value.pullPolicy is Listing) value.pullPolicy.toList() else value.pullPolicy
+        }
+        when (value.dockerUser != null) {
+          ["docker"] = new Dynamic { ["user"] = value.dockerUser }.toMap()
+        }
+      },
+      value.extra,
+    )
+
+local function renderService(value: String|Service) =
+  if (value is String)
+    value
+  else
+    Maps.withExtra(
+      new Dynamic {
+        ["name"] = value.name
+        when (value.alias != null) { ["alias"] = value.alias }
+        when (!value.entrypoint.toList().isEmpty) {
+          ["entrypoint"] = value.entrypoint.toList()
+        }
+        when (!value.command.toList().isEmpty) {
+          ["command"] = value.command.toList()
+        }
+        when (!value.variables.toMap().isEmpty) {
+          ["variables"] = value.variables.toMap()
+        }
+      },
+      value.extra,
+    )
+
+local function renderRetry(value: Int|Retry) =
+  if (value is Int)
+    value
+  else
+    Maps.withExtra(
+      new Dynamic {
+        ["max"] = value.max
+        when (value.`when` != null) {
+          ["when"] =
+            if (value.`when` is Listing) value.`when`.toList() else value.`when`
+        }
+        when (value.exitCodes != null) {
+          ["exit_codes"] =
+            if (value.exitCodes is Listing) value.exitCodes.toList() else value.exitCodes
+        }
+      },
+      value.extra,
+    )
 
 local function renderArtifacts(value: Artifacts) =
-  new Dynamic {
-    when (!value.paths.toList().isEmpty) { ["paths"] = value.paths.toList() }
-    when (!value.reports.toMap().isEmpty) { ["reports"] = value.reports.toMap() }
-    when (value.`when` != null) { ["when"] = value.`when` }
-    when (value.expireIn != null) { ["expire_in"] = value.expireIn }
-  }.toMap()
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.paths.toList().isEmpty) { ["paths"] = value.paths.toList() }
+      when (!value.exclude.toList().isEmpty) { ["exclude"] = value.exclude.toList() }
+      when (!value.reports.toMap().isEmpty) { ["reports"] = value.reports.toMap() }
+      when (value.name != null) { ["name"] = value.name }
+      when (value.expose_as != null) { ["expose_as"] = value.expose_as }
+      when (value.untracked != null) { ["untracked"] = value.untracked }
+      when (value.`when` != null) { ["when"] = value.`when` }
+      when (value.expireIn != null) { ["expire_in"] = value.expireIn }
+      when (value.publicArtifact != null) { ["public"] = value.publicArtifact }
+    },
+    value.extra,
+  )
+
+local function renderEnvironment(value: String|Environment) =
+  if (value is String)
+    value
+  else
+    Maps.withExtra(
+      new Dynamic {
+        ["name"] = value.name
+        when (value.url != null) { ["url"] = value.url }
+        when (value.action != null) { ["action"] = value.action }
+        when (value.onStop != null) { ["on_stop"] = value.onStop }
+        when (value.autoStopIn != null) { ["auto_stop_in"] = value.autoStopIn }
+        when (!value.kubernetes.toMap().isEmpty) {
+          ["kubernetes"] = value.kubernetes.toMap()
+        }
+        when (value.deploymentTier != null) {
+          ["deployment_tier"] = value.deploymentTier
+        }
+      },
+      value.extra,
+    )
+
+local function renderCoverage(value: String|Coverage) =
+  if (value is String) value else value.pattern
+
+local function renderNeed(value: NeedRef) =
+  if (value is String)
+    value
+  else
+    Maps.withExtra(
+      new Dynamic {
+        ["job"] = value.job
+        when (value.artifacts != null) { ["artifacts"] = value.artifacts }
+        when (value.optional != null) { ["optional"] = value.optional }
+        when (value.project != null) { ["project"] = value.project }
+        when (value.ref != null) { ["ref"] = value.ref }
+        when (value.pipeline != null) { ["pipeline"] = value.pipeline }
+      },
+      value.extra,
+    )
+
+local function renderTrigger(value: Trigger) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.project != null) { ["project"] = value.project }
+      when (value.branch != null) { ["branch"] = value.branch }
+      when (value.strategy != null) { ["strategy"] = value.strategy }
+      when (value.include != null) {
+        ["include"] =
+          if (value.include is Listing)
+            value.include.toList()
+          else
+            value.include
+      }
+      when (!value.forward.toMap().isEmpty) {
+        ["forward"] = value.forward.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderCacheList(value: Cache|Listing<Cache>) =
+  if (value is Listing)
+    value.toList().map((c) -> renderCache(c))
+  else
+    renderCache(value)
 
 local function renderJob(value: Job) =
   Maps.withExtra(
     new Dynamic {
       when (value.stage != null) { ["stage"] = value.stage }
-      when (value.image != null) { ["image"] = value.image }
-      ["script"] = if (value.script is Listing) value.script.toList() else value.script
+      when (value.image != null) { ["image"] = renderImage(value.image) }
+      when (value.script != null) {
+        ["script"] =
+          if (value.script is Listing) value.script.toList() else value.script
+      }
       when (!value.beforeScript.toList().isEmpty) {
         ["before_script"] = value.beforeScript.toList()
       }
       when (!value.afterScript.toList().isEmpty) {
         ["after_script"] = value.afterScript.toList()
       }
-      when (!value.needs.toList().isEmpty) { ["needs"] = value.needs.toList() }
+      when (!value.needs.toList().isEmpty) {
+        ["needs"] = value.needs.toList().map((n) -> renderNeed(n))
+      }
       when (!value.tags.toList().isEmpty) { ["tags"] = value.tags.toList() }
       when (!value.services.toList().isEmpty) {
-        ["services"] = value.services.toList()
+        ["services"] = value.services.toList().map((s) -> renderService(s))
       }
       when (!value.variables.toMap().isEmpty) {
         ["variables"] = value.variables.toMap()
       }
       when (!value.rules.toList().isEmpty) {
-        ["rules"] = value.rules.toList().map((rule) -> renderRule(rule))
+        ["rules"] = value.rules.toList().map((r) -> renderRule(r))
       }
-      when (value.cache != null) { ["cache"] = renderCache(value.cache) }
+      when (value.only != null) {
+        ["only"] =
+          if (value.only is Listing) value.only.toList() else value.only.toMap()
+      }
+      when (value.except != null) {
+        ["except"] =
+          if (value.except is Listing) value.except.toList() else value.except.toMap()
+      }
+      when (value.cache != null) { ["cache"] = renderCacheList(value.cache) }
       when (value.artifacts != null) {
         ["artifacts"] = renderArtifacts(value.artifacts)
       }
       when (value.interruptible != null) {
         ["interruptible"] = value.interruptible
       }
-      when (value.retry != null) { ["retry"] = value.retry }
+      when (value.retry != null) { ["retry"] = renderRetry(value.retry) }
+      when (value.timeout != null) { ["timeout"] = value.timeout }
+      when (value.parallel != null) {
+        ["parallel"] =
+          if (value.parallel is Mapping) value.parallel.toMap() else value.parallel
+      }
+      when (value.resourceGroup != null) {
+        ["resource_group"] = value.resourceGroup
+      }
+      when (value.allowFailure != null) {
+        ["allow_failure"] =
+          if (value.allowFailure is Mapping)
+            value.allowFailure.toMap()
+          else
+            value.allowFailure
+      }
+      when (value.trigger != null) { ["trigger"] = renderTrigger(value.trigger) }
+      when (value.environment != null) {
+        ["environment"] = renderEnvironment(value.environment)
+      }
+      when (value.coverage != null) {
+        ["coverage"] = renderCoverage(value.coverage)
+      }
+      when (!value.dependencies.toList().isEmpty) {
+        ["dependencies"] = value.dependencies.toList()
+      }
+      when (value.`extends` != null) {
+        ["extends"] =
+          if (value.`extends` is Listing) value.`extends`.toList() else value.`extends`
+      }
+      when (value.`when` != null) { ["when"] = value.`when` }
+      when (value.startIn != null) { ["start_in"] = value.startIn }
+      when (value.manualConfirmation != null) {
+        ["manual_confirmation"] = value.manualConfirmation
+      }
+      when (!value.hooks.toMap().isEmpty) {
+        ["hooks"] = value.hooks.toMap().mapValues((_, v) -> v.toList())
+      }
+      when (!value.release.toMap().isEmpty) {
+        ["release"] = value.release.toMap()
+      }
+      when (!value.pages.toMap().isEmpty) { ["pages"] = value.pages.toMap() }
+      when (value.identity != null) { ["identity"] = value.identity }
+      when (!value.inherit.toMap().isEmpty) {
+        ["inherit"] = value.inherit.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderDefaults(value: Defaults) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.image != null) { ["image"] = renderImage(value.image) }
+      when (!value.services.toList().isEmpty) {
+        ["services"] = value.services.toList().map((s) -> renderService(s))
+      }
+      when (value.cache != null) { ["cache"] = renderCacheList(value.cache) }
+      when (!value.beforeScript.toList().isEmpty) {
+        ["before_script"] = value.beforeScript.toList()
+      }
+      when (!value.afterScript.toList().isEmpty) {
+        ["after_script"] = value.afterScript.toList()
+      }
+      when (!value.tags.toList().isEmpty) {
+        ["tags"] = value.tags.toList()
+      }
+      when (value.artifacts != null) {
+        ["artifacts"] = renderArtifacts(value.artifacts)
+      }
+      when (value.retry != null) { ["retry"] = renderRetry(value.retry) }
+      when (value.timeout != null) { ["timeout"] = value.timeout }
+      when (value.interruptible != null) {
+        ["interruptible"] = value.interruptible
+      }
+      when (!value.hooks.toMap().isEmpty) {
+        ["hooks"] = value.hooks.toMap().mapValues((_, v) -> v.toList())
+      }
+    },
+    value.extra,
+  )
+
+local function renderWorkflow(value: Workflow) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.rules.toList().isEmpty) {
+        ["rules"] = value.rules.toList().map((r) -> renderWorkflowRule(r))
+      }
+      when (value.name != null) { ["name"] = value.name }
+      when (!value.autoCancel.toMap().isEmpty) {
+        ["auto_cancel"] = value.autoCancel.toMap()
+      }
     },
     value.extra,
   )
 
 hidden rendered =
   Maps.withExtra(
-    new Dynamic {
+    new Mapping<String, Any> {
       when (!stages.toList().isEmpty) { ["stages"] = stages.toList() }
-      when (!include.toList().isEmpty) { ["include"] = include.toList() }
+      when (include != null) {
+        ["include"] =
+          if (include is Listing) include.toList() else include
+      }
       when (!variables.toMap().isEmpty) { ["variables"] = variables.toMap() }
-      when (!workflow.toMap().isEmpty) { ["workflow"] = workflow.toMap() }
-      when (!default.toMap().isEmpty) { ["default"] = default.toMap() }
+      when (workflow != null) { ["workflow"] = renderWorkflow(workflow) }
+      when (default != null) { ["default"] = renderDefaults(default) }
       for (name, job in jobs) {
         [name] = renderJob(job)
       }

@@ -1,0 +1,266 @@
+/// A typed authoring surface for `~/.claude/settings.json` (Claude Code).
+///
+/// Mirrors the user-, project-, and managed-settings JSON documented at
+/// https://docs.claude.com/en/docs/claude-code/settings. The schema is
+/// designed for `amends`: every field is optional, nested classes carry
+/// `extra` escape hatches, but the public surface is wide enough that
+/// `amends "@target.agent/claudeCode/Settings.pkl"` alone covers a real
+/// configuration without dropping to raw maps.
+module target.agent.claudeCode.Settings
+
+import "@target.core/Maps.pkl" as Maps
+import "../mcp/Core.pkl" as Mcp
+
+typealias PermissionMode = "default"|"acceptEdits"|"plan"|"bypassPermissions"
+
+class Permissions {
+  allow: Listing<String> = new Listing {}
+  ask: Listing<String> = new Listing {}
+  deny: Listing<String> = new Listing {}
+  additionalDirectories: Listing<String> = new Listing {}
+  defaultMode: PermissionMode? = null
+  disableBypassPermissionsMode: ("disable")? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Hook {
+  type: "command" = "command"
+  command: String
+  timeout: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class HookMatcher {
+  matcher: String? = null
+  hooks: Listing<Hook> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class StatusLine {
+  type: "command"|"static_text" = "command"
+  command: String? = null
+  text: String? = null
+  padding: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class OutputStyle {
+  description: String? = null
+  prompt: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ModelRouting {
+  default: String? = null
+  background: String? = null
+  thinking: String? = null
+  vision: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class SpinnerTips {
+  enabled: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiKeyHelper: String? = null
+cleanupPeriodDays: Int? = null
+env: Mapping<String, String> = new Mapping {}
+includeCoAuthoredBy: Boolean? = null
+permissions: Permissions? = null
+
+/// Hook events keyed by lifecycle name: PreToolUse, PostToolUse, Notification,
+/// UserPromptSubmit, Stop, SubagentStop, SessionStart, PreCompact, SessionEnd.
+hooks: Mapping<String, Listing<HookMatcher>> = new Mapping {}
+
+disableAllHooks: Boolean? = null
+model: String? = null
+modelRouting: ModelRouting? = null
+statusLine: StatusLine? = null
+forceLoginMethod: "claudeai"|"console"? = null
+forceLoginOrgUUID: String? = null
+enableAllProjectMcpServers: Boolean? = null
+enabledMcpjsonServers: Listing<String> = new Listing {}
+disabledMcpjsonServers: Listing<String> = new Listing {}
+awsAuthRefresh: String? = null
+awsCredentialExport: String? = null
+outputStyle: String? = null
+outputStyles: Mapping<String, OutputStyle> = new Mapping {}
+spinnerTipsConfig: SpinnerTips? = null
+autoConnectIde: Boolean? = null
+
+/// Project- and team-level MCP server registrations rendered into the
+/// `mcpServers` map. Reuses the shared MCP server union from
+/// `target.agent/mcp/Core.pkl`.
+mcpServers: Mapping<String, Mcp.Server> = new Mapping {}
+
+extra: Mapping<String, Any> = new Mapping {}
+
+local mcpRenderOptions =
+  new Mcp.RenderOptions {
+    defaultStdioType = "stdio"
+    includeDefaultStdioType = false
+    includeEmptyEnv = false
+  }
+
+local function renderHook(value: Hook) =
+  Maps.withExtra(
+    new Dynamic {
+      ["type"] = value.type
+      ["command"] = value.command
+      when (value.timeout != null) { ["timeout"] = value.timeout }
+    },
+    value.extra,
+  )
+
+local function renderHookMatcher(value: HookMatcher) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.matcher != null) { ["matcher"] = value.matcher }
+      when (!value.hooks.toList().isEmpty) {
+        ["hooks"] = value.hooks.toList().map((h) -> renderHook(h))
+      }
+    },
+    value.extra,
+  )
+
+local function renderPermissions(value: Permissions) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.allow.toList().isEmpty) {
+        ["allow"] = value.allow.toList()
+      }
+      when (!value.ask.toList().isEmpty) {
+        ["ask"] = value.ask.toList()
+      }
+      when (!value.deny.toList().isEmpty) {
+        ["deny"] = value.deny.toList()
+      }
+      when (!value.additionalDirectories.toList().isEmpty) {
+        ["additionalDirectories"] = value.additionalDirectories.toList()
+      }
+      when (value.defaultMode != null) {
+        ["defaultMode"] = value.defaultMode
+      }
+      when (value.disableBypassPermissionsMode != null) {
+        ["disableBypassPermissionsMode"] = value.disableBypassPermissionsMode
+      }
+    },
+    value.extra,
+  )
+
+local function renderStatusLine(value: StatusLine) =
+  Maps.withExtra(
+    new Dynamic {
+      ["type"] = value.type
+      when (value.command != null) { ["command"] = value.command }
+      when (value.text != null) { ["text"] = value.text }
+      when (value.padding != null) { ["padding"] = value.padding }
+    },
+    value.extra,
+  )
+
+local function renderModelRouting(value: ModelRouting) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.default != null) { ["default"] = value.default }
+      when (value.background != null) { ["background"] = value.background }
+      when (value.thinking != null) { ["thinking"] = value.thinking }
+      when (value.vision != null) { ["vision"] = value.vision }
+    },
+    value.extra,
+  )
+
+local function renderOutputStyle(value: OutputStyle) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.description != null) {
+        ["description"] = value.description
+      }
+      when (value.prompt != null) { ["prompt"] = value.prompt }
+    },
+    value.extra,
+  )
+
+local function renderSpinner(value: SpinnerTips) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.enabled != null) { ["enabled"] = value.enabled }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (apiKeyHelper != null) { ["apiKeyHelper"] = apiKeyHelper }
+      when (cleanupPeriodDays != null) {
+        ["cleanupPeriodDays"] = cleanupPeriodDays
+      }
+      when (!env.toMap().isEmpty) { ["env"] = env.toMap() }
+      when (includeCoAuthoredBy != null) {
+        ["includeCoAuthoredBy"] = includeCoAuthoredBy
+      }
+      when (permissions != null) {
+        ["permissions"] = renderPermissions(permissions)
+      }
+      when (!hooks.toMap().isEmpty) {
+        ["hooks"] =
+          hooks.toMap().mapValues(
+            (_, matchers) -> matchers.toList().map((m) -> renderHookMatcher(m)),
+          )
+      }
+      when (disableAllHooks != null) {
+        ["disableAllHooks"] = disableAllHooks
+      }
+      when (model != null) { ["model"] = model }
+      when (modelRouting != null) {
+        ["modelRouting"] = renderModelRouting(modelRouting)
+      }
+      when (statusLine != null) {
+        ["statusLine"] = renderStatusLine(statusLine)
+      }
+      when (forceLoginMethod != null) {
+        ["forceLoginMethod"] = forceLoginMethod
+      }
+      when (forceLoginOrgUUID != null) {
+        ["forceLoginOrgUUID"] = forceLoginOrgUUID
+      }
+      when (enableAllProjectMcpServers != null) {
+        ["enableAllProjectMcpServers"] = enableAllProjectMcpServers
+      }
+      when (!enabledMcpjsonServers.toList().isEmpty) {
+        ["enabledMcpjsonServers"] = enabledMcpjsonServers.toList()
+      }
+      when (!disabledMcpjsonServers.toList().isEmpty) {
+        ["disabledMcpjsonServers"] = disabledMcpjsonServers.toList()
+      }
+      when (awsAuthRefresh != null) {
+        ["awsAuthRefresh"] = awsAuthRefresh
+      }
+      when (awsCredentialExport != null) {
+        ["awsCredentialExport"] = awsCredentialExport
+      }
+      when (outputStyle != null) { ["outputStyle"] = outputStyle }
+      when (!outputStyles.toMap().isEmpty) {
+        ["outputStyles"] =
+          outputStyles.toMap().mapValues((_, v) -> renderOutputStyle(v))
+      }
+      when (spinnerTipsConfig != null) {
+        ["spinnerTipsConfig"] = renderSpinner(spinnerTipsConfig)
+      }
+      when (autoConnectIde != null) { ["autoConnectIde"] = autoConnectIde }
+      when (!mcpServers.toMap().isEmpty) {
+        ["mcpServers"] =
+          mcpServers.toMap().mapValues(
+            (_, value) -> Mcp.renderServer(value, mcpRenderOptions),
+          )
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

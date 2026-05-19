@@ -1,0 +1,21 @@
+amends "@target.js/vite-env/ViteEnv.pkl"
+
+mode = "production"
+
+banner {
+  "Generated from packages/.../ViteEnv.pkl — do not edit by hand."
+  "Run `mise run gen` to regenerate."
+}
+
+viteVars {
+  ["VITE_API_BASE"] = "https://api.example.invalid"
+  ["VITE_FEATURE_FLAGS"] = new Entry {
+    value = "search,changelog,registry-records"
+    comment = "Comma-separated flags consumed by the client bundle"
+  }
+}
+
+serverVars {
+  ["DOCS_BASE"] = "/registry.pkl/"
+  ["DOCS_SITE_URL"] = "https://ubugeeei.github.io/registry.pkl/"
+}

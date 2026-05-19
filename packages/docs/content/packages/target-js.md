@@ -47,6 +47,12 @@ features:
   - icon: "mdi:autorenew"
     title: renovate/Renovate.pkl
     details: "Renovate bot policy — extends, schedule, package rules, and vulnerability alerts."
+  - icon: "mdi:test-tube"
+    title: vitest/Vitest.pkl
+    details: Vitest JSON config surface — coverage, reporters, pool options, retries, mock controls, and the rest of the test runner shape.
+  - icon: "mdi:flash-outline"
+    title: vite-env/ViteEnv.pkl
+    details: Typed authoring for `.env*` dotenv files Vite consumes — banner comments, VITE_-prefixed client vars, server vars, per-mode overlays.
 ---
 
 ## Install

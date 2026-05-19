@@ -1,0 +1,47 @@
+/// Tests for `target.python.ruff.Ruff` rendering.
+amends "pkl:test"
+
+import "../ruff/Ruff.pkl"
+
+local config = (Ruff) {
+  lineLength = 100
+  targetVersion = "py311"
+  fix = true
+  lint = new Ruff.LintOptions {
+    select {
+      "E"
+      "F"
+    }
+    ignore {
+      "E501"
+    }
+    perFileIgnores {
+      ["tests/*.py"] = new Listing { "S101" }
+    }
+  }
+  format = new Ruff.FormatOptions {
+    quoteStyle = "double"
+    indentStyle = "space"
+  }
+}
+
+facts {
+  ["top-level fields renamed to kebab"] {
+    config.rendered["line-length"] == 100
+    config.rendered["target-version"] == "py311"
+    config.rendered["fix"] == true
+  }
+  ["lint subsection keeps select and ignore"] {
+    local lint = config.rendered["lint"]
+    lint["select"] == List("E", "F")
+    lint["ignore"] == List("E501")
+  }
+  ["per-file-ignores renames"] {
+    config.rendered["lint"]["per-file-ignores"]["tests/*.py"] == List("S101")
+  }
+  ["format quote-style renames"] {
+    local format = config.rendered["format"]
+    format["quote-style"] == "double"
+    format["indent-style"] == "space"
+  }
+}

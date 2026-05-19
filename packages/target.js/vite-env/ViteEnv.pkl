@@ -1,0 +1,81 @@
+/// A typed authoring surface for Vite's `.env*` files.
+///
+/// Vite's primary configuration lives in `vite.config.ts` (a TypeScript
+/// module that the registry intentionally does not model). The `.env`,
+/// `.env.local`, `.env.<mode>` companions, however, are dotenv text
+/// files that benefit from a typed wrapper: the VITE_* prefix rule, the
+/// `MODE` and `BASE_URL` variables, and per-mode overlays.
+///
+/// `amends "@target.js/vite-env/ViteEnv.pkl"` renders a single dotenv
+/// file. Generate `.env`, `.env.development`, and `.env.production` by
+/// amending three different module instances and routing each through
+/// the multi-file output (see examples/vite-env.pkl).
+module target.js.vite_env.ViteEnv
+
+import "@target.core/Maps.pkl" as Maps
+
+class Entry {
+  value: String
+  comment: String? = null
+}
+
+/// VITE_*-prefixed variables exposed to client bundles via `import.meta.env`.
+viteVars: Mapping<String, String|Entry> = new Mapping {}
+
+/// Server-only environment variables. Not prefixed with VITE_; available
+/// to the Node process running Vite, not to the client bundle.
+serverVars: Mapping<String, String|Entry> = new Mapping {}
+
+/// Banner comments rendered at the top of the file.
+banner: Listing<String> = new Listing {}
+
+/// Mode (development/production/preview) annotated as a comment so the
+/// generated file documents which mode it applies to.
+mode: String? = null
+
+local function escapeValue(value: String): String =
+  if (value.contains("\n") || value.contains("\""))
+    "\"" + value.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"") + "\""
+  else
+    value
+
+local function renderEntry(name: String, raw: String|Entry): String =
+  let (entry: Entry = if (raw is Entry) raw else new Entry { value = raw })
+    let (escaped: String = escapeValue(entry.value))
+      if (entry.comment != null)
+        "# \(entry.comment)\n\(name)=\(escaped)"
+      else
+        "\(name)=\(escaped)"
+
+local bannerBlock: List<String> =
+  banner.toList().map((line) -> "# \(line)")
+
+local modeBlock: List<String> =
+  if (mode == null) List() else List("# mode: \(mode)")
+
+local viteBlock: List<String> =
+  let (entries =
+    viteVars.toMap().entries.map((e) -> renderEntry(e.key, e.value)))
+    if (entries.isEmpty)
+      List()
+    else
+      List("# Client-exposed VITE_*") + entries
+
+local serverBlock: List<String> =
+  let (entries =
+    serverVars.toMap().entries.map((e) -> renderEntry(e.key, e.value)))
+    if (entries.isEmpty)
+      List()
+    else
+      List("# Server-only") + entries
+
+hidden sections: List<List<String>> =
+  List(bannerBlock, modeBlock, viteBlock, serverBlock)
+    .filter((s) -> !s.isEmpty)
+
+hidden rendered: String =
+  sections.map((s) -> s.join("\n")).join("\n\n") + "\n"
+
+output {
+  text = rendered
+}

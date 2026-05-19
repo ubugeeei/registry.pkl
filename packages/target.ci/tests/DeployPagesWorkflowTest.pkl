@@ -1,0 +1,38 @@
+/// Tests for `target.ci.github.DeployPagesWorkflow` rendering.
+amends "pkl:test"
+
+import "../github/DeployPagesWorkflow.pkl"
+
+local wf = (DeployPagesWorkflow) {
+  artifactPath = "dist/docs"
+  buildSteps {
+    new DeployPagesWorkflow.Step {
+      name = "Install"
+      run = "pnpm install"
+    }
+  }
+}
+
+facts {
+  ["build job uploads the configured artifact path"] {
+    local steps = wf.rendered["jobs"]["build"]["steps"]
+    local uploadStep = steps[steps.length - 1]
+    uploadStep["uses"] == "actions/upload-pages-artifact@v3"
+    uploadStep["with"]["path"] == "dist/docs"
+  }
+  ["build job emits configure-pages and user steps in order"] {
+    local steps = wf.rendered["jobs"]["build"]["steps"]
+    steps[0]["uses"] == "actions/checkout@v4"
+    steps[1]["uses"] == "actions/configure-pages@v5"
+    steps[2]["name"] == "Install"
+  }
+  ["deploy job depends on build and uses scoped environment"] {
+    local deploy = wf.rendered["jobs"]["deploy"]
+    deploy["needs"] == "build"
+    deploy["environment"]["name"] == "github-pages"
+  }
+  ["concurrency is github-pages with cancel-in-progress true"] {
+    wf.rendered["concurrency"]["group"] == "github-pages"
+    wf.rendered["concurrency"]["cancel-in-progress"] == true
+  }
+}

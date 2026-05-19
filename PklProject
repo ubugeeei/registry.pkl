@@ -8,4 +8,5 @@ dependencies {
   ["target.editor"] = import("./packages/target.editor/PklProject")
   ["target.agent"] = import("./packages/target.agent/PklProject")
   ["target.ci"] = import("./packages/target.ci/PklProject")
+  ["target.python"] = import("./packages/target.python/PklProject")
 }

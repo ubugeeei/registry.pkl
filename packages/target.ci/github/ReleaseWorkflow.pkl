@@ -1,0 +1,151 @@
+/// A typed GitHub Actions preset for cutting a tag-driven release.
+///
+/// `amends "@target.ci/github/ReleaseWorkflow.pkl"` is enough to declare
+/// a workflow that triggers on a SemVer tag pattern, builds artifacts,
+/// generates release notes, and publishes a draft GitHub Release. The
+/// underlying pantry classes remain reachable via `extra` if a project
+/// needs to add steps that this preset does not enumerate.
+module target.ci.github.ReleaseWorkflow
+
+import "@target.core/Maps.pkl" as Maps
+
+class BuildStep {
+  name: String? = null
+  run: String? = null
+  uses: String? = null
+  `with`: Mapping<String, Any> = new Mapping {}
+  env: Mapping<String, String> = new Mapping {}
+  shell: String? = null
+  workingDirectory: String? = null
+  `if`: String? = null
+  continueOnError: Boolean? = null
+  timeoutMinutes: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+name: String = "Release"
+tagPattern: String = "v*.*.*"
+branches: Listing<String> = new Listing {}
+manualDispatch: Boolean = true
+runsOn: String = "ubuntu-latest"
+defaultShell: String? = null
+permissions: "read-all"|Mapping<String, String> = new Mapping {
+  ["contents"] = "write"
+  ["id-token"] = "write"
+}
+concurrencyGroup: String? = "release-${{ github.ref_name }}"
+cancelInProgress: Boolean = false
+draft: Boolean = true
+prerelease: Boolean = false
+generateNotes: Boolean = true
+artifacts: Listing<String> = new Listing {}
+buildSteps: Listing<BuildStep> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderStep(value: BuildStep) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.uses != null) { ["uses"] = value.uses }
+      when (value.`with`.toMap().length > 0) { ["with"] = value.`with`.toMap() }
+      when (value.run != null) { ["run"] = value.run }
+      when (value.shell != null) { ["shell"] = value.shell }
+      when (value.workingDirectory != null) {
+        ["working-directory"] = value.workingDirectory
+      }
+      when (value.env.toMap().length > 0) { ["env"] = value.env.toMap() }
+      when (value.`if` != null) { ["if"] = value.`if` }
+      when (value.continueOnError != null) {
+        ["continue-on-error"] = value.continueOnError
+      }
+      when (value.timeoutMinutes != null) {
+        ["timeout-minutes"] = value.timeoutMinutes
+      }
+    },
+    value.extra,
+  )
+
+local checkoutStep =
+  new Dynamic {
+    ["name"] = "Checkout"
+    ["uses"] = "actions/checkout@v4"
+    ["with"] = new Dynamic {
+      ["fetch-depth"] = 0
+    }.toMap()
+  }.toMap()
+
+local createReleaseStep =
+  new Dynamic {
+    ["name"] = "Create GitHub Release"
+    ["uses"] = "softprops/action-gh-release@v2"
+    ["with"] =
+      Maps.withExtra(
+        new Dynamic {
+          ["draft"] = draft
+          ["prerelease"] = prerelease
+          ["generate_release_notes"] = generateNotes
+          when (!artifacts.toList().isEmpty) {
+            ["files"] = artifacts.toList().join("\n")
+          }
+        },
+        new Mapping<String, Any> {},
+      )
+  }.toMap()
+
+local renderedBuildSteps =
+  buildSteps.toList().map((value) -> renderStep(value))
+
+hidden onTrigger =
+  Maps.withExtra(
+    new Dynamic {
+      ["push"] = new Dynamic {
+        ["tags"] = new Listing { tagPattern }.toList()
+        when (!branches.toList().isEmpty) {
+          ["branches"] = branches.toList()
+        }
+      }.toMap()
+      when (manualDispatch) {
+        ["workflow_dispatch"] = new Mapping {}.toMap()
+      }
+    },
+    new Mapping<String, Any> {},
+  )
+
+hidden concurrencyBlock =
+  if (concurrencyGroup == null)
+    null
+  else
+    new Dynamic {
+      ["group"] = concurrencyGroup
+      ["cancel-in-progress"] = cancelInProgress
+    }.toMap()
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = name
+      ["on"] = onTrigger
+      ["permissions"] =
+        if (permissions is Mapping) permissions.toMap() else permissions
+      when (concurrencyBlock != null) {
+        ["concurrency"] = concurrencyBlock
+      }
+      when (defaultShell != null) {
+        ["defaults"] = new Dynamic {
+          ["run"] = new Dynamic { ["shell"] = defaultShell }.toMap()
+        }.toMap()
+      }
+      ["jobs"] = new Dynamic {
+        ["release"] = new Dynamic {
+          ["runs-on"] = runsOn
+          ["steps"] = (List(checkoutStep) + renderedBuildSteps + List(createReleaseStep))
+        }.toMap()
+      }.toMap()
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

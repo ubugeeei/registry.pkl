@@ -1,0 +1,57 @@
+/// Tests for `target.js.vitest.Vitest` rendering.
+amends "pkl:test"
+
+import "../vitest/Vitest.pkl"
+
+local config = (Vitest) {
+  environment = "node"
+  globals = true
+  testTimeout = 10000
+  include {
+    "**/*.test.ts"
+  }
+  reporters = new Listing<String|Vitest.Reporter> {
+    "default"
+    new Vitest.Reporter {
+      name = "junit"
+      options {
+        ["outputFile"] = "junit.xml"
+      }
+    }
+  }
+  coverage = new Vitest.Coverage {
+    provider = "v8"
+    reporter = new Listing<String> {
+      "text"
+      "html"
+    }
+    enabled = true
+    thresholds {
+      ["statements"] = 80
+    }
+  }
+}
+
+facts {
+  ["scalars render"] {
+    config.rendered["environment"] == "node"
+    config.rendered["globals"] == true
+    config.rendered["testTimeout"] == 10000
+  }
+  ["include listed"] {
+    config.rendered["include"] == List("**/*.test.ts")
+  }
+  ["string reporter stays a string"] {
+    config.rendered["reporters"][0] == "default"
+  }
+  ["object reporter renders as [name, options] tuple"] {
+    config.rendered["reporters"][1] == List("junit", Map("outputFile", "junit.xml"))
+  }
+  ["coverage thresholds preserved"] {
+    local cov = config.rendered["coverage"]
+    cov["provider"] == "v8"
+    cov["reporter"] == List("text", "html")
+    cov["enabled"] == true
+    cov["thresholds"]["statements"] == 80
+  }
+}

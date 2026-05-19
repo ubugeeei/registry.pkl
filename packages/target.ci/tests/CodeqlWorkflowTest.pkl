@@ -1,0 +1,54 @@
+/// Tests for `target.ci.github.CodeqlWorkflow` rendering.
+amends "pkl:test"
+
+import "../github/CodeqlWorkflow.pkl"
+
+local wf = (CodeqlWorkflow) {
+  languages = new Listing<CodeqlWorkflow.Language> {
+    "javascript-typescript"
+    "rust"
+  }
+  buildMode = "none"
+}
+
+local manual = (CodeqlWorkflow) {
+  languages = new Listing<CodeqlWorkflow.Language> {
+    "java-kotlin"
+  }
+  buildMode = "manual"
+  buildSteps {
+    new Mapping {
+      ["name"] = "Build with Gradle"
+      ["run"] = "./gradlew build"
+    }
+  }
+}
+
+facts {
+  ["matrix lists every language"] {
+    wf.rendered["jobs"]["analyze"]["strategy"]["matrix"]["language"] ==
+      List("javascript-typescript", "rust")
+  }
+  ["scoped security permissions"] {
+    local perms = wf.rendered["permissions"]
+    perms["security-events"] == "write"
+    perms["contents"] == "read"
+  }
+  ["initializes CodeQL with the matrix language"] {
+    local steps = wf.rendered["jobs"]["analyze"]["steps"]
+    local initStep = steps[1]
+    initStep["uses"] == "github/codeql-action/init@v3"
+    initStep["with"]["languages"] == "${{ matrix.language }}"
+    initStep["with"]["build-mode"] == "none"
+  }
+  ["analyze step is last"] {
+    local steps = wf.rendered["jobs"]["analyze"]["steps"]
+    steps[steps.length - 1]["uses"] == "github/codeql-action/analyze@v3"
+  }
+  ["manual build mode keeps user build steps before analyze"] {
+    local steps = manual.rendered["jobs"]["analyze"]["steps"]
+    steps[2]["name"] == "Build with Gradle"
+    steps[2]["run"] == "./gradlew build"
+    steps[3]["uses"] == "github/codeql-action/analyze@v3"
+  }
+}

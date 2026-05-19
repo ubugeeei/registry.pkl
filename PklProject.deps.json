@@ -47,6 +47,11 @@
         "sha256": "45fea4cf14e7d776e131b338efe2a7016f86c87b0c0f532409f728033bd82f71"
       }
     },
+    "package://pkg.registry.invalid/target.python@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.registry.invalid/target.python@0.1.0",
+      "path": "packages/target.python"
+    },
     "package://pkg.registry.invalid/target.env@0": {
       "type": "local",
       "uri": "projectpackage://pkg.registry.invalid/target.env@0.1.0",

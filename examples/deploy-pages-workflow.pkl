@@ -1,0 +1,29 @@
+amends "@target.ci/github/DeployPagesWorkflow.pkl"
+
+artifactPath = "dist/docs"
+
+buildSteps {
+  new Step {
+    name = "Setup pnpm"
+    uses = "pnpm/action-setup@v4"
+    `with` {
+      ["version"] = "10.31.0"
+    }
+  }
+  new Step {
+    name = "Setup Node.js"
+    uses = "actions/setup-node@v4"
+    `with` {
+      ["node-version"] = "24"
+      ["cache"] = "pnpm"
+    }
+  }
+  new Step {
+    name = "Install"
+    run = "pnpm install --frozen-lockfile"
+  }
+  new Step {
+    name = "Build docs"
+    run = "pnpm build"
+  }
+}

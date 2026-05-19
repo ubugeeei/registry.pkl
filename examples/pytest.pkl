@@ -1,0 +1,23 @@
+amends "@target.python/pytest/Pytest.pkl"
+
+minversion = "8.0"
+addopts = new Listing<String> {
+  "-ra"
+  "--strict-markers"
+  "--strict-config"
+}
+testpaths {
+  "tests"
+}
+pythonFiles {
+  "test_*.py"
+}
+markers {
+  "slow: marks tests as slow"
+  "integration: marks integration tests"
+}
+filterwarnings {
+  "error"
+  "ignore::DeprecationWarning"
+}
+xfailStrict = true
