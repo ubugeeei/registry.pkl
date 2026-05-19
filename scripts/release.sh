@@ -29,11 +29,7 @@ TAG="${PACKAGE}@${VERSION}"
 OUT_ROOT=".out"
 ARTIFACT_DIR="${OUT_ROOT}/${TAG}"
 
-<<<<<<< HEAD
-if [[ ! "$PACKAGE" =~ ^target\.(core|js|env|rust|editor|agent|ci|python|lint|container|docs)$ ]]; then
-=======
-if [[ ! "$PACKAGE" =~ ^target\.(core|js|env|rust|editor|agent|ci|python|lint|container|go|deploy)$ ]]; then
->>>>>>> origin/main
+if [[ ! "$PACKAGE" =~ ^target\.(core|js|env|rust|editor|agent|ci|python|lint|container|go|deploy|docs)$ ]]; then
   echo "Unknown package: $PACKAGE" >&2
   exit 1
 fi

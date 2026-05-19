@@ -43,11 +43,7 @@ jobs:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-<<<<<<< HEAD
-          if [[ ! "$INPUT_PACKAGE" =~ ^target\.(core|js|env|rust|editor|agent|ci|python|lint|container|docs)$ ]]; then
-=======
-          if [[ ! "$INPUT_PACKAGE" =~ ^target\.(core|js|env|rust|editor|agent|ci|python|lint|container|go|deploy)$ ]]; then
->>>>>>> origin/main
+          if [[ ! "$INPUT_PACKAGE" =~ ^target\.(core|js|env|rust|editor|agent|ci|python|lint|container|go|deploy|docs)$ ]]; then
             echo "::error::package must be one of the known target.* families, got: $INPUT_PACKAGE"
             exit 1
           fi
