@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use search_index::{build, to_json, BuildOptions};
+use search_index::{build, to_json, to_markdown, BuildOptions};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -31,6 +31,11 @@ struct Cli {
     /// reproducible builds — defaults to the current UTC second.
     #[arg(long)]
     generated_at: Option<String>,
+
+    /// Also emit a markdown by-target / by-ecosystem reference page
+    /// suitable for the docs site.
+    #[arg(long, value_name = "FILE")]
+    emit_markdown: Option<PathBuf>,
 }
 
 fn main() -> Result<ExitCode> {
@@ -56,6 +61,16 @@ fn main() -> Result<ExitCode> {
     file.write_all(body.as_bytes())
         .with_context(|| format!("write {}", cli.output.display()))?;
     eprintln!("wrote {} ({} hits)", cli.output.display(), index.hits.len());
+
+    if let Some(md_path) = cli.emit_markdown {
+        if let Some(parent) = md_path.parent() {
+            fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        }
+        let md = to_markdown(&index);
+        fs::write(&md_path, md).with_context(|| format!("write {}", md_path.display()))?;
+        eprintln!("wrote {}", md_path.display());
+    }
+
     Ok(ExitCode::SUCCESS)
 }
 
