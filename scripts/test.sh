@@ -17,6 +17,7 @@ FAMILIES=(
   target.lint
   target.container
   target.go
+  target.deploy
 )
 
 failed=0

@@ -1,0 +1,74 @@
+/// Tests for `target.deploy.render.Render` rendering.
+amends "pkl:test"
+
+import "../render/Render.pkl"
+
+local cfg = (Render) {
+  services {
+    new Render.Service {
+      type = "web"
+      name = "api"
+      runtime = "node"
+      plan = "starter"
+      buildCommand = "pnpm install && pnpm build"
+      startCommand = "node dist/server.js"
+      healthCheckPath = "/health"
+      envVars {
+        new Render.EnvVar {
+          key = "NODE_ENV"
+          value = "production"
+        }
+        new Render.EnvVar {
+          key = "DATABASE_URL"
+          fromService = new Mapping<String, String> {
+            ["type"] = "pserv"
+            ["name"] = "db"
+            ["property"] = "connectionString"
+          }
+        }
+      }
+      autoDeploy = true
+    }
+    new Render.Service {
+      type = "cron"
+      name = "nightly"
+      schedule = "0 4 * * *"
+      buildCommand = "echo build"
+      startCommand = "node dist/cron.js"
+    }
+  }
+  databases {
+    new Render.Database {
+      name = "db"
+      plan = "starter"
+      postgresMajorVersion = "16"
+    }
+  }
+}
+
+facts {
+  ["service identity fields"] {
+    local api = cfg.rendered["services"][0]
+    api["type"] == "web"
+    api["name"] == "api"
+    api["runtime"] == "node"
+    api["plan"] == "starter"
+  }
+  ["env vars carry value or fromService"] {
+    local vars = cfg.rendered["services"][0]["envVars"]
+    vars[0]["key"] == "NODE_ENV"
+    vars[0]["value"] == "production"
+    vars[1]["fromService"]["name"] == "db"
+    vars[1]["fromService"]["property"] == "connectionString"
+  }
+  ["autoDeploy boolean passes through"] {
+    cfg.rendered["services"][0]["autoDeploy"] == true
+  }
+  ["cron service keeps schedule"] {
+    cfg.rendered["services"][1]["type"] == "cron"
+    cfg.rendered["services"][1]["schedule"] == "0 4 * * *"
+  }
+  ["database carries postgresMajorVersion"] {
+    cfg.rendered["databases"][0]["postgresMajorVersion"] == "16"
+  }
+}

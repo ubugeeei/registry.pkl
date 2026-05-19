@@ -1,0 +1,12 @@
+/// Typed modules for platform-as-a-service deployment manifests
+/// (Vercel, Netlify, Fly, Render).
+amends "../basePklProject.pkl"
+
+dependencies {
+  ["target.core"] = import("../target.core/PklProject")
+  ["pkl.toml"] { uri = "package://pkg.pkl-lang.org/pkl-pantry/pkl.toml@1.0.2" }
+}
+
+package {
+  version = "0.1.0"
+}

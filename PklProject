@@ -12,4 +12,5 @@ dependencies {
   ["target.lint"] = import("./packages/target.lint/PklProject")
   ["target.container"] = import("./packages/target.container/PklProject")
   ["target.go"] = import("./packages/target.go/PklProject")
+  ["target.deploy"] = import("./packages/target.deploy/PklProject")
 }

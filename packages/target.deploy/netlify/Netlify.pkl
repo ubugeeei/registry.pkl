@@ -1,0 +1,216 @@
+/// A typed authoring surface for `netlify.toml`.
+module target.deploy.netlify.Netlify
+
+import "@target.core/Maps.pkl" as Maps
+import "@pkl.toml/toml.pkl" as toml
+
+class BuildSection {
+  base: String? = null
+  publish: String? = null
+  command: String? = null
+  ignore: String? = null
+  functions: String? = null
+  edgeFunctions: String? = null
+  environment: Mapping<String, String> = new Mapping {}
+  processing: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Context {
+  command: String? = null
+  publish: String? = null
+  environment: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Redirect {
+  from: String
+  to: String
+  status: Int? = null
+  force: Boolean? = null
+  headers: Mapping<String, String> = new Mapping {}
+  conditions: Mapping<String, Any> = new Mapping {}
+  query: Mapping<String, String> = new Mapping {}
+  signed: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class HeaderBlock {
+  `for`: String
+  values: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class EdgeFunction {
+  path: String
+  `function`: String
+  cache: ("manual"|"off")? = null
+  excludedPath: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class FunctionConfig {
+  externalNodeModules: Listing<String> = new Listing {}
+  includedFiles: Listing<String> = new Listing {}
+  ignoredNodeModules: Listing<String> = new Listing {}
+  nodeBundler: String? = null
+  schedule: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Plugin {
+  package: String
+  inputs: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+build: BuildSection? = null
+context: Mapping<String, Context> = new Mapping {}
+redirects: Listing<Redirect> = new Listing {}
+headers: Listing<HeaderBlock> = new Listing {}
+functions: Mapping<String, FunctionConfig> = new Mapping {}
+edgeFunctions: Listing<EdgeFunction> = new Listing {}
+plugins: Listing<Plugin> = new Listing {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderBuild(value: BuildSection) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.base != null) { ["base"] = value.base }
+      when (value.publish != null) { ["publish"] = value.publish }
+      when (value.command != null) { ["command"] = value.command }
+      when (value.ignore != null) { ["ignore"] = value.ignore }
+      when (value.functions != null) {
+        ["functions"] = value.functions
+      }
+      when (value.edgeFunctions != null) {
+        ["edge_functions"] = value.edgeFunctions
+      }
+      when (!value.environment.toMap().isEmpty) {
+        ["environment"] = value.environment.toMap()
+      }
+      when (!value.processing.toMap().isEmpty) {
+        ["processing"] = value.processing.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderContext(value: Context) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.command != null) { ["command"] = value.command }
+      when (value.publish != null) { ["publish"] = value.publish }
+      when (!value.environment.toMap().isEmpty) {
+        ["environment"] = value.environment.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderRedirect(value: Redirect) =
+  Maps.withExtra(
+    new Dynamic {
+      ["from"] = value.from
+      ["to"] = value.to
+      when (value.status != null) { ["status"] = value.status }
+      when (value.force != null) { ["force"] = value.force }
+      when (!value.headers.toMap().isEmpty) {
+        ["headers"] = value.headers.toMap()
+      }
+      when (!value.conditions.toMap().isEmpty) {
+        ["conditions"] = value.conditions.toMap()
+      }
+      when (!value.query.toMap().isEmpty) {
+        ["query"] = value.query.toMap()
+      }
+      when (value.signed != null) { ["signed"] = value.signed }
+    },
+    value.extra,
+  )
+
+local function renderHeaderBlock(value: HeaderBlock) =
+  Maps.withExtra(
+    new Dynamic {
+      ["for"] = value.`for`
+      when (!value.values.toMap().isEmpty) {
+        ["values"] = value.values.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderEdgeFunction(value: EdgeFunction) =
+  Maps.withExtra(
+    new Dynamic {
+      ["path"] = value.path
+      ["function"] = value.`function`
+      when (value.cache != null) { ["cache"] = value.cache }
+      when (value.excludedPath != null) {
+        ["excluded_path"] = value.excludedPath
+      }
+    },
+    value.extra,
+  )
+
+local function renderFunctionConfig(value: FunctionConfig) =
+  Maps.withExtra(
+    new Dynamic {
+      when (!value.externalNodeModules.toList().isEmpty) {
+        ["external_node_modules"] = value.externalNodeModules.toList()
+      }
+      when (!value.includedFiles.toList().isEmpty) {
+        ["included_files"] = value.includedFiles.toList()
+      }
+      when (!value.ignoredNodeModules.toList().isEmpty) {
+        ["ignored_node_modules"] = value.ignoredNodeModules.toList()
+      }
+      when (value.nodeBundler != null) {
+        ["node_bundler"] = value.nodeBundler
+      }
+      when (value.schedule != null) { ["schedule"] = value.schedule }
+    },
+    value.extra,
+  )
+
+local function renderPlugin(value: Plugin) =
+  Maps.withExtra(
+    new Dynamic {
+      ["package"] = value.package
+      when (!value.inputs.toMap().isEmpty) {
+        ["inputs"] = value.inputs.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (build != null) { ["build"] = renderBuild(build) }
+      when (!context.toMap().isEmpty) {
+        ["context"] = context.toMap().mapValues((_, v) -> renderContext(v))
+      }
+      when (!redirects.toList().isEmpty) {
+        ["redirects"] = redirects.toList().map((r) -> renderRedirect(r))
+      }
+      when (!headers.toList().isEmpty) {
+        ["headers"] = headers.toList().map((h) -> renderHeaderBlock(h))
+      }
+      when (!functions.toMap().isEmpty) {
+        ["functions"] = functions.toMap().mapValues((_, v) -> renderFunctionConfig(v))
+      }
+      when (!edgeFunctions.toList().isEmpty) {
+        ["edge_functions"] = edgeFunctions.toList().map((e) -> renderEdgeFunction(e))
+      }
+      when (!plugins.toList().isEmpty) {
+        ["plugins"] = plugins.toList().map((p) -> renderPlugin(p))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new toml.Renderer {}
+}
