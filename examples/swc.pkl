@@ -1,0 +1,44 @@
+amends "@target.js/swc/Swc.pkl"
+
+jsc = new JscConfig {
+  parser = new ParserConfig {
+    syntax = "typescript"
+    tsx = true
+    decorators = true
+    dynamicImport = true
+  }
+  target = "es2022"
+  loose = false
+  keepClassNames = true
+  externalHelpers = true
+  baseUrl = "."
+  paths {
+    ["@/*"] = new Listing<String> { "./src/*" }
+    ["~/lib/*"] = new Listing<String> { "./packages/lib/src/*" }
+  }
+  transform = new TransformConfig {
+    react = new Mapping<String, Any> {
+      ["runtime"] = "automatic"
+      ["importSource"] = "react"
+    }
+    useDefineForClassFields = true
+  }
+}
+
+`module` = new ModuleConfig {
+  type = "es6"
+  strict = false
+  strictMode = true
+  lazy = false
+  noInterop = false
+  importInterop = "swc"
+}
+
+sourceMaps = true
+inlineSourcesContent = true
+minify = false
+
+exclude = new Listing<String> {
+  ".*\\.test\\.tsx?$"
+  "node_modules"
+}
