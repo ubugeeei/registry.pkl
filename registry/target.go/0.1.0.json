@@ -1,0 +1,32 @@
+{
+  "name": "target.go",
+  "version": "0.1.0",
+  "packageUri": "package://pkg.registry.invalid/target.go@0.1.0",
+  "metadataUrl": "https://ubugeeei.github.io/registry.pkl/registry/target.go/0.1.0.json",
+  "packageZipUrl": "https://github.com/ubugeeei/registry.pkl/releases/download/target.go@0.1.0/target.go@0.1.0.zip",
+  "packageZipSha256Url": "https://github.com/ubugeeei/registry.pkl/releases/download/target.go@0.1.0/target.go@0.1.0.zip.sha256",
+  "docsUrl": "https://ubugeeei.github.io/registry.pkl/packages/target-go/",
+  "ecosystem": "go",
+  "firstParty": true,
+  "targets": [
+    ".golangci.yml",
+    ".goreleaser.yml"
+  ],
+  "formats": [
+    "yaml"
+  ],
+  "tags": [
+    "go",
+    "golang",
+    "golangci-lint",
+    "goreleaser"
+  ],
+  "maintainers": [
+    "ubugeeei"
+  ],
+  "description": "Typed Pkl modules for Go linting and release tooling.",
+  "source": {
+    "repo": "https://github.com/ubugeeei/registry.pkl",
+    "directory": "packages/target.go"
+  }
+}

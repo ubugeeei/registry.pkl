@@ -1,0 +1,24 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.k8s"
+version = "0.1.0"
+ecosystem = "k8s"
+
+targets {
+  "kustomization.yaml"
+  "Chart.yaml"
+  "values.yaml"
+}
+
+formats {
+  "yaml"
+}
+
+tags {
+  "kubernetes"
+  "kustomize"
+  "helm"
+  "infra"
+}
+
+description = "Typed Pkl modules for Kubernetes manifests — Kustomize and Helm."

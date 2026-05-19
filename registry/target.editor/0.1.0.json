@@ -1,0 +1,40 @@
+{
+  "name": "target.editor",
+  "version": "0.1.0",
+  "packageUri": "package://pkg.registry.invalid/target.editor@0.1.0",
+  "metadataUrl": "https://ubugeeei.github.io/registry.pkl/registry/target.editor/0.1.0.json",
+  "packageZipUrl": "https://github.com/ubugeeei/registry.pkl/releases/download/target.editor@0.1.0/target.editor@0.1.0.zip",
+  "packageZipSha256Url": "https://github.com/ubugeeei/registry.pkl/releases/download/target.editor@0.1.0/target.editor@0.1.0.zip.sha256",
+  "docsUrl": "https://ubugeeei.github.io/registry.pkl/packages/target-editor/",
+  "ecosystem": "editor",
+  "firstParty": true,
+  "targets": [
+    ".vscode/settings.json",
+    ".vscode/extensions.json",
+    ".editorconfig",
+    ".devcontainer/devcontainer.json",
+    ".config/zed/settings.json",
+    ".config/helix/config.toml",
+    "*.sublime-project",
+    "init.lua",
+    ".idea/workspace.xml"
+  ],
+  "formats": [
+    "json",
+    "toml",
+    "text"
+  ],
+  "tags": [
+    "vscode",
+    "editor",
+    "ide"
+  ],
+  "maintainers": [
+    "ubugeeei"
+  ],
+  "description": "Typed Pkl modules for editor and workspace configuration.",
+  "source": {
+    "repo": "https://github.com/ubugeeei/registry.pkl",
+    "directory": "packages/target.editor"
+  }
+}

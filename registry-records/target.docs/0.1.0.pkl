@@ -1,0 +1,24 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.docs"
+version = "0.1.0"
+ecosystem = "docs"
+
+targets {
+  ".vitepress/config.json"
+  "docusaurus.config.json"
+  "typedoc.json"
+}
+
+formats {
+  "json"
+}
+
+tags {
+  "docs"
+  "vitepress"
+  "docusaurus"
+  "typedoc"
+}
+
+description = "Typed Pkl modules for documentation generators."

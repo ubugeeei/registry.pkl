@@ -1,0 +1,35 @@
+{
+  "name": "target.rust",
+  "version": "0.1.0",
+  "packageUri": "package://pkg.registry.invalid/target.rust@0.1.0",
+  "metadataUrl": "https://ubugeeei.github.io/registry.pkl/registry/target.rust/0.1.0.json",
+  "packageZipUrl": "https://github.com/ubugeeei/registry.pkl/releases/download/target.rust@0.1.0/target.rust@0.1.0.zip",
+  "packageZipSha256Url": "https://github.com/ubugeeei/registry.pkl/releases/download/target.rust@0.1.0/target.rust@0.1.0.zip.sha256",
+  "docsUrl": "https://ubugeeei.github.io/registry.pkl/packages/target-rust/",
+  "ecosystem": "rust",
+  "firstParty": true,
+  "targets": [
+    "Cargo.toml",
+    "rustfmt.toml",
+    "clippy.toml",
+    "rust-toolchain.toml",
+    "deny.toml",
+    "bacon.toml"
+  ],
+  "formats": [
+    "toml"
+  ],
+  "tags": [
+    "cargo",
+    "clippy",
+    "rust"
+  ],
+  "maintainers": [
+    "ubugeeei"
+  ],
+  "description": "Typed Pkl modules for Cargo and Rust lint configuration.",
+  "source": {
+    "repo": "https://github.com/ubugeeei/registry.pkl",
+    "directory": "packages/target.rust"
+  }
+}

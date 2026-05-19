@@ -1,0 +1,87 @@
+/// First-party convenience layer over `target.core.RegistryRecord`.
+///
+/// All first-party `target.*` releases share the same hosting conventions:
+///
+///   - `packageUri` is `package://pkg.registry.invalid/<family>@<version>`
+///   - `packageZipUrl` is `https://github.com/ubugeeei/registry.pkl/releases/download/<family>@<version>/<family>@<version>.zip`
+///   - `docsUrl` is `https://ubugeeei.github.io/registry.pkl/packages/<dash-family>/`
+///   - `metadataUrl` is `https://ubugeeei.github.io/registry.pkl/registry/<family>/<version>.json`
+///   - `source` points at the public repo
+///   - `firstParty = true`
+///
+/// This module computes those fields from `(family, version)` so per-family
+/// record sources only declare what is unique to them: ecosystem, targets,
+/// formats, tags, description.
+module target.core.FirstPartyRecord
+
+import "RegistryRecord.pkl" as Record
+
+typealias Format = Record.Format
+
+/// `target.<family>` family name. Required.
+family: String
+
+/// SemVer version. Required.
+version: String
+
+/// Ecosystem facet, e.g. "javascript", "rust", "ci".
+ecosystem: String
+
+/// Concrete config files this family emits.
+targets: Listing<String>
+
+/// Output formats produced.
+formats: Listing<Format>
+
+/// Optional free-form tags.
+tags: Listing<String> = new Listing {}
+
+/// Optional human description.
+description: String? = null
+
+/// Optional release timestamp; set by the release workflow.
+releasedAt: String? = null
+
+/// Optional previous version this record supersedes.
+supersedes: String? = null
+
+/// Repo owner. Override only for forks.
+owner: String = "ubugeeei"
+
+/// Repo name. Override only for non-standard hosting.
+repo: String = "registry.pkl"
+
+local repoUrl: String = "https://github.com/\(owner)/\(repo)"
+local pagesBase: String = "https://\(owner).github.io/\(repo)"
+local dashFamily: String = family.replaceAll(".", "-")
+
+hidden built: Record =
+  (Record) {
+    name = family
+    version = module.version
+    packageUri = "package://pkg.registry.invalid/\(family)@\(module.version)"
+    metadataUrl = "\(pagesBase)/registry/\(family)/\(module.version).json"
+    packageZipUrl = "\(repoUrl)/releases/download/\(family)@\(module.version)/\(family)@\(module.version).zip"
+    packageZipSha256Url = "\(packageZipUrl).sha256"
+    docsUrl = "\(pagesBase)/packages/\(dashFamily)/"
+    ecosystem = module.ecosystem
+    firstParty = true
+    targets = module.targets
+    formats = module.formats
+    tags = module.tags
+    description = module.description
+    source = new Record.Source {
+      repo = repoUrl
+      directory = "packages/\(family)"
+    }
+    maintainers = new Listing<String> { owner }
+    releasedAt = module.releasedAt
+    supersedes = module.supersedes
+  }
+
+hidden rendered = built.rendered
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

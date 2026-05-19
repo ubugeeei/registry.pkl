@@ -1,0 +1,37 @@
+{
+  "name": "target.ci",
+  "version": "0.1.0",
+  "packageUri": "package://pkg.registry.invalid/target.ci@0.1.0",
+  "metadataUrl": "https://ubugeeei.github.io/registry.pkl/registry/target.ci/0.1.0.json",
+  "packageZipUrl": "https://github.com/ubugeeei/registry.pkl/releases/download/target.ci@0.1.0/target.ci@0.1.0.zip",
+  "packageZipSha256Url": "https://github.com/ubugeeei/registry.pkl/releases/download/target.ci@0.1.0/target.ci@0.1.0.zip.sha256",
+  "docsUrl": "https://ubugeeei.github.io/registry.pkl/packages/target-ci/",
+  "ecosystem": "ci",
+  "firstParty": true,
+  "targets": [
+    ".github/workflows/*.yml",
+    ".github/dependabot.yml",
+    ".gitlab-ci.yml",
+    ".circleci/config.yml",
+    ".drone.yml",
+    ".woodpecker.yml",
+    ".buildkite/pipeline.yml",
+    "azure-pipelines.yml"
+  ],
+  "formats": [
+    "yaml"
+  ],
+  "tags": [
+    "ci",
+    "actions",
+    "pipelines"
+  ],
+  "maintainers": [
+    "ubugeeei"
+  ],
+  "description": "Typed Pkl modules for CI and pipeline configuration across major platforms.",
+  "source": {
+    "repo": "https://github.com/ubugeeei/registry.pkl",
+    "directory": "packages/target.ci"
+  }
+}

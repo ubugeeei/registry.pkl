@@ -1,0 +1,25 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.python"
+version = "0.1.0"
+ecosystem = "python"
+
+targets {
+  "pyproject.toml"
+  "ruff.toml"
+  "pytest.ini"
+}
+
+formats {
+  "toml"
+  "ini"
+}
+
+tags {
+  "python"
+  "ruff"
+  "pytest"
+  "pyproject"
+}
+
+description = "Typed Pkl modules for Python project tooling."

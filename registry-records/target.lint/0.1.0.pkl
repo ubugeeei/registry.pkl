@@ -1,0 +1,25 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.lint"
+version = "0.1.0"
+ecosystem = "lint"
+
+targets {
+  ".markdownlint.json"
+  "commitlint.config.json"
+  ".gitleaks.toml"
+}
+
+formats {
+  "json"
+  "toml"
+}
+
+tags {
+  "lint"
+  "commitlint"
+  "gitleaks"
+  "markdownlint"
+}
+
+description = "Typed Pkl modules for cross-language linting tools."

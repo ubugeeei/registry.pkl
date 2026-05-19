@@ -1,0 +1,33 @@
+{
+  "name": "target.docs",
+  "version": "0.1.0",
+  "packageUri": "package://pkg.registry.invalid/target.docs@0.1.0",
+  "metadataUrl": "https://ubugeeei.github.io/registry.pkl/registry/target.docs/0.1.0.json",
+  "packageZipUrl": "https://github.com/ubugeeei/registry.pkl/releases/download/target.docs@0.1.0/target.docs@0.1.0.zip",
+  "packageZipSha256Url": "https://github.com/ubugeeei/registry.pkl/releases/download/target.docs@0.1.0/target.docs@0.1.0.zip.sha256",
+  "docsUrl": "https://ubugeeei.github.io/registry.pkl/packages/target-docs/",
+  "ecosystem": "docs",
+  "firstParty": true,
+  "targets": [
+    ".vitepress/config.json",
+    "docusaurus.config.json",
+    "typedoc.json"
+  ],
+  "formats": [
+    "json"
+  ],
+  "tags": [
+    "docs",
+    "vitepress",
+    "docusaurus",
+    "typedoc"
+  ],
+  "maintainers": [
+    "ubugeeei"
+  ],
+  "description": "Typed Pkl modules for documentation generators.",
+  "source": {
+    "repo": "https://github.com/ubugeeei/registry.pkl",
+    "directory": "packages/target.docs"
+  }
+}

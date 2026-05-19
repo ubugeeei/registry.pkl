@@ -1,0 +1,26 @@
+amends "@target.core/FirstPartyRecord.pkl"
+
+family = "target.container"
+version = "0.1.0"
+ecosystem = "container"
+
+targets {
+  "docker-compose.yml"
+  "Dockerfile"
+  "devbox.json"
+}
+
+formats {
+  "yaml"
+  "json"
+  "text"
+}
+
+tags {
+  "docker"
+  "compose"
+  "devbox"
+  "container"
+}
+
+description = "Typed Pkl modules for Docker Compose, Dockerfile, and Devbox."
