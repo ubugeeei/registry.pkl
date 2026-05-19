@@ -1,0 +1,75 @@
+amends "@target.k8s/statefulset/StatefulSet.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+import "@target.k8s/deployment/Deployment.pkl" as Dep
+
+metadata = new Pod.ObjectMeta {
+  name = "postgres"
+  namespace = "data"
+  labels { ["app"] = "postgres" }
+}
+
+spec = new Spec {
+  serviceName = "postgres"
+  replicas = 3
+  selector = new Dep.LabelSelector {
+    matchLabels { ["app"] = "postgres" }
+  }
+  podManagementPolicy = "OrderedReady"
+  updateStrategy = new UpdateStrategy {
+    type = "RollingUpdate"
+  }
+  template = new Dep.Template {
+    metadata = new Pod.ObjectMeta {
+      labels { ["app"] = "postgres" }
+    }
+    spec = new Pod.PodTemplateSpec {
+      terminationGracePeriodSeconds = 30
+      containers {
+        new Pod.Container {
+          name = "postgres"
+          image = "postgres:16-alpine"
+          ports {
+            new Pod.ContainerPort { containerPort = 5432; name = "postgres" }
+          }
+          env {
+            new Pod.EnvVar {
+              name = "POSTGRES_DB"
+              value = "registry"
+            }
+          }
+          volumeMounts {
+            new Pod.VolumeMount {
+              name = "data"
+              mountPath = "/var/lib/postgresql/data"
+            }
+          }
+          resources = new Pod.Resources {
+            requests = new Pod.ResourceRequirement {
+              cpu = "250m"
+              memory = "512Mi"
+            }
+            limits = new Pod.ResourceRequirement {
+              cpu = "1000m"
+              memory = "2Gi"
+            }
+          }
+        }
+      }
+    }
+  }
+  volumeClaimTemplates {
+    new VolumeClaimTemplate {
+      metadata = new Pod.ObjectMeta { name = "data" }
+      spec = new PvcSpec {
+        accessModes { "ReadWriteOnce" }
+        storageClassName = "fast-ssd"
+        resources = new Mapping<String, Any> {
+          ["requests"] = new Mapping<String, String> {
+            ["storage"] = "10Gi"
+          }.toMap()
+        }
+      }
+    }
+  }
+}

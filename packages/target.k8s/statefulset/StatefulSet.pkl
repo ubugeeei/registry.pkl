@@ -1,0 +1,185 @@
+/// A typed authoring surface for `apps/v1.StatefulSet`.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#statefulset-v1-apps
+module target.k8s.statefulset.StatefulSet
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../deployment/Deployment.pkl" as Dep
+
+class PvcSpec {
+  accessModes: Listing<String> = new Listing {}
+  resources: Mapping<String, Any>? = null
+  selector: Dep.LabelSelector? = null
+  storageClassName: String? = null
+  volumeMode: String? = null
+  volumeName: String? = null
+  dataSource: Mapping<String, Any>? = null
+  dataSourceRef: Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class VolumeClaimTemplate {
+  metadata: Pod.ObjectMeta
+  spec: PvcSpec
+}
+
+class UpdateStrategy {
+  type: ("RollingUpdate"|"OnDelete")? = null
+  rollingUpdate: Mapping<String, Any>? = null
+}
+
+class Spec {
+  replicas: Int? = null
+  selector: Dep.LabelSelector
+  template: Dep.Template
+  serviceName: String
+  volumeClaimTemplates: Listing<VolumeClaimTemplate> = new Listing {}
+  podManagementPolicy: ("OrderedReady"|"Parallel")? = null
+  updateStrategy: UpdateStrategy? = null
+  revisionHistoryLimit: Int? = null
+  minReadySeconds: Int? = null
+  persistentVolumeClaimRetentionPolicy: Mapping<String, String>? = null
+  ordinals: Mapping<String, Int>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: String = "apps/v1"
+kind: String = "StatefulSet"
+metadata: Pod.ObjectMeta
+spec: Spec
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderObjectMeta(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSelector(value: Dep.LabelSelector) =
+  new Mapping<String, Any> {
+    when (!value.matchLabels.toMap().isEmpty) {
+      ["matchLabels"] = value.matchLabels.toMap()
+    }
+    when (!value.matchExpressions.toList().isEmpty) {
+      ["matchExpressions"] = value.matchExpressions.toList()
+        .map((m) -> m.toMap())
+    }
+  }.toMap()
+
+local function renderTemplate(value: Dep.Template) =
+  new Mapping<String, Any> {
+    when (value.metadata != null) {
+      ["metadata"] = renderObjectMeta(value.metadata)
+    }
+    ["spec"] = renderPodSpec(value.spec)
+  }.toMap()
+
+local function renderPodSpec(value: Pod.PodTemplateSpec) =
+  (Pod) {
+    spec = value
+  }.rendered["spec"]
+
+local function renderPvcSpec(value: PvcSpec) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (!value.accessModes.toList().isEmpty) {
+        ["accessModes"] = value.accessModes.toList()
+      }
+      when (value.resources != null) {
+        ["resources"] = value.resources.toMap()
+      }
+      when (value.selector != null) {
+        ["selector"] = renderSelector(value.selector)
+      }
+      when (value.storageClassName != null) {
+        ["storageClassName"] = value.storageClassName
+      }
+      when (value.volumeMode != null) {
+        ["volumeMode"] = value.volumeMode
+      }
+      when (value.volumeName != null) {
+        ["volumeName"] = value.volumeName
+      }
+      when (value.dataSource != null) {
+        ["dataSource"] = value.dataSource.toMap()
+      }
+      when (value.dataSourceRef != null) {
+        ["dataSourceRef"] = value.dataSourceRef.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderVolumeClaim(value: VolumeClaimTemplate) =
+  new Mapping<String, Any> {
+    ["metadata"] = renderObjectMeta(value.metadata)
+    ["spec"] = renderPvcSpec(value.spec)
+  }.toMap()
+
+local function renderUpdateStrategy(value: UpdateStrategy) =
+  new Mapping<String, Any> {
+    when (value.type != null) { ["type"] = value.type }
+    when (value.rollingUpdate != null) {
+      ["rollingUpdate"] = value.rollingUpdate.toMap()
+    }
+  }.toMap()
+
+local function renderSpec(value: Spec) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.replicas != null) { ["replicas"] = value.replicas }
+      ["selector"] = renderSelector(value.selector)
+      ["template"] = renderTemplate(value.template)
+      ["serviceName"] = value.serviceName
+      when (!value.volumeClaimTemplates.toList().isEmpty) {
+        ["volumeClaimTemplates"] = value.volumeClaimTemplates.toList()
+          .map((v) -> renderVolumeClaim(v))
+      }
+      when (value.podManagementPolicy != null) {
+        ["podManagementPolicy"] = value.podManagementPolicy
+      }
+      when (value.updateStrategy != null) {
+        ["updateStrategy"] = renderUpdateStrategy(value.updateStrategy)
+      }
+      when (value.revisionHistoryLimit != null) {
+        ["revisionHistoryLimit"] = value.revisionHistoryLimit
+      }
+      when (value.minReadySeconds != null) {
+        ["minReadySeconds"] = value.minReadySeconds
+      }
+      when (value.persistentVolumeClaimRetentionPolicy != null) {
+        ["persistentVolumeClaimRetentionPolicy"] =
+          value.persistentVolumeClaimRetentionPolicy.toMap()
+      }
+      when (value.ordinals != null) {
+        ["ordinals"] = value.ordinals.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderObjectMeta(metadata)
+      ["spec"] = renderSpec(spec)
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

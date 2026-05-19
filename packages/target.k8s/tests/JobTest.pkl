@@ -1,0 +1,49 @@
+/// Tests for `target.k8s.job.Job` rendering.
+amends "pkl:test"
+
+import "../job/Job.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+import "../deployment/Deployment.pkl" as Dep
+
+local job = (Job) {
+  metadata = new Pod.ObjectMeta {
+    name = "migrate"
+    namespace = "default"
+  }
+  spec = new Job.Spec {
+    parallelism = 1
+    completions = 1
+    backoffLimit = 3
+    activeDeadlineSeconds = 600
+    ttlSecondsAfterFinished = 86400
+    completionMode = "NonIndexed"
+    template = new Dep.Template {
+      spec = new Pod.PodTemplateSpec {
+        restartPolicy = "Never"
+        containers {
+          new Pod.Container {
+            name = "migrate"
+            image = "ghcr.io/example/migrate:1.0"
+            command { "migrate"; "up" }
+          }
+        }
+      }
+    }
+  }
+}
+
+facts {
+  ["apiVersion + kind"] {
+    job.rendered["apiVersion"] == "batch/v1"
+    job.rendered["kind"] == "Job"
+  }
+  ["scalars pass through"] {
+    job.rendered["spec"]["parallelism"] == 1
+    job.rendered["spec"]["backoffLimit"] == 3
+    job.rendered["spec"]["activeDeadlineSeconds"] == 600
+    job.rendered["spec"]["completionMode"] == "NonIndexed"
+  }
+  ["template's PodSpec restartPolicy is Never"] {
+    job.rendered["spec"]["template"]["spec"]["restartPolicy"] == "Never"
+  }
+}

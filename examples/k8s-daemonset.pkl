@@ -1,0 +1,67 @@
+amends "@target.k8s/daemonset/DaemonSet.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+import "@target.k8s/deployment/Deployment.pkl" as Dep
+
+metadata = new Pod.ObjectMeta {
+  name = "node-exporter"
+  namespace = "monitoring"
+  labels { ["app"] = "node-exporter" }
+}
+
+spec = new Spec {
+  selector = new Dep.LabelSelector {
+    matchLabels { ["app"] = "node-exporter" }
+  }
+  updateStrategy = new UpdateStrategy {
+    type = "RollingUpdate"
+  }
+  template = new Dep.Template {
+    metadata = new Pod.ObjectMeta {
+      labels { ["app"] = "node-exporter" }
+    }
+    spec = new Pod.PodTemplateSpec {
+      hostNetwork = true
+      hostPID = true
+      serviceAccountName = "node-exporter"
+      tolerations {
+        new Mapping<String, Any> {
+          ["operator"] = "Exists"
+          ["effect"] = "NoSchedule"
+        }
+      }
+      containers {
+        new Pod.Container {
+          name = "node-exporter"
+          image = "prom/node-exporter:1.7.0"
+          args {
+            "--path.rootfs=/host"
+          }
+          ports {
+            new Pod.ContainerPort {
+              name = "metrics"
+              containerPort = 9100
+              hostPort = 9100
+              protocol = "TCP"
+            }
+          }
+          volumeMounts {
+            new Pod.VolumeMount {
+              name = "rootfs"
+              mountPath = "/host"
+              readOnly = true
+            }
+          }
+        }
+      }
+      volumes {
+        new Pod.Volume {
+          name = "rootfs"
+          hostPath = new Mapping<String, String> {
+            ["path"] = "/"
+          }
+        }
+      }
+    }
+  }
+}
