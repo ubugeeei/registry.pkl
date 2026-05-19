@@ -1,0 +1,13 @@
+amends "@target.js/lint-staged/LintStaged.pkl"
+
+patterns {
+  ["*.{ts,tsx,js,jsx}"] = new Listing<String> {
+    "eslint --fix"
+    "prettier --write"
+  }
+  ["*.{md,json,yml,yaml}"] = "prettier --write"
+  ["*.css"] = new Listing<String> {
+    "stylelint --fix"
+    "prettier --write"
+  }
+}

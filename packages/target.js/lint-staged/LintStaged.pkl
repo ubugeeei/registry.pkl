@@ -1,0 +1,35 @@
+/// A typed authoring surface for `.lintstagedrc.json` / `lint-staged` config.
+///
+/// lint-staged runs a configurable set of tasks against the files git has
+/// staged. The on-disk config maps a glob to one or more commands.
+module target.js.lint_staged.LintStaged
+
+import "@target.core/Maps.pkl" as Maps
+
+/// Each entry binds a file glob to a command or a list of commands.
+/// `String` runs a single command; `Listing<String>` runs the list in order.
+typealias Task = String|Listing<String>
+
+/// File-pattern → task mapping. Keys are minimatch globs.
+patterns: Mapping<String, Task> = new Mapping {}
+
+/// Free-form extra fields (e.g. lint-staged's `*` magic key).
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderTask(task: Task) =
+  if (task is Listing) task.toList() else task
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      for (pattern, task in patterns) {
+        [pattern] = renderTask(task)
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

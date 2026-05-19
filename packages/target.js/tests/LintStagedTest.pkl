@@ -1,0 +1,24 @@
+/// Tests for `target.js.lint_staged.LintStaged` rendering.
+amends "pkl:test"
+
+import "../lint-staged/LintStaged.pkl"
+
+local config = (LintStaged) {
+  patterns {
+    ["*.{ts,tsx}"] = "eslint --fix"
+    ["*.{md,json,yml}"] = new Listing<String> {
+      "prettier --write"
+      "markdownlint"
+    }
+  }
+}
+
+facts {
+  ["single-string task passes through"] {
+    config.rendered["*.{ts,tsx}"] == "eslint --fix"
+  }
+  ["listing task flattens to JSON array"] {
+    config.rendered["*.{md,json,yml}"]
+      == List("prettier --write", "markdownlint")
+  }
+}

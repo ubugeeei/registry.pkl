@@ -1,0 +1,154 @@
+/// A typed authoring surface for `lefthook.yml`.
+///
+/// Lefthook (https://lefthook.dev) is a polyglot git hook manager whose
+/// config is a YAML document keyed by git hook names. Each hook owns a
+/// set of `commands` and/or `scripts` that run in parallel by default.
+module target.js.lefthook.Lefthook
+
+import "@target.core/Maps.pkl" as Maps
+
+/// Per-command override.
+class Command {
+  /// Shell command. Lefthook interpolates `{staged_files}`, `{push_files}`,
+  /// and `{files}` placeholders.
+  run: String
+  /// Glob filter applied before `run`. Multiple globs join with `|`.
+  glob: String? = null
+  /// Lua-style regex filter, applied after `glob`.
+  files: String? = null
+  /// Tag list used by `--commands` / `--exclude-tags` selectors.
+  tags: Listing<String> = new Listing {}
+  /// Skip this command when the predicate matches (e.g. `merge`, `rebase`).
+  skip: (Boolean|String|Listing<String>)? = null
+  /// Only run when the predicate matches.
+  only: (Boolean|String|Listing<String>)? = null
+  /// Environment variables forwarded into the command.
+  env: Mapping<String, String> = new Mapping {}
+  /// Working directory.
+  root: String? = null
+  /// Override the staged-files detection strategy.
+  stageFixed: Boolean? = null
+  /// Disable parallel execution for this entry.
+  excludeTags: Listing<String> = new Listing {}
+  /// Free-form passthrough.
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+/// A `scripts/<name>` entry — runs the named script from `.lefthook/<hook>/`.
+class Script {
+  runner: String? = null
+  tags: Listing<String> = new Listing {}
+  skip: (Boolean|String|Listing<String>)? = null
+  only: (Boolean|String|Listing<String>)? = null
+  env: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+/// A single git hook (`pre-commit`, `pre-push`, …).
+class Hook {
+  /// Run commands sequentially instead of in parallel.
+  parallel: Boolean? = null
+  /// Stop on the first failing command.
+  piped: Boolean? = null
+  /// Hook-wide skip predicate.
+  skip: (Boolean|String|Listing<String>)? = null
+  /// Hook-wide only predicate.
+  only: (Boolean|String|Listing<String>)? = null
+  commands: Mapping<String, Command> = new Mapping {}
+  scripts: Mapping<String, Script> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+/// Optional top-level fields.
+minVersion: String? = null
+sourceDir: String? = null
+sourceDirLocal: String? = null
+colors: (Boolean|Mapping<String, String>)? = null
+noTty: Boolean? = null
+skipOutput: Listing<String> = new Listing {}
+outputs: Listing<String> = new Listing {}
+remotes: Listing<Mapping<String, Any>> = new Listing {}
+templatesDir: String? = null
+hooks: Mapping<String, Hook> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderPredicate(value: Boolean|String|Listing<String>) =
+  if (value is Listing) value.toList() else value
+
+local function renderCommand(value: Command) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["run"] = value.run
+      when (value.glob != null) { ["glob"] = value.glob }
+      when (value.files != null) { ["files"] = value.files }
+      when (!value.tags.toList().isEmpty) { ["tags"] = value.tags.toList() }
+      when (value.skip != null) { ["skip"] = renderPredicate(value.skip) }
+      when (value.only != null) { ["only"] = renderPredicate(value.only) }
+      when (!value.env.toMap().isEmpty) { ["env"] = value.env.toMap() }
+      when (value.root != null) { ["root"] = value.root }
+      when (value.stageFixed != null) { ["stage_fixed"] = value.stageFixed }
+      when (!value.excludeTags.toList().isEmpty) {
+        ["exclude_tags"] = value.excludeTags.toList()
+      }
+    },
+    value.extra,
+  )
+
+local function renderScript(value: Script) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.runner != null) { ["runner"] = value.runner }
+      when (!value.tags.toList().isEmpty) { ["tags"] = value.tags.toList() }
+      when (value.skip != null) { ["skip"] = renderPredicate(value.skip) }
+      when (value.only != null) { ["only"] = renderPredicate(value.only) }
+      when (!value.env.toMap().isEmpty) { ["env"] = value.env.toMap() }
+    },
+    value.extra,
+  )
+
+local function renderHook(value: Hook) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.parallel != null) { ["parallel"] = value.parallel }
+      when (value.piped != null) { ["piped"] = value.piped }
+      when (value.skip != null) { ["skip"] = renderPredicate(value.skip) }
+      when (value.only != null) { ["only"] = renderPredicate(value.only) }
+      when (!value.commands.toMap().isEmpty) {
+        ["commands"] = value.commands.toMap().mapValues((_, c) -> renderCommand(c))
+      }
+      when (!value.scripts.toMap().isEmpty) {
+        ["scripts"] = value.scripts.toMap().mapValues((_, s) -> renderScript(s))
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (minVersion != null) { ["min_version"] = minVersion }
+      when (sourceDir != null) { ["source_dir"] = sourceDir }
+      when (sourceDirLocal != null) { ["source_dir_local"] = sourceDirLocal }
+      when (colors != null) {
+        ["colors"] = if (colors is Mapping) colors.toMap() else colors
+      }
+      when (noTty != null) { ["no_tty"] = noTty }
+      when (!skipOutput.toList().isEmpty) {
+        ["skip_output"] = skipOutput.toList()
+      }
+      when (!outputs.toList().isEmpty) { ["output"] = outputs.toList() }
+      when (!remotes.toList().isEmpty) {
+        ["remotes"] = remotes.toList().map((m) -> m.toMap())
+      }
+      when (templatesDir != null) { ["templates_dir"] = templatesDir }
+      for (name, hook in hooks) {
+        [name] = renderHook(hook)
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}
