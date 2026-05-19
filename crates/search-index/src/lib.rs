@@ -182,6 +182,62 @@ fn hit_from(record: RawRecord) -> Hit {
     }
 }
 
+/// Render an index as a docs-site markdown page.
+///
+/// The page is two sections:
+///
+/// - "By Target" — every `targets[]` entry across all hits, sorted by
+///   target file name, with the list of `<name>@<version>` keys that
+///   emit it.
+/// - "By Ecosystem" — every ecosystem facet with the list of
+///   `<name>@<version>` keys assigned to it.
+///
+/// The output is suitable for committing under
+/// `packages/docs/content/reference/by-target.md`.
+pub fn to_markdown(index: &Index) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::new();
+    out.push_str("---\n");
+    out.push_str("title: By Target\n");
+    out.push_str("description: Reverse index of every config file emitted by the registry.\n");
+    out.push_str("---\n\n");
+    out.push_str("# By Target\n\n");
+    out.push_str(
+        "Auto-generated from the registry search index. Each row maps a concrete \
+         config file to the registry record(s) that emit it. Use this when you know \
+         the file you want to author but not which package to amend.\n\n",
+    );
+    let _ = writeln!(
+        out,
+        "Index version: `{}` · generated: `{}`\n",
+        index.version, index.generated
+    );
+
+    out.push_str("## By Target\n\n");
+    out.push_str("| Target | Records |\n");
+    out.push_str("|--------|---------|\n");
+    for (target, records) in &index.by_target {
+        let cells: Vec<String> = records.iter().map(|r| format!("`{r}`")).collect();
+        let _ = writeln!(out, "| `{}` | {} |", target, cells.join(", "));
+    }
+
+    out.push_str("\n## By Ecosystem\n\n");
+    out.push_str("| Ecosystem | Records |\n");
+    out.push_str("|-----------|---------|\n");
+    for (eco, records) in &index.by_ecosystem {
+        let cells: Vec<String> = records.iter().map(|r| format!("`{r}`")).collect();
+        let _ = writeln!(out, "| `{}` | {} |", eco, cells.join(", "));
+    }
+
+    let _ = writeln!(
+        out,
+        "\n## Records\n\n{} record(s) in the index.",
+        index.hits.len()
+    );
+
+    out
+}
+
 /// Render an index to canonical pretty-printed JSON with a trailing newline.
 ///
 /// Pretty-printing keeps `git diff` legible — the file is small and

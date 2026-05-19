@@ -25,10 +25,15 @@ features:
     title: Registry Record
     details: Proposed searchable metadata shape for Pull Request-based package registration.
     link: ./registry-record/index.html
+  - icon: "mdi:link-variant"
+    title: By Target
+    details: Auto-generated reverse index — every shipped config file mapped back to the registry record that emits it.
+    link: ./by-target/index.html
 ---
 
 ## When To Use Reference
 
 - Open [Tool Matrix](./tool-matrix/index.html) when you want to know which package should own a file.
+- Open [By Target](./by-target/index.html) when you have a concrete file in mind and want the matching registry record.
 - Open [Registry Record](./registry-record/index.html) when you want the current metadata shape for indexing and review.
 - Use [Packages](../packages/index.html) or [Guides](../guide/index.html) if you need narrative context instead of lookup tables.
