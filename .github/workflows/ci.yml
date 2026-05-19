@@ -34,6 +34,12 @@ jobs:
       - name: Run Pkl API tests
         run: bash scripts/test.sh
 
+      - name: Render registry record sources
+        run: bash scripts/render-registry.sh
+
+      - name: Render every example
+        run: bash scripts/render-examples.sh
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -59,3 +65,38 @@ jobs:
 
       - name: Build docs
         run: pnpm build
+
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock', '**/*.rs') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Format check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --release --all-targets -- -D warnings
+
+      - name: Build
+        run: cargo build --release --workspace
+
+      - name: Test
+        run: cargo test --release --workspace
