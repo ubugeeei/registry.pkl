@@ -1,0 +1,151 @@
+/// A typed authoring surface for a `apps/v1.Deployment`.
+///
+/// The pod-spec half is delegated to `@target.k8s/podtemplate/PodTemplate.pkl`
+/// so Deployment / StatefulSet / DaemonSet share the same container
+/// modeling.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#deployment-v1-apps
+module target.k8s.deployment.Deployment
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+class RollingUpdate {
+  maxSurge: (String|Int)? = null
+  maxUnavailable: (String|Int)? = null
+}
+
+class Strategy {
+  type: ("Recreate"|"RollingUpdate")? = null
+  rollingUpdate: RollingUpdate? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class LabelSelector {
+  matchLabels: Mapping<String, String> = new Mapping {}
+  matchExpressions: Listing<Mapping<String, Any>> = new Listing {}
+}
+
+class Template {
+  metadata: Pod.ObjectMeta? = null
+  spec: Pod.PodTemplateSpec
+}
+
+class Spec {
+  replicas: Int? = null
+  selector: LabelSelector
+  template: Template
+  strategy: Strategy? = null
+  minReadySeconds: Int? = null
+  revisionHistoryLimit: Int? = null
+  progressDeadlineSeconds: Int? = null
+  paused: Boolean? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: String = "apps/v1"
+kind: String = "Deployment"
+metadata: Pod.ObjectMeta
+spec: Spec
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderSelector(value: LabelSelector) =
+  new Mapping<String, Any> {
+    when (!value.matchLabels.toMap().isEmpty) {
+      ["matchLabels"] = value.matchLabels.toMap()
+    }
+    when (!value.matchExpressions.toList().isEmpty) {
+      ["matchExpressions"] = value.matchExpressions.toList()
+        .map((m) -> m.toMap())
+    }
+  }.toMap()
+
+local function renderRollingUpdate(value: RollingUpdate) =
+  new Mapping<String, Any> {
+    when (value.maxSurge != null) { ["maxSurge"] = value.maxSurge }
+    when (value.maxUnavailable != null) {
+      ["maxUnavailable"] = value.maxUnavailable
+    }
+  }.toMap()
+
+local function renderStrategy(value: Strategy) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.type != null) { ["type"] = value.type }
+      when (value.rollingUpdate != null) {
+        ["rollingUpdate"] = renderRollingUpdate(value.rollingUpdate)
+      }
+    },
+    value.extra,
+  )
+
+local function renderTemplate(value: Template) =
+  new Mapping<String, Any> {
+    when (value.metadata != null) {
+      ["metadata"] = renderTemplateMeta(value.metadata)
+    }
+    ["spec"] = renderSpec(value.spec)
+  }.toMap()
+
+local function renderTemplateMeta(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSpec(value: Pod.PodTemplateSpec) =
+  // Reuse the PodTemplate render machinery by constructing one and
+  // taking just its rendered['spec'] half.
+  (Pod) {
+    apiVersion = "v1"
+    kind = "Pod"
+    spec = value
+  }.rendered["spec"]
+
+local function renderDeploymentSpec(value: Spec) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.replicas != null) { ["replicas"] = value.replicas }
+      ["selector"] = renderSelector(value.selector)
+      ["template"] = renderTemplate(value.template)
+      when (value.strategy != null) {
+        ["strategy"] = renderStrategy(value.strategy)
+      }
+      when (value.minReadySeconds != null) {
+        ["minReadySeconds"] = value.minReadySeconds
+      }
+      when (value.revisionHistoryLimit != null) {
+        ["revisionHistoryLimit"] = value.revisionHistoryLimit
+      }
+      when (value.progressDeadlineSeconds != null) {
+        ["progressDeadlineSeconds"] = value.progressDeadlineSeconds
+      }
+      when (value.paused != null) { ["paused"] = value.paused }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderTemplateMeta(metadata)
+      ["spec"] = renderDeploymentSpec(spec)
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

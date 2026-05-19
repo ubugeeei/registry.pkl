@@ -1,0 +1,34 @@
+amends "@target.k8s/service/Service.pkl"
+
+import "@target.k8s/podtemplate/PodTemplate.pkl" as Pod
+
+metadata = new Pod.ObjectMeta {
+  name = "registry-api"
+  namespace = "registry"
+  labels {
+    ["app"] = "registry-api"
+  }
+}
+
+spec = new Spec {
+  type = "ClusterIP"
+  selector {
+    ["app"] = "registry-api"
+  }
+  ports {
+    new ServicePort {
+      name = "http"
+      port = 80
+      targetPort = "http"
+      protocol = "TCP"
+    }
+    new ServicePort {
+      name = "metrics"
+      port = 9090
+      targetPort = "metrics"
+      protocol = "TCP"
+    }
+  }
+  sessionAffinity = "ClientIP"
+  ipFamilyPolicy = "SingleStack"
+}

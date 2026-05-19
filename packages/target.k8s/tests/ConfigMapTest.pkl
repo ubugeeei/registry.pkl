@@ -1,0 +1,29 @@
+/// Tests for `target.k8s.configmap.ConfigMap` rendering.
+amends "pkl:test"
+
+import "../configmap/ConfigMap.pkl"
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+local cm = (ConfigMap) {
+  metadata = new Pod.ObjectMeta {
+    name = "demo-config"
+    namespace = "default"
+  }
+  data {
+    ["LOG_LEVEL"] = "info"
+    ["FEATURE_FLAGS"] = "alpha,beta"
+  }
+  immutable = false
+}
+
+facts {
+  ["scalars pass through"] {
+    cm.rendered["apiVersion"] == "v1"
+    cm.rendered["kind"] == "ConfigMap"
+    cm.rendered["immutable"] == false
+  }
+  ["data map renders"] {
+    cm.rendered["data"]["LOG_LEVEL"] == "info"
+    cm.rendered["data"]["FEATURE_FLAGS"] == "alpha,beta"
+  }
+}

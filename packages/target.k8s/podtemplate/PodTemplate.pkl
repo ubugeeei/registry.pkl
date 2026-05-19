@@ -1,0 +1,543 @@
+/// A typed pod-template surface shared by Deployment / StatefulSet /
+/// DaemonSet / Job / CronJob.
+///
+/// This module models the slice of the Kubernetes `core/v1.PodSpec`
+/// most teams actually customize — containers, init containers,
+/// volumes, security context, scheduling. Anything outside this slice
+/// falls through to `extra` and round-trips verbatim.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#podspec-v1-core
+module target.k8s.podtemplate.PodTemplate
+
+import "@target.core/Maps.pkl" as Maps
+
+class ResourceRequirement {
+  cpu: String? = null
+  memory: String? = null
+  ephemeralStorage: String? = null
+  /// Forward-compat for resource names other than cpu/memory/ephemeral-storage
+  /// — e.g. `nvidia.com/gpu`.
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Resources {
+  limits: ResourceRequirement? = null
+  requests: ResourceRequirement? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class HttpGetAction {
+  path: String? = null
+  port: (String|Int)
+  host: String? = null
+  scheme: ("HTTP"|"HTTPS")? = null
+  httpHeaders: Listing<Mapping<String, String>> = new Listing {}
+}
+
+class TcpSocketAction {
+  port: (String|Int)
+  host: String? = null
+}
+
+class ExecAction {
+  command: Listing<String> = new Listing {}
+}
+
+class Probe {
+  httpGet: HttpGetAction? = null
+  tcpSocket: TcpSocketAction? = null
+  exec: ExecAction? = null
+  initialDelaySeconds: Int? = null
+  timeoutSeconds: Int? = null
+  periodSeconds: Int? = null
+  successThreshold: Int? = null
+  failureThreshold: Int? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class EnvVar {
+  name: String
+  value: String? = null
+  valueFrom: Mapping<String, Any>? = null
+}
+
+class EnvFromSource {
+  configMapRef: Mapping<String, String>? = null
+  secretRef: Mapping<String, String>? = null
+  prefix: String? = null
+}
+
+class VolumeMount {
+  name: String
+  mountPath: String
+  subPath: String? = null
+  readOnly: Boolean? = null
+  mountPropagation: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ContainerPort {
+  name: String? = null
+  containerPort: Int
+  protocol: ("TCP"|"UDP"|"SCTP")? = null
+  hostPort: Int? = null
+  hostIP: String? = null
+}
+
+class SecurityContext {
+  runAsUser: Int? = null
+  runAsGroup: Int? = null
+  runAsNonRoot: Boolean? = null
+  readOnlyRootFilesystem: Boolean? = null
+  allowPrivilegeEscalation: Boolean? = null
+  privileged: Boolean? = null
+  capabilities: Mapping<String, Listing<String>>? = null
+  seccompProfile: Mapping<String, Any>? = null
+  seLinuxOptions: Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Container {
+  name: String
+  image: String
+  imagePullPolicy: ("Always"|"IfNotPresent"|"Never")? = null
+  command: Listing<String> = new Listing {}
+  args: Listing<String> = new Listing {}
+  env: Listing<EnvVar> = new Listing {}
+  envFrom: Listing<EnvFromSource> = new Listing {}
+  ports: Listing<ContainerPort> = new Listing {}
+  resources: Resources? = null
+  volumeMounts: Listing<VolumeMount> = new Listing {}
+  livenessProbe: Probe? = null
+  readinessProbe: Probe? = null
+  startupProbe: Probe? = null
+  securityContext: SecurityContext? = null
+  workingDir: String? = null
+  stdin: Boolean? = null
+  stdinOnce: Boolean? = null
+  tty: Boolean? = null
+  terminationMessagePath: String? = null
+  terminationMessagePolicy: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class Volume {
+  name: String
+  configMap: Mapping<String, Any>? = null
+  secret: Mapping<String, Any>? = null
+  emptyDir: Mapping<String, Any>? = null
+  persistentVolumeClaim: Mapping<String, Any>? = null
+  hostPath: Mapping<String, Any>? = null
+  projected: Mapping<String, Any>? = null
+  csi: Mapping<String, Any>? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ObjectMeta {
+  name: String? = null
+  namespace: String? = null
+  labels: Mapping<String, String> = new Mapping {}
+  annotations: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class PodTemplateSpec {
+  metadata: ObjectMeta? = null
+  containers: Listing<Container>
+  initContainers: Listing<Container> = new Listing {}
+  ephemeralContainers: Listing<Container> = new Listing {}
+  volumes: Listing<Volume> = new Listing {}
+  restartPolicy: ("Always"|"OnFailure"|"Never")? = null
+  terminationGracePeriodSeconds: Int? = null
+  activeDeadlineSeconds: Int? = null
+  dnsPolicy: ("ClusterFirst"|"Default"|"ClusterFirstWithHostNet"|"None")? = null
+  serviceAccountName: String? = null
+  automountServiceAccountToken: Boolean? = null
+  nodeName: String? = null
+  hostNetwork: Boolean? = null
+  hostPID: Boolean? = null
+  hostIPC: Boolean? = null
+  shareProcessNamespace: Boolean? = null
+  securityContext: SecurityContext? = null
+  imagePullSecrets: Listing<Mapping<String, String>> = new Listing {}
+  affinity: Mapping<String, Any>? = null
+  tolerations: Listing<Mapping<String, Any>> = new Listing {}
+  topologySpreadConstraints: Listing<Mapping<String, Any>> = new Listing {}
+  schedulerName: String? = null
+  priorityClassName: String? = null
+  priority: Int? = null
+  nodeSelector: Mapping<String, String> = new Mapping {}
+  dnsConfig: Mapping<String, Any>? = null
+  readinessGates: Listing<Mapping<String, Any>> = new Listing {}
+  enableServiceLinks: Boolean? = null
+  runtimeClassName: String? = null
+  overhead: Mapping<String, String> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+apiVersion: String = "v1"
+kind: String = "Pod"
+metadata: ObjectMeta? = null
+spec: PodTemplateSpec
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderResourceRequirement(value: ResourceRequirement) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.cpu != null) { ["cpu"] = value.cpu }
+      when (value.memory != null) { ["memory"] = value.memory }
+      when (value.ephemeralStorage != null) {
+        ["ephemeral-storage"] = value.ephemeralStorage
+      }
+    },
+    value.extra,
+  )
+
+local function renderResources(value: Resources) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.limits != null) {
+        ["limits"] = renderResourceRequirement(value.limits)
+      }
+      when (value.requests != null) {
+        ["requests"] = renderResourceRequirement(value.requests)
+      }
+    },
+    value.extra,
+  )
+
+local function renderProbe(value: Probe) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.httpGet != null) {
+        ["httpGet"] = new Mapping<String, Any> {
+          when (value.httpGet.path != null) { ["path"] = value.httpGet.path }
+          ["port"] = value.httpGet.port
+          when (value.httpGet.host != null) { ["host"] = value.httpGet.host }
+          when (value.httpGet.scheme != null) {
+            ["scheme"] = value.httpGet.scheme
+          }
+          when (!value.httpGet.httpHeaders.toList().isEmpty) {
+            ["httpHeaders"] = value.httpGet.httpHeaders.toList().map((h) -> h.toMap())
+          }
+        }.toMap()
+      }
+      when (value.tcpSocket != null) {
+        ["tcpSocket"] = new Mapping<String, Any> {
+          ["port"] = value.tcpSocket.port
+          when (value.tcpSocket.host != null) {
+            ["host"] = value.tcpSocket.host
+          }
+        }.toMap()
+      }
+      when (value.exec != null) {
+        ["exec"] = new Mapping<String, Any> {
+          ["command"] = value.exec.command.toList()
+        }.toMap()
+      }
+      when (value.initialDelaySeconds != null) {
+        ["initialDelaySeconds"] = value.initialDelaySeconds
+      }
+      when (value.timeoutSeconds != null) {
+        ["timeoutSeconds"] = value.timeoutSeconds
+      }
+      when (value.periodSeconds != null) {
+        ["periodSeconds"] = value.periodSeconds
+      }
+      when (value.successThreshold != null) {
+        ["successThreshold"] = value.successThreshold
+      }
+      when (value.failureThreshold != null) {
+        ["failureThreshold"] = value.failureThreshold
+      }
+    },
+    value.extra,
+  )
+
+local function renderEnv(value: EnvVar) =
+  new Mapping<String, Any> {
+    ["name"] = value.name
+    when (value.value != null) { ["value"] = value.value }
+    when (value.valueFrom != null) {
+      ["valueFrom"] = value.valueFrom.toMap()
+    }
+  }.toMap()
+
+local function renderEnvFrom(value: EnvFromSource) =
+  new Mapping<String, Any> {
+    when (value.configMapRef != null) {
+      ["configMapRef"] = value.configMapRef.toMap()
+    }
+    when (value.secretRef != null) {
+      ["secretRef"] = value.secretRef.toMap()
+    }
+    when (value.prefix != null) { ["prefix"] = value.prefix }
+  }.toMap()
+
+local function renderVolumeMount(value: VolumeMount) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = value.name
+      ["mountPath"] = value.mountPath
+      when (value.subPath != null) { ["subPath"] = value.subPath }
+      when (value.readOnly != null) { ["readOnly"] = value.readOnly }
+      when (value.mountPropagation != null) {
+        ["mountPropagation"] = value.mountPropagation
+      }
+    },
+    value.extra,
+  )
+
+local function renderPort(value: ContainerPort) =
+  new Mapping<String, Any> {
+    when (value.name != null) { ["name"] = value.name }
+    ["containerPort"] = value.containerPort
+    when (value.protocol != null) { ["protocol"] = value.protocol }
+    when (value.hostPort != null) { ["hostPort"] = value.hostPort }
+    when (value.hostIP != null) { ["hostIP"] = value.hostIP }
+  }.toMap()
+
+local function renderSecurityContext(value: SecurityContext) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.runAsUser != null) {
+        ["runAsUser"] = value.runAsUser
+      }
+      when (value.runAsGroup != null) {
+        ["runAsGroup"] = value.runAsGroup
+      }
+      when (value.runAsNonRoot != null) {
+        ["runAsNonRoot"] = value.runAsNonRoot
+      }
+      when (value.readOnlyRootFilesystem != null) {
+        ["readOnlyRootFilesystem"] = value.readOnlyRootFilesystem
+      }
+      when (value.allowPrivilegeEscalation != null) {
+        ["allowPrivilegeEscalation"] = value.allowPrivilegeEscalation
+      }
+      when (value.privileged != null) {
+        ["privileged"] = value.privileged
+      }
+      when (value.capabilities != null) {
+        ["capabilities"] = value.capabilities.toMap()
+          .mapValues((_, l) -> l.toList())
+      }
+      when (value.seccompProfile != null) {
+        ["seccompProfile"] = value.seccompProfile.toMap()
+      }
+      when (value.seLinuxOptions != null) {
+        ["seLinuxOptions"] = value.seLinuxOptions.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderContainer(value: Container) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = value.name
+      ["image"] = value.image
+      when (value.imagePullPolicy != null) {
+        ["imagePullPolicy"] = value.imagePullPolicy
+      }
+      when (!value.command.toList().isEmpty) {
+        ["command"] = value.command.toList()
+      }
+      when (!value.args.toList().isEmpty) {
+        ["args"] = value.args.toList()
+      }
+      when (!value.env.toList().isEmpty) {
+        ["env"] = value.env.toList().map((e) -> renderEnv(e))
+      }
+      when (!value.envFrom.toList().isEmpty) {
+        ["envFrom"] = value.envFrom.toList().map((e) -> renderEnvFrom(e))
+      }
+      when (!value.ports.toList().isEmpty) {
+        ["ports"] = value.ports.toList().map((p) -> renderPort(p))
+      }
+      when (value.resources != null) {
+        ["resources"] = renderResources(value.resources)
+      }
+      when (!value.volumeMounts.toList().isEmpty) {
+        ["volumeMounts"] = value.volumeMounts.toList()
+          .map((m) -> renderVolumeMount(m))
+      }
+      when (value.livenessProbe != null) {
+        ["livenessProbe"] = renderProbe(value.livenessProbe)
+      }
+      when (value.readinessProbe != null) {
+        ["readinessProbe"] = renderProbe(value.readinessProbe)
+      }
+      when (value.startupProbe != null) {
+        ["startupProbe"] = renderProbe(value.startupProbe)
+      }
+      when (value.securityContext != null) {
+        ["securityContext"] = renderSecurityContext(value.securityContext)
+      }
+      when (value.workingDir != null) {
+        ["workingDir"] = value.workingDir
+      }
+      when (value.stdin != null) { ["stdin"] = value.stdin }
+      when (value.stdinOnce != null) { ["stdinOnce"] = value.stdinOnce }
+      when (value.tty != null) { ["tty"] = value.tty }
+      when (value.terminationMessagePath != null) {
+        ["terminationMessagePath"] = value.terminationMessagePath
+      }
+      when (value.terminationMessagePolicy != null) {
+        ["terminationMessagePolicy"] = value.terminationMessagePolicy
+      }
+    },
+    value.extra,
+  )
+
+local function renderVolume(value: Volume) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["name"] = value.name
+      when (value.configMap != null) {
+        ["configMap"] = value.configMap.toMap()
+      }
+      when (value.secret != null) {
+        ["secret"] = value.secret.toMap()
+      }
+      when (value.emptyDir != null) {
+        ["emptyDir"] = value.emptyDir.toMap()
+      }
+      when (value.persistentVolumeClaim != null) {
+        ["persistentVolumeClaim"] = value.persistentVolumeClaim.toMap()
+      }
+      when (value.hostPath != null) {
+        ["hostPath"] = value.hostPath.toMap()
+      }
+      when (value.projected != null) {
+        ["projected"] = value.projected.toMap()
+      }
+      when (value.csi != null) {
+        ["csi"] = value.csi.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderMetadata(value: ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderSpec(value: PodTemplateSpec) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.metadata != null) {
+        ["metadata"] = renderMetadata(value.metadata)
+      }
+      ["containers"] = value.containers.toList().map((c) -> renderContainer(c))
+      when (!value.initContainers.toList().isEmpty) {
+        ["initContainers"] = value.initContainers.toList()
+          .map((c) -> renderContainer(c))
+      }
+      when (!value.ephemeralContainers.toList().isEmpty) {
+        ["ephemeralContainers"] = value.ephemeralContainers.toList()
+          .map((c) -> renderContainer(c))
+      }
+      when (!value.volumes.toList().isEmpty) {
+        ["volumes"] = value.volumes.toList().map((v) -> renderVolume(v))
+      }
+      when (value.restartPolicy != null) {
+        ["restartPolicy"] = value.restartPolicy
+      }
+      when (value.terminationGracePeriodSeconds != null) {
+        ["terminationGracePeriodSeconds"] = value.terminationGracePeriodSeconds
+      }
+      when (value.activeDeadlineSeconds != null) {
+        ["activeDeadlineSeconds"] = value.activeDeadlineSeconds
+      }
+      when (value.dnsPolicy != null) {
+        ["dnsPolicy"] = value.dnsPolicy
+      }
+      when (value.serviceAccountName != null) {
+        ["serviceAccountName"] = value.serviceAccountName
+      }
+      when (value.automountServiceAccountToken != null) {
+        ["automountServiceAccountToken"] = value.automountServiceAccountToken
+      }
+      when (value.nodeName != null) { ["nodeName"] = value.nodeName }
+      when (value.hostNetwork != null) {
+        ["hostNetwork"] = value.hostNetwork
+      }
+      when (value.hostPID != null) { ["hostPID"] = value.hostPID }
+      when (value.hostIPC != null) { ["hostIPC"] = value.hostIPC }
+      when (value.shareProcessNamespace != null) {
+        ["shareProcessNamespace"] = value.shareProcessNamespace
+      }
+      when (value.securityContext != null) {
+        ["securityContext"] = renderSecurityContext(value.securityContext)
+      }
+      when (!value.imagePullSecrets.toList().isEmpty) {
+        ["imagePullSecrets"] = value.imagePullSecrets.toList()
+          .map((m) -> m.toMap())
+      }
+      when (value.affinity != null) {
+        ["affinity"] = value.affinity.toMap()
+      }
+      when (!value.tolerations.toList().isEmpty) {
+        ["tolerations"] = value.tolerations.toList().map((m) -> m.toMap())
+      }
+      when (!value.topologySpreadConstraints.toList().isEmpty) {
+        ["topologySpreadConstraints"] = value.topologySpreadConstraints
+          .toList().map((m) -> m.toMap())
+      }
+      when (value.schedulerName != null) {
+        ["schedulerName"] = value.schedulerName
+      }
+      when (value.priorityClassName != null) {
+        ["priorityClassName"] = value.priorityClassName
+      }
+      when (value.priority != null) { ["priority"] = value.priority }
+      when (!value.nodeSelector.toMap().isEmpty) {
+        ["nodeSelector"] = value.nodeSelector.toMap()
+      }
+      when (value.dnsConfig != null) {
+        ["dnsConfig"] = value.dnsConfig.toMap()
+      }
+      when (!value.readinessGates.toList().isEmpty) {
+        ["readinessGates"] = value.readinessGates.toList()
+          .map((m) -> m.toMap())
+      }
+      when (value.enableServiceLinks != null) {
+        ["enableServiceLinks"] = value.enableServiceLinks
+      }
+      when (value.runtimeClassName != null) {
+        ["runtimeClassName"] = value.runtimeClassName
+      }
+      when (!value.overhead.toMap().isEmpty) {
+        ["overhead"] = value.overhead.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      when (metadata != null) { ["metadata"] = renderMetadata(metadata) }
+      ["spec"] = renderSpec(spec)
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}

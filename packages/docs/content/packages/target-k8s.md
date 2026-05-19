@@ -26,12 +26,24 @@ features:
   - icon: "mdi:tune-vertical"
     title: helm-values/Values.pkl
     details: Common Helm values surface — ImageSpec, ServiceSpec, IngressSpec, ResourcesBlock, AutoscalingSpec, Probe.
+  - icon: "mdi:cube-outline"
+    title: podtemplate/PodTemplate.pkl
+    details: Shared pod-spec foundation — containers, ports, env, resources, probes, security context — reused by Deployment and friends.
+  - icon: "mdi:rocket-launch"
+    title: deployment/Deployment.pkl
+    details: Typed `apps/v1.Deployment` — replicas, RollingUpdate strategy, selector, template that reuses PodTemplate verbatim.
+  - icon: "mdi:lan-connect"
+    title: service/Service.pkl
+    details: Typed `v1.Service` — selector, ServicePort with typed protocol, externalTrafficPolicy, sessionAffinity, IP family policy.
+  - icon: "mdi:database-cog"
+    title: configmap/ConfigMap.pkl
+    details: Typed `v1.ConfigMap` — data + binaryData maps, immutable flag, shared ObjectMeta from podtemplate.
 ---
 
 ## Install
 
 ```pkl
-amends "package://pkg.example.invalid/target.k8s@0.1.0#/kustomization/Kustomization.pkl"
+amends "package://pkg.example.invalid/target.k8s@0.1.0#/deployment/Deployment.pkl"
 ```
 
 ## What This Package Emits
@@ -39,6 +51,10 @@ amends "package://pkg.example.invalid/target.k8s@0.1.0#/kustomization/Kustomizat
 - `kustomization.yaml`
 - `Chart.yaml`
 - `values.yaml`
+- `deployment.yaml`
+- `service.yaml`
+- `configmap.yaml`
+- `pod.yaml`
 
 ## Why This Package Exists
 

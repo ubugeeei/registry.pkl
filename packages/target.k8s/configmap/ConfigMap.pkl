@@ -1,0 +1,50 @@
+/// A typed authoring surface for a `v1.ConfigMap`.
+///
+/// Reference: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.31/#configmap-v1-core
+module target.k8s.configmap.ConfigMap
+
+import "@target.core/Maps.pkl" as Maps
+import "../podtemplate/PodTemplate.pkl" as Pod
+
+apiVersion: String = "v1"
+kind: String = "ConfigMap"
+metadata: Pod.ObjectMeta
+data: Mapping<String, String> = new Mapping {}
+binaryData: Mapping<String, String> = new Mapping {}
+immutable: Boolean? = null
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderMetadata(value: Pod.ObjectMeta) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.name != null) { ["name"] = value.name }
+      when (value.namespace != null) { ["namespace"] = value.namespace }
+      when (!value.labels.toMap().isEmpty) {
+        ["labels"] = value.labels.toMap()
+      }
+      when (!value.annotations.toMap().isEmpty) {
+        ["annotations"] = value.annotations.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      ["apiVersion"] = apiVersion
+      ["kind"] = kind
+      ["metadata"] = renderMetadata(metadata)
+      when (!data.toMap().isEmpty) { ["data"] = data.toMap() }
+      when (!binaryData.toMap().isEmpty) {
+        ["binaryData"] = binaryData.toMap()
+      }
+      when (immutable != null) { ["immutable"] = immutable }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new YamlRenderer {}
+}
