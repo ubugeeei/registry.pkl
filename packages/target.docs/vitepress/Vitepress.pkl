@@ -1,0 +1,251 @@
+/// A typed authoring surface for `.vitepress/config.json` (JSON projection).
+///
+/// VitePress canonically configures through `defineConfig({...})` in a
+/// TypeScript module. This module models the JSON-projectable subset
+/// — `themeConfig`, `nav`, `sidebar`, `locales`, head tags, transformers
+/// — so static portions of the config can be authored in Pkl and merged
+/// into the TS config via `JSON.parse(fs.readFileSync(...))`.
+module target.docs.vitepress.Vitepress
+
+import "@target.core/Maps.pkl" as Maps
+
+class NavItem {
+  text: String
+  link: String? = null
+  activeMatch: String? = null
+  target: String? = null
+  rel: String? = null
+  noIcon: Boolean? = null
+  items: Listing<NavItem> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class SidebarItem {
+  text: String? = null
+  link: String? = null
+  collapsed: Boolean? = null
+  items: Listing<SidebarItem> = new Listing {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class SocialLink {
+  icon: String
+  link: String
+  ariaLabel: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class FooterConfig {
+  message: String? = null
+  copyright: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class ThemeConfig {
+  logo: (String|Mapping<String, Any>)? = null
+  siteTitle: (String|Boolean)? = null
+  nav: Listing<NavItem> = new Listing {}
+  sidebar: (Listing<SidebarItem>|Mapping<String, Listing<SidebarItem>>)? = null
+  socialLinks: Listing<SocialLink> = new Listing {}
+  footer: FooterConfig? = null
+  editLink: Mapping<String, Any> = new Mapping {}
+  lastUpdated: Mapping<String, Any> = new Mapping {}
+  docFooter: Mapping<String, Any> = new Mapping {}
+  outline: (Int|Mapping<String, Any>)? = null
+  search: Mapping<String, Any> = new Mapping {}
+  carbonAds: Mapping<String, Any> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+class LocaleConfig {
+  label: String
+  lang: String? = null
+  link: String? = null
+  themeConfig: ThemeConfig? = null
+  description: String? = null
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+title: String? = null
+description: String? = null
+base: String? = null
+lang: String? = null
+cleanUrls: Boolean? = null
+lastUpdated: Boolean? = null
+appearance: (Boolean|"dark"|"force-dark")? = null
+ignoreDeadLinks: (Boolean|String|Listing<Any>)? = null
+metaChunk: Boolean? = null
+mpa: Boolean? = null
+srcDir: String? = null
+outDir: String? = null
+cacheDir: String? = null
+themeConfig: ThemeConfig? = null
+head: Listing<Listing<Any>> = new Listing {}
+locales: Mapping<String, LocaleConfig> = new Mapping {}
+markdown: Mapping<String, Any> = new Mapping {}
+sitemap: Mapping<String, Any> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderNavItem(value: NavItem) =
+  Maps.withExtra(
+    new Dynamic {
+      ["text"] = value.text
+      when (value.link != null) { ["link"] = value.link }
+      when (value.activeMatch != null) {
+        ["activeMatch"] = value.activeMatch
+      }
+      when (value.target != null) { ["target"] = value.target }
+      when (value.rel != null) { ["rel"] = value.rel }
+      when (value.noIcon != null) { ["noIcon"] = value.noIcon }
+      when (!value.items.toList().isEmpty) {
+        ["items"] = value.items.toList().map((i) -> renderNavItem(i))
+      }
+    },
+    value.extra,
+  )
+
+local function renderSidebarItem(value: SidebarItem) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.text != null) { ["text"] = value.text }
+      when (value.link != null) { ["link"] = value.link }
+      when (value.collapsed != null) {
+        ["collapsed"] = value.collapsed
+      }
+      when (!value.items.toList().isEmpty) {
+        ["items"] = value.items.toList().map((i) -> renderSidebarItem(i))
+      }
+    },
+    value.extra,
+  )
+
+local function renderSocialLink(value: SocialLink) =
+  Maps.withExtra(
+    new Dynamic {
+      ["icon"] = value.icon
+      ["link"] = value.link
+      when (value.ariaLabel != null) {
+        ["ariaLabel"] = value.ariaLabel
+      }
+    },
+    value.extra,
+  )
+
+local function renderFooter(value: FooterConfig) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.message != null) { ["message"] = value.message }
+      when (value.copyright != null) {
+        ["copyright"] = value.copyright
+      }
+    },
+    value.extra,
+  )
+
+local function renderTheme(value: ThemeConfig) =
+  Maps.withExtra(
+    new Dynamic {
+      when (value.logo != null) {
+        ["logo"] =
+          if (value.logo is Mapping) value.logo.toMap() else value.logo
+      }
+      when (value.siteTitle != null) { ["siteTitle"] = value.siteTitle }
+      when (!value.nav.toList().isEmpty) {
+        ["nav"] = value.nav.toList().map((n) -> renderNavItem(n))
+      }
+      when (value.sidebar != null) {
+        ["sidebar"] =
+          if (value.sidebar is Listing)
+            value.sidebar.toList().map((s) -> renderSidebarItem(s))
+          else
+            value.sidebar.toMap().mapValues(
+              (_, v) -> v.toList().map((s) -> renderSidebarItem(s)),
+            )
+      }
+      when (!value.socialLinks.toList().isEmpty) {
+        ["socialLinks"] = value.socialLinks.toList().map((s) -> renderSocialLink(s))
+      }
+      when (value.footer != null) {
+        ["footer"] = renderFooter(value.footer)
+      }
+      when (!value.editLink.toMap().isEmpty) {
+        ["editLink"] = value.editLink.toMap()
+      }
+      when (!value.lastUpdated.toMap().isEmpty) {
+        ["lastUpdated"] = value.lastUpdated.toMap()
+      }
+      when (!value.docFooter.toMap().isEmpty) {
+        ["docFooter"] = value.docFooter.toMap()
+      }
+      when (value.outline != null) {
+        ["outline"] =
+          if (value.outline is Mapping) value.outline.toMap() else value.outline
+      }
+      when (!value.search.toMap().isEmpty) {
+        ["search"] = value.search.toMap()
+      }
+      when (!value.carbonAds.toMap().isEmpty) {
+        ["carbonAds"] = value.carbonAds.toMap()
+      }
+    },
+    value.extra,
+  )
+
+local function renderLocale(value: LocaleConfig) =
+  Maps.withExtra(
+    new Dynamic {
+      ["label"] = value.label
+      when (value.lang != null) { ["lang"] = value.lang }
+      when (value.link != null) { ["link"] = value.link }
+      when (value.themeConfig != null) {
+        ["themeConfig"] = renderTheme(value.themeConfig)
+      }
+      when (value.description != null) {
+        ["description"] = value.description
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (title != null) { ["title"] = title }
+      when (description != null) { ["description"] = description }
+      when (base != null) { ["base"] = base }
+      when (lang != null) { ["lang"] = lang }
+      when (cleanUrls != null) { ["cleanUrls"] = cleanUrls }
+      when (lastUpdated != null) { ["lastUpdated"] = lastUpdated }
+      when (appearance != null) { ["appearance"] = appearance }
+      when (ignoreDeadLinks != null) {
+        ["ignoreDeadLinks"] =
+          if (ignoreDeadLinks is Listing) ignoreDeadLinks.toList() else ignoreDeadLinks
+      }
+      when (metaChunk != null) { ["metaChunk"] = metaChunk }
+      when (mpa != null) { ["mpa"] = mpa }
+      when (srcDir != null) { ["srcDir"] = srcDir }
+      when (outDir != null) { ["outDir"] = outDir }
+      when (cacheDir != null) { ["cacheDir"] = cacheDir }
+      when (themeConfig != null) {
+        ["themeConfig"] = renderTheme(themeConfig)
+      }
+      when (!head.toList().isEmpty) {
+        ["head"] = head.toList().map((entry) -> entry.toList())
+      }
+      when (!locales.toMap().isEmpty) {
+        ["locales"] = locales.toMap().mapValues((_, v) -> renderLocale(v))
+      }
+      when (!markdown.toMap().isEmpty) {
+        ["markdown"] = markdown.toMap()
+      }
+      when (!sitemap.toMap().isEmpty) {
+        ["sitemap"] = sitemap.toMap()
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}

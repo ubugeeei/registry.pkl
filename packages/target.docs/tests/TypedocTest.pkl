@@ -1,0 +1,47 @@
+/// Tests for `target.docs.typedoc.Typedoc` rendering.
+amends "pkl:test"
+
+import "../typedoc/Typedoc.pkl"
+
+local cfg = (Typedoc) {
+  entryPoints {
+    "src/index.ts"
+  }
+  entryPointStrategy = "resolve"
+  `out` = "dist/docs"
+  hideGenerator = true
+  excludeExternals = true
+  excludePrivate = true
+  plugin {
+    "typedoc-plugin-markdown"
+  }
+  theme = "default"
+  sort {
+    "alphabetical"
+  }
+  navigationLinks {
+    ["GitHub"] = "https://github.com/example/repo"
+  }
+}
+
+facts {
+  ["entryPoints list passes through"] {
+    cfg.rendered["entryPoints"] == List("src/index.ts")
+  }
+  ["out alias renders as out"] {
+    cfg.rendered["out"] == "dist/docs"
+  }
+  ["entry strategy renders"] {
+    cfg.rendered["entryPointStrategy"] == "resolve"
+  }
+  ["exclude flags pass through"] {
+    cfg.rendered["excludeExternals"] == true
+    cfg.rendered["excludePrivate"] == true
+  }
+  ["plugins list emits"] {
+    cfg.rendered["plugin"] == List("typedoc-plugin-markdown")
+  }
+  ["navigationLinks map passes through"] {
+    cfg.rendered["navigationLinks"]["GitHub"] == "https://github.com/example/repo"
+  }
+}

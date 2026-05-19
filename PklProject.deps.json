@@ -62,6 +62,11 @@
       "uri": "projectpackage://pkg.registry.invalid/target.python@0.1.0",
       "path": "packages/target.python"
     },
+    "package://pkg.registry.invalid/target.docs@0": {
+      "type": "local",
+      "uri": "projectpackage://pkg.registry.invalid/target.docs@0.1.0",
+      "path": "packages/target.docs"
+    },
     "package://pkg.registry.invalid/target.env@0": {
       "type": "local",
       "uri": "projectpackage://pkg.registry.invalid/target.env@0.1.0",

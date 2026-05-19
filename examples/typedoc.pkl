@@ -1,0 +1,40 @@
+amends "@target.docs/typedoc/Typedoc.pkl"
+
+`$schema` = "https://typedoc.org/schema.json"
+
+entryPoints {
+  "src/index.ts"
+}
+
+entryPointStrategy = "resolve"
+`out` = "dist/api"
+name = "registry-pkl-types"
+hideGenerator = true
+includeVersion = true
+gitHubPages = true
+
+exclude {
+  "**/*.test.ts"
+  "**/node_modules/**"
+}
+
+excludeExternals = true
+excludePrivate = true
+excludeInternal = true
+
+plugin {
+  "typedoc-plugin-markdown"
+}
+
+theme = "default"
+lightHighlightTheme = "github-light"
+darkHighlightTheme = "github-dark"
+
+sort {
+  "kind"
+  "alphabetical"
+}
+
+navigationLinks {
+  ["GitHub"] = "https://github.com/ubugeeei/registry.pkl"
+}

@@ -1,0 +1,56 @@
+amends "@target.docs/docusaurus/Docusaurus.pkl"
+
+title = "registry.pkl"
+tagline = "typed configuration distribution for the entire toolchain"
+url = "https://ubugeeei.github.io"
+baseUrl = "/registry.pkl/"
+favicon = "img/registry-mark.svg"
+organizationName = "ubugeeei"
+projectName = "registry.pkl"
+onBrokenLinks = "throw"
+onBrokenMarkdownLinks = "warn"
+trailingSlash = false
+
+themeConfig = new ThemeConfig {
+  navbar = new Navbar {
+    title = "registry.pkl"
+    hideOnScroll = true
+    items {
+      new NavbarItem {
+        type = "docSidebar"
+        sidebarId = "tutorial"
+        position = "left"
+        label = "Tutorial"
+      }
+      new NavbarItem {
+        href = "https://github.com/ubugeeei/registry.pkl"
+        label = "GitHub"
+        position = "right"
+      }
+    }
+  }
+  footer = new Footer {
+    style = "dark"
+    copyright = "Apache-2.0"
+    links {
+      new FooterLinkGroup {
+        title = "Docs"
+        items {
+          new FooterLink {
+            label = "Start Here"
+            to = "/start"
+          }
+        }
+      }
+      new FooterLinkGroup {
+        title = "More"
+        items {
+          new FooterLink {
+            label = "GitHub"
+            href = "https://github.com/ubugeeei/registry.pkl"
+          }
+        }
+      }
+    }
+  }
+}

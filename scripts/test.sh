@@ -16,6 +16,7 @@ FAMILIES=(
   target.python
   target.lint
   target.container
+  target.docs
 )
 
 failed=0
