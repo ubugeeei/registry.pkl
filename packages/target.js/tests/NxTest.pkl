@@ -1,0 +1,63 @@
+/// Tests for `target.js.nx.Nx` rendering.
+amends "pkl:test"
+
+import "../nx/Nx.pkl"
+
+local config = (Nx) {
+  defaultBase = "origin/main"
+  namedInputs {
+    ["default"] = new Listing<Nx.InputEntry> {
+      "{projectRoot}/**/*"
+      new Mapping<String, Any> {
+        ["runtime"] = "node -v"
+      }
+    }
+  }
+  targetDefaults {
+    ["build"] = new Nx.TargetDefault {
+      dependsOn { "^build" }
+      inputs { "default" }
+      outputs { "{projectRoot}/dist" }
+      cache = true
+    }
+    ["test"] = new Nx.TargetDefault {
+      cache = true
+    }
+  }
+  plugins {
+    "@nx/jest/plugin"
+    new Nx.PluginRef {
+      plugin = "@nx/eslint/plugin"
+      options {
+        ["targetName"] = "lint"
+      }
+    }
+  }
+  parallel = 3
+  useInferencePlugins = true
+}
+
+facts {
+  ["defaultBase passes through"] {
+    config.rendered["defaultBase"] == "origin/main"
+  }
+  ["named inputs render mixed string/object items"] {
+    config.rendered["namedInputs"]["default"][0] == "{projectRoot}/**/*"
+    config.rendered["namedInputs"]["default"][1] == Map("runtime", "node -v")
+  }
+  ["targetDefaults render dependsOn / inputs / outputs / cache"] {
+    local build = config.rendered["targetDefaults"]["build"]
+    build["dependsOn"] == List("^build")
+    build["inputs"] == List("default")
+    build["outputs"] == List("{projectRoot}/dist")
+    build["cache"] == true
+  }
+  ["plugin string and PluginRef coexist"] {
+    config.rendered["plugins"][0] == "@nx/jest/plugin"
+    config.rendered["plugins"][1] == Map("plugin", "@nx/eslint/plugin", "options", Map("targetName", "lint"))
+  }
+  ["scalars pass through"] {
+    config.rendered["parallel"] == 3
+    config.rendered["useInferencePlugins"] == true
+  }
+}

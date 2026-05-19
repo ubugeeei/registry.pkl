@@ -1,0 +1,42 @@
+/// Tests for `target.js.knip.Knip` rendering.
+amends "pkl:test"
+
+import "../knip/Knip.pkl"
+
+local config = (Knip) {
+  entry = new Listing<String> { "src/index.ts"; "src/cli.ts" }
+  project = "src/**/*.ts"
+  ignore { "**/*.test.ts" }
+  ignoreDependencies {
+    "@types/jest"
+  }
+  rules {
+    ["binaries"] = "off"
+    ["devDependencies"] = "warn"
+  }
+  workspaces {
+    ["packages/*"] = new Knip.WorkspaceConfig {
+      entry = "src/index.ts"
+      project = "src/**/*.ts"
+      ignore { "tests/**" }
+    }
+  }
+}
+
+facts {
+  ["entry listing flattens"] {
+    config.rendered["entry"] == List("src/index.ts", "src/cli.ts")
+  }
+  ["project string passes through"] {
+    config.rendered["project"] == "src/**/*.ts"
+  }
+  ["rules map passes through"] {
+    config.rendered["rules"] == Map("binaries", "off", "devDependencies", "warn")
+  }
+  ["workspaces nest entry + project + ignore"] {
+    local ws = config.rendered["workspaces"]["packages/*"]
+    ws["entry"] == "src/index.ts"
+    ws["project"] == "src/**/*.ts"
+    ws["ignore"] == List("tests/**")
+  }
+}

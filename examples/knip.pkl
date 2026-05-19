@@ -1,0 +1,42 @@
+amends "@target.js/knip/Knip.pkl"
+
+entry = new Listing<String> {
+  "src/index.ts"
+  "src/cli.ts"
+  "scripts/*.ts"
+}
+project = "src/**/*.ts"
+
+ignore {
+  "**/*.test.ts"
+  "**/__fixtures__/**"
+}
+
+ignoreBinaries {
+  "pkl"
+}
+
+ignoreDependencies {
+  "@types/jest"
+}
+
+rules {
+  ["binaries"] = "off"
+  ["devDependencies"] = "warn"
+  ["unlisted"] = "error"
+}
+
+workspaces {
+  ["packages/*"] = new WorkspaceConfig {
+    entry = "src/index.ts"
+    project = "src/**/*.ts"
+    ignore { "tests/**" }
+    rules {
+      ["unresolved"] = "warn"
+    }
+  }
+  ["apps/*"] = new WorkspaceConfig {
+    entry = new Listing<String> { "src/main.tsx"; "vite.config.ts" }
+    project = "src/**/*.{ts,tsx}"
+  }
+}

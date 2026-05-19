@@ -1,0 +1,110 @@
+/// A typed authoring surface for `knip.json` / `.knip.json`.
+///
+/// Knip's config is a workspace-rooted object that lets you declare
+/// entry points, project files, ignore patterns, dependency rules, and
+/// per-tool/plugin overrides. This module covers the top-level surface
+/// and a `WorkspaceConfig` for `workspaces[<glob>]` entries.
+module target.js.knip.Knip
+
+import "@target.core/Maps.pkl" as Maps
+
+typealias StringOrList = String|Listing<String>
+
+class WorkspaceConfig {
+  entry: StringOrList? = null
+  project: StringOrList? = null
+  ignore: Listing<String> = new Listing {}
+  ignoreBinaries: Listing<String> = new Listing {}
+  ignoreDependencies: Listing<String> = new Listing {}
+  paths: Mapping<String, Listing<String>> = new Mapping {}
+  rules: Mapping<String, "off"|"warn"|"error"> = new Mapping {}
+  extra: Mapping<String, Any> = new Mapping {}
+}
+
+`$schema`: String? = null
+entry: StringOrList? = null
+project: StringOrList? = null
+ignore: Listing<String> = new Listing {}
+ignoreBinaries: Listing<String> = new Listing {}
+ignoreDependencies: Listing<String> = new Listing {}
+ignoreExportsUsedInFile: (Boolean|Mapping<String, Boolean>)? = null
+includeEntryExports: Boolean? = null
+paths: Mapping<String, Listing<String>> = new Mapping {}
+rules: Mapping<String, "off"|"warn"|"error"> = new Mapping {}
+exclude: Listing<String> = new Listing {}
+include: Listing<String> = new Listing {}
+workspaces: Mapping<String, WorkspaceConfig> = new Mapping {}
+extra: Mapping<String, Any> = new Mapping {}
+
+local function renderStringOrList(value: StringOrList) =
+  if (value is Listing) value.toList() else value
+
+local function renderWorkspace(value: WorkspaceConfig) =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (value.entry != null) {
+        ["entry"] = renderStringOrList(value.entry)
+      }
+      when (value.project != null) {
+        ["project"] = renderStringOrList(value.project)
+      }
+      when (!value.ignore.toList().isEmpty) {
+        ["ignore"] = value.ignore.toList()
+      }
+      when (!value.ignoreBinaries.toList().isEmpty) {
+        ["ignoreBinaries"] = value.ignoreBinaries.toList()
+      }
+      when (!value.ignoreDependencies.toList().isEmpty) {
+        ["ignoreDependencies"] = value.ignoreDependencies.toList()
+      }
+      when (!value.paths.toMap().isEmpty) {
+        ["paths"] = value.paths.toMap().mapValues((_, l) -> l.toList())
+      }
+      when (!value.rules.toMap().isEmpty) {
+        ["rules"] = value.rules.toMap()
+      }
+    },
+    value.extra,
+  )
+
+hidden rendered =
+  Maps.withExtra(
+    new Mapping<String, Any> {
+      when (`$schema` != null) { ["$schema"] = `$schema` }
+      when (entry != null) { ["entry"] = renderStringOrList(entry) }
+      when (project != null) { ["project"] = renderStringOrList(project) }
+      when (!ignore.toList().isEmpty) { ["ignore"] = ignore.toList() }
+      when (!ignoreBinaries.toList().isEmpty) {
+        ["ignoreBinaries"] = ignoreBinaries.toList()
+      }
+      when (!ignoreDependencies.toList().isEmpty) {
+        ["ignoreDependencies"] = ignoreDependencies.toList()
+      }
+      when (ignoreExportsUsedInFile != null) {
+        ["ignoreExportsUsedInFile"] =
+          if (ignoreExportsUsedInFile is Mapping)
+            ignoreExportsUsedInFile.toMap()
+          else
+            ignoreExportsUsedInFile
+      }
+      when (includeEntryExports != null) {
+        ["includeEntryExports"] = includeEntryExports
+      }
+      when (!paths.toMap().isEmpty) {
+        ["paths"] = paths.toMap().mapValues((_, l) -> l.toList())
+      }
+      when (!rules.toMap().isEmpty) { ["rules"] = rules.toMap() }
+      when (!exclude.toList().isEmpty) { ["exclude"] = exclude.toList() }
+      when (!include.toList().isEmpty) { ["include"] = include.toList() }
+      when (!workspaces.toMap().isEmpty) {
+        ["workspaces"] = workspaces.toMap()
+          .mapValues((_, w) -> renderWorkspace(w))
+      }
+    },
+    extra,
+  )
+
+output {
+  value = rendered
+  renderer = new JsonRenderer {}
+}
